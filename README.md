@@ -29,9 +29,14 @@ mock-ups.
 
 Layered with enforced seams (see [`deptrac.yaml`](deptrac.yaml)):
 
-- **Contracts** — interfaces the engine and composition root share.
-- **Core** — the archive/sitemap engine and pagination logic.
-- **Bootstrap** — the composition root; the only layer that wires to WordPress.
+- **Contracts** — the shared seam: persistence interfaces and the framework-free
+  settings value objects. Depends on nothing internal.
+- **Core** — the engine: the WordPress-backed settings repository and (upcoming)
+  the archive/sitemap generator and pagination logic. Depends only on Contracts.
+- **Admin** — the WordPress admin surface (settings page, form rendering and
+  parsing). Depends on Contracts + Core.
+- **Bootstrap** — the composition root; the only layer that wires everything
+  together against WordPress hooks.
 
 Gated out of the box:
 
