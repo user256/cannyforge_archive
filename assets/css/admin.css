@@ -1,0 +1,89 @@
+/* CannyForge Archive — admin settings page styling (ticket 108).
+ * Applies the CannyForge design system to the plugin's settings screen without
+ * fighting core admin usability. Light mode only (per ticket scope). */
+
+.cannyforge-archive-settings {
+	--cf-violet: #6d4aff;
+	--cf-royal: #372580;
+	--cf-ink: #1b143f;
+	--cf-lavender: #f7f5ff;
+	--cf-lavender-tint: #e2dbff;
+	--cf-gold: #ca8a04;
+	--cf-border: #e5e7eb;
+
+	max-width: 1200px;
+	color: var(--cf-ink);
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.cannyforge-archive-settings .cannyforge-archive-brand {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 1rem 0 1.25rem;
+	border-bottom: 1px solid var(--cf-border);
+	margin-bottom: 1.5rem;
+}
+
+.cannyforge-archive-settings .cannyforge-archive-brand__logo {
+	height: 32px;
+	width: auto;
+}
+
+.cannyforge-archive-settings h1 {
+	font-family: "Instrument Serif", Georgia, serif;
+	font-weight: 400;
+	letter-spacing: -0.03em;
+	color: var(--cf-royal);
+	margin: 0;
+}
+
+.cannyforge-archive-settings h2 {
+	color: var(--cf-royal);
+	font-size: 1.05rem;
+	margin-top: 1.5rem;
+}
+
+.cannyforge-archive-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 28px;
+}
+
+.cannyforge-archive-col {
+	background: rgba(255, 255, 255, 0.88);
+	border: 1px solid var(--cf-border);
+	border-top: 3px solid var(--cf-gold);
+	border-radius: 24px;
+	padding: 1.5rem;
+	box-shadow: 0 14px 34px rgba(59, 37, 128, 0.08);
+}
+
+.cannyforge-archive-settings input[type="number"],
+.cannyforge-archive-settings input[type="url"],
+.cannyforge-archive-settings textarea {
+	border-radius: 16px;
+	border: 1px solid #d1d5db;
+	padding: 0.5rem 0.75rem;
+	font: inherit;
+}
+
+.cannyforge-archive-settings input:focus,
+.cannyforge-archive-settings textarea:focus {
+	outline: none;
+	border-color: var(--cf-violet);
+	box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.12);
+}
+
+.cannyforge-archive-settings .button-primary {
+	background: var(--cf-violet);
+	border-color: var(--cf-violet);
+	border-radius: 999px;
+	padding: 0.35rem 1.25rem;
+	font-weight: 700;
+}
+
+.cannyforge-archive-settings .description {
+	color: #9ca3af;
+	font-size: 0.85rem;
+}

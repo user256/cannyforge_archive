@@ -21,11 +21,12 @@ class SettingsViewTest extends TestCase {
 	 * Render to a string.
 	 *
 	 * @param Settings $settings Settings to render.
+	 * @param string   $base_url Plugin base URL (for the brand logo).
 	 * @return string
 	 */
-	private function render( Settings $settings ): string {
+	private function render( Settings $settings, string $base_url = '' ): string {
 		ob_start();
-		( new SettingsView() )->render( $settings, 'admin.php?page=cannyforge-archive' );
+		( new SettingsView( $base_url ) )->render( $settings, 'admin.php?page=cannyforge-archive' );
 		return (string) ob_get_clean();
 	}
 
@@ -75,6 +76,11 @@ class SettingsViewTest extends TestCase {
 				'name="filter_tag"',
 				'name="filter_month_year"',
 				'name="filter_author"',
+				'name="target_category"',
+				'name="target_tag"',
+				'name="target_author"',
+				'name="target_date"',
+				'name="archive_url"',
 				SettingsView::NONCE_FIELD,
 			) as $needle
 		) {
@@ -83,15 +89,41 @@ class SettingsViewTest extends TestCase {
 	}
 
 	/**
-	 * Default link-type/filter state is reflected in the checkboxes.
+	 * Default link-type/filter/targeting state is reflected in the checkboxes.
 	 *
 	 * @return void
 	 */
 	public function test_defaults_are_checked(): void {
 		$html = $this->render( new Settings() );
 
-		// Title default-on; author default-off.
+		// Title default-on; author default-off; targeting defaults (cat/tag on).
 		$this->assertMatchesRegularExpression( '/name="link_title"[^>]*checked/', $html );
 		$this->assertDoesNotMatchRegularExpression( '/name="filter_author"[^>]*checked/', $html );
+		$this->assertMatchesRegularExpression( '/name="target_category"[^>]*checked/', $html );
+		$this->assertDoesNotMatchRegularExpression( '/name="target_date"[^>]*checked/', $html );
+	}
+
+	/**
+	 * When a base URL is supplied, the CannyForge brand logo is rendered.
+	 *
+	 * @return void
+	 */
+	public function test_renders_brand_logo_when_base_url_set(): void {
+		$html = $this->render( new Settings(), 'http://example.test/wp-content/plugins/cannyforge-archive/' );
+
+		$this->assertStringContainsString( 'cannyforge-archive-brand__logo', $html );
+		$this->assertStringContainsString( 'assets/branding/cannyforge-font-dark.svg', $html );
+	}
+
+	/**
+	 * With no base URL, the header still renders the title but no logo image.
+	 *
+	 * @return void
+	 */
+	public function test_omits_logo_without_base_url(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringContainsString( 'HTML Sitemap Generator Settings', $html );
+		$this->assertStringNotContainsString( 'cannyforge-archive-brand__logo', $html );
 	}
 }

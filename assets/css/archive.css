@@ -1,9 +1,54 @@
 /* CannyForge Archive — front-end archive styles.
- * Functional layout for the archive and its client-side filters (ticket 106).
- * Brand tokens (palette/typography) are layered on in ticket 108. */
+ * Functional layout for the archive and its client-side filters (ticket 106),
+ * plus the CannyForge brand tokens applied in ticket 108. */
 
 .cannyforge-archive {
+	--cf-violet: #6d4aff;
+	--cf-royal: #372580;
+	--cf-ink: #1b143f;
+	--cf-gold: #ca8a04;
+	--cf-border: #e5e7eb;
+
 	margin: 1.5rem 0;
+	color: var(--cf-ink);
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.cannyforge-archive__link {
+	color: var(--cf-violet);
+	text-decoration: none;
+}
+
+.cannyforge-archive__link:hover {
+	text-decoration: underline;
+}
+
+.cannyforge-pagination {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 1.5rem 0;
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.cannyforge-pagination__page,
+.cannyforge-pagination__archive {
+	border-radius: 999px;
+	padding: 0.35rem 0.85rem;
+	text-decoration: none;
+	color: var(--cf-violet);
+	border: 1px solid var(--cf-border);
+}
+
+.cannyforge-pagination__page.is-current {
+	background: var(--cf-violet);
+	color: #fff;
+	border-color: var(--cf-violet);
+}
+
+.cannyforge-pagination__archive {
+	border-color: rgba(202, 138, 4, 0.42);
+	font-weight: 700;
 }
 
 .cannyforge-archive-filters {
@@ -15,8 +60,17 @@
 
 .cannyforge-archive-filters__search,
 .cannyforge-archive-filters__select {
-	padding: 0.4rem 0.6rem;
+	padding: 0.5rem 0.75rem;
 	font: inherit;
+	border: 1px solid #d1d5db;
+	border-radius: 16px;
+}
+
+.cannyforge-archive-filters__search:focus,
+.cannyforge-archive-filters__select:focus {
+	outline: none;
+	border-color: var(--cf-violet);
+	box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.12);
 }
 
 .cannyforge-archive-filters__search {

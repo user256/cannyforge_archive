@@ -31,6 +31,22 @@ final class SettingsView {
 	public const NONCE_ACTION = 'cannyforge_archive_save_settings';
 
 	/**
+	 * Plugin base URL, for the brand logo (empty = omit the logo).
+	 *
+	 * @var string
+	 */
+	private string $base_url;
+
+	/**
+	 * Construct the view.
+	 *
+	 * @param string $base_url Plugin base URL (trailing slash optional).
+	 */
+	public function __construct( string $base_url = '' ) {
+		$this->base_url = '' !== $base_url ? rtrim( $base_url, '/' ) . '/' : '';
+	}
+
+	/**
 	 * Render the whole settings page.
 	 *
 	 * @param Settings $settings  Current settings to populate the form with.
@@ -39,7 +55,7 @@ final class SettingsView {
 	 */
 	public function render( Settings $settings, string $action_url ): void {
 		echo '<div class="wrap cannyforge-archive-settings">';
-		printf( '<h1>%s</h1>', esc_html__( 'HTML Sitemap Generator Settings', 'cannyforge-archive' ) );
+		$this->render_brand_header();
 
 		printf( '<form method="post" action="%s">', esc_url( $action_url ) );
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
@@ -59,6 +75,29 @@ final class SettingsView {
 
 		submit_button( __( 'Save', 'cannyforge-archive' ) );
 		echo '</form>';
+		echo '</div>';
+	}
+
+	/**
+	 * Render the branded page header (logo + title).
+	 *
+	 * The CannyForge wordmark is shown when a base URL is configured; the page
+	 * title always renders so the header is meaningful without the asset.
+	 *
+	 * @return void
+	 */
+	private function render_brand_header(): void {
+		echo '<div class="cannyforge-archive-brand">';
+
+		if ( '' !== $this->base_url ) {
+			printf(
+				'<img class="cannyforge-archive-brand__logo" src="%s" alt="%s">',
+				esc_url( $this->base_url . 'assets/branding/cannyforge-font-dark.svg' ),
+				esc_attr__( 'CannyForge', 'cannyforge-archive' )
+			);
+		}
+
+		printf( '<h1>%s</h1>', esc_html__( 'HTML Sitemap Generator Settings', 'cannyforge-archive' ) );
 		echo '</div>';
 	}
 

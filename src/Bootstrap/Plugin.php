@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Bootstrap;
 
+use CannyForge\Archive\Admin\AdminAssets;
 use CannyForge\Archive\Admin\SettingsFormParser;
 use CannyForge\Archive\Admin\SettingsPage;
 use CannyForge\Archive\Admin\SettingsView;
@@ -50,9 +51,12 @@ class Plugin {
 		$page = new SettingsPage(
 			new OptionsSettingsRepository(),
 			new SettingsFormParser(),
-			new SettingsView()
+			new SettingsView( $this->base_url() )
 		);
 		$page->register();
+
+		$assets = new AdminAssets( $this->base_url(), $this->version() );
+		$assets->register();
 	}
 
 	/**
