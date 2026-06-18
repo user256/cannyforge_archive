@@ -16,8 +16,11 @@ use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\BlogEntryProvider;
 use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
+use CannyForge\Archive\Core\Pagination\PaginationRenderer;
+use CannyForge\Archive\Core\Pagination\TargetingPredicate;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchivePage;
+use CannyForge\Archive\Frontend\PaginationController;
 
 /**
  * Composition root for CannyForge Archive.
@@ -71,5 +74,12 @@ class Plugin {
 			new ArchiveRenderer()
 		);
 		$page->register();
+
+		$pagination = new PaginationController(
+			new OptionsSettingsRepository(),
+			new TargetingPredicate(),
+			new PaginationRenderer()
+		);
+		$pagination->register();
 	}
 }

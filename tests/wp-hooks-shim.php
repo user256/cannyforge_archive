@@ -24,6 +24,71 @@ if ( ! function_exists( 'add_action' ) ) {
 	}
 }
 
+if ( ! function_exists( 'add_filter' ) ) {
+	/**
+	 * Record a filter registration.
+	 *
+	 * @param string   $hook     Hook name.
+	 * @param callable $callback Callback.
+	 * @return bool
+	 */
+	function add_filter( string $hook, callable $callback ): bool {
+		\CannyForge\Archive\Tests\HookSpy::record( 'filter:' . $hook, $callback );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'add_shortcode' ) ) {
+	/**
+	 * Record a shortcode registration.
+	 *
+	 * @param string   $tag      Shortcode tag.
+	 * @param callable $callback Callback.
+	 * @return void
+	 */
+	function add_shortcode( string $tag, callable $callback ): void {
+		\CannyForge\Archive\Tests\HookSpy::record( 'shortcode:' . $tag, $callback );
+	}
+}
+
+if ( ! function_exists( 'get_query_var' ) ) {
+	/**
+	 * Read a query var, returning the supplied fallback in the test runtime.
+	 *
+	 * @param string $query_var Query var name.
+	 * @param mixed  $fallback  Value returned when unset.
+	 * @return mixed
+	 */
+	function get_query_var( string $query_var, $fallback = '' ) {
+		unset( $query_var );
+		return $fallback;
+	}
+}
+
+if ( ! function_exists( 'get_pagenum_link' ) ) {
+	/**
+	 * Build a paginated URL for the given page.
+	 *
+	 * @param int $page Page number.
+	 * @return string
+	 */
+	function get_pagenum_link( int $page ): string {
+		return 'http://example.test/page/' . $page . '/';
+	}
+}
+
+if ( ! function_exists( 'home_url' ) ) {
+	/**
+	 * Build a home URL.
+	 *
+	 * @param string $path Path under the site root.
+	 * @return string
+	 */
+	function home_url( string $path = '' ): string {
+		return 'http://example.test' . $path;
+	}
+}
+
 if ( ! function_exists( 'add_menu_page' ) ) {
 	/**
 	 * Record a menu-page registration and return the hook suffix.

@@ -82,6 +82,13 @@ final class SettingsView {
 			'<input type="number" min="1" name="pagination_limit" value="%d"></label></p>',
 			absint( $settings->pagination_limit() )
 		);
+
+		echo '<p><label>' . esc_html__( '"View Archive" link URL (optional)', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<input type="url" name="archive_url" value="%s" placeholder="%s"></label></p>',
+			esc_attr( $settings->archive_url() ),
+			esc_attr__( 'Defaults to the archive page', 'cannyforge-archive' )
+		);
 	}
 
 	/**

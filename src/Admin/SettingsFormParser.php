@@ -30,6 +30,7 @@ final class SettingsFormParser {
 			array(
 				'mode'              => $this->string( $input, 'mode' ),
 				'pagination_limit'  => $this->string( $input, 'pagination_limit' ),
+				'archive_url'       => $this->string( $input, 'archive_url' ),
 				'news_window_hours' => $this->string( $input, 'news_window_hours' ),
 				'blog_max_urls'     => $this->string( $input, 'blog_max_urls' ),
 				'link_types'        => array(

@@ -42,6 +42,16 @@ final class HookSpy {
 	}
 
 	/**
+	 * The first callback registered for a hook, or null when none.
+	 *
+	 * @param string $hook Hook name.
+	 * @return callable|null
+	 */
+	public static function first( string $hook ): ?callable {
+		return self::$hooks[ $hook ][0] ?? null;
+	}
+
+	/**
 	 * Clear all recorded hooks (call between tests for isolation).
 	 *
 	 * @return void

@@ -89,6 +89,13 @@ final class Settings {
 	private array $blog_urls;
 
 	/**
+	 * Optional "View Archive" link destination override (empty = endpoint URL).
+	 *
+	 * @var string
+	 */
+	private string $archive_url;
+
+	/**
 	 * Construct a settings snapshot.
 	 *
 	 * @param Mode      $mode              Archive mode.
@@ -99,6 +106,7 @@ final class Settings {
 	 * @param int       $blog_max_urls     Blog top-URL cap.
 	 * @param string[]  $blog_urls         Blog URL list.
 	 * @param Targeting $targeting         Archive-type targeting toggles.
+	 * @param string    $archive_url       "View Archive" link destination override.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -108,7 +116,8 @@ final class Settings {
 		int $news_window_hours = 72,
 		int $blog_max_urls = 100,
 		array $blog_urls = array(),
-		?Targeting $targeting = null
+		?Targeting $targeting = null,
+		string $archive_url = ''
 	) {
 		$this->mode              = $mode;
 		$this->pagination_limit  = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
@@ -118,6 +127,7 @@ final class Settings {
 		$this->blog_max_urls     = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
 		$this->blog_urls         = array_values( $blog_urls );
 		$this->targeting         = $targeting ?? new Targeting();
+		$this->archive_url       = trim( $archive_url );
 	}
 
 	/**
@@ -166,6 +176,15 @@ final class Settings {
 	}
 
 	/**
+	 * The "View Archive" link destination override (empty = use endpoint URL).
+	 *
+	 * @return string
+	 */
+	public function archive_url(): string {
+		return $this->archive_url;
+	}
+
+	/**
 	 * News recent window in hours.
 	 *
 	 * @return int
@@ -208,7 +227,8 @@ final class Settings {
 			self::to_int( $data['news_window_hours'] ?? null, 72 ),
 			self::to_int( $data['blog_max_urls'] ?? null, 100 ),
 			self::string_list( $data['blog_urls'] ?? array() ),
-			Targeting::from_array( self::sub_array( $data, 'targeting' ) )
+			Targeting::from_array( self::sub_array( $data, 'targeting' ) ),
+			self::to_string( $data['archive_url'] ?? null )
 		);
 	}
 
@@ -227,6 +247,7 @@ final class Settings {
 			'blog_max_urls'     => $this->blog_max_urls,
 			'blog_urls'         => $this->blog_urls,
 			'targeting'         => $this->targeting->to_array(),
+			'archive_url'       => $this->archive_url,
 		);
 	}
 
@@ -251,6 +272,16 @@ final class Settings {
 	 */
 	private static function to_int( mixed $value, int $fallback ): int {
 		return is_numeric( $value ) ? (int) $value : $fallback;
+	}
+
+	/**
+	 * Coerce a raw scalar into a trimmed string, defaulting to empty.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return string
+	 */
+	private static function to_string( mixed $value ): string {
+		return is_scalar( $value ) ? trim( (string) $value ) : '';
 	}
 
 	/**
