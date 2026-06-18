@@ -54,6 +54,10 @@ if ( ! defined( 'EP_ROOT' ) ) {
 	define( 'EP_ROOT', 64 );
 }
 
+if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+	define( 'HOUR_IN_SECONDS', 3600 );
+}
+
 if ( ! function_exists( 'add_rewrite_endpoint' ) ) {
 	/**
 	 * Record a rewrite-endpoint registration.
