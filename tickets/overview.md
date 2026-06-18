@@ -9,7 +9,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | Area | State | Outstanding / next |
 |------|--------|---------------------|
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
-| **Sprint 1 — Settings & MVP** | In progress | 101–110 done; content selection (111) and review gate (199) remaining. |
+| **Sprint 1 — Settings & MVP** | In progress | 101–111 done; review gate (199) remaining. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -30,7 +30,7 @@ tool. Blog mode uses manual / CSV URL entry only — analytics-driven URL sourci
 - [x] 108 — Branding & admin styling (CannyForge design system)
 - [x] 109 — Archive-type targeting controls (where pagination replacement applies)
 - [x] 110 — SEO controls (title, meta description, index/follow, canonical)
-- [ ] 111 — Content selection: include/exclude, noindex, pinned-priority URLs
+- [x] 111 — Content selection: include/exclude, noindex, pinned-priority URLs
 - [ ] 199 — Sprint 1 review gate (Go / No-Go)
 
 ## Ticket numbering

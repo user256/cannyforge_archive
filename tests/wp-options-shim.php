@@ -25,6 +25,21 @@ if ( ! function_exists( 'get_option' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_post_meta' ) ) {
+	/**
+	 * In-memory get_post_meta stub: no meta in the test runtime.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param bool   $single  Whether to return a single value.
+	 * @return mixed
+	 */
+	function get_post_meta( int $post_id, string $key = '', bool $single = false ) {
+		unset( $post_id, $key );
+		return $single ? '' : array();
+	}
+}
+
 if ( ! function_exists( 'update_option' ) ) {
 	/**
 	 * In-memory update_option.

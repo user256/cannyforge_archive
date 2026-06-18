@@ -86,6 +86,10 @@ class SettingsViewTest extends TestCase {
 				'name="seo_index"',
 				'name="seo_follow"',
 				'name="seo_canonical"',
+				'name="select_include_categories"',
+				'name="select_exclude_tags"',
+				'name="select_exclude_noindex"',
+				'name="select_pinned_urls"',
 				SettingsView::NONCE_FIELD,
 			) as $needle
 		) {

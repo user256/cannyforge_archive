@@ -15,8 +15,10 @@ use CannyForge\Archive\Admin\SettingsPage;
 use CannyForge\Archive\Admin\SettingsView;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\BlogEntryProvider;
+use CannyForge\Archive\Core\Archive\ContentSelector;
 use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
+use CannyForge\Archive\Core\Archive\SelectingEntryProvider;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use CannyForge\Archive\Core\Pagination\TargetingPredicate;
 use CannyForge\Archive\Core\Seo\HeadTagBuilder;
@@ -70,9 +72,12 @@ class Plugin {
 	 * @return void
 	 */
 	private function register_frontend(): void {
-		$provider = new ModeEntryProvider(
-			new NewsEntryProvider(),
-			new BlogEntryProvider()
+		$provider = new SelectingEntryProvider(
+			new ModeEntryProvider(
+				new NewsEntryProvider(),
+				new BlogEntryProvider()
+			),
+			new ContentSelector()
 		);
 
 		$page = new ArchivePage(

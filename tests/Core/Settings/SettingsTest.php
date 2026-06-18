@@ -79,6 +79,12 @@ class SettingsTest extends TestCase {
 					'follow'           => true,
 					'canonical'        => 'https://example.com/canonical/',
 				),
+				'content_selection' => array(
+					'include_categories' => array( 'News' ),
+					'exclude_tags'       => array( 'spoiler' ),
+					'exclude_noindex'    => true,
+					'pinned_urls'        => array( 'https://example.com/pin/' ),
+				),
 			)
 		);
 
@@ -93,6 +99,9 @@ class SettingsTest extends TestCase {
 		$this->assertSame( 'https://example.com/all/', $restored->archive_url() );
 		$this->assertSame( 'noindex,follow', $restored->seo()->robots() );
 		$this->assertSame( 'https://example.com/canonical/', $restored->seo()->canonical() );
+		$this->assertSame( array( 'News' ), $restored->content_selection()->include_categories() );
+		$this->assertTrue( $restored->content_selection()->exclude_noindex() );
+		$this->assertSame( array( 'https://example.com/pin/' ), $restored->content_selection()->pinned_urls() );
 	}
 
 	/**

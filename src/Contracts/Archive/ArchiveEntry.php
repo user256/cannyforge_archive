@@ -75,6 +75,13 @@ final class ArchiveEntry {
 	private string $published_date;
 
 	/**
+	 * Whether the source content is marked noindex.
+	 *
+	 * @var bool
+	 */
+	private bool $noindex;
+
+	/**
 	 * Construct an entry.
 	 *
 	 * @param string   $url                The entry URL.
@@ -85,6 +92,7 @@ final class ArchiveEntry {
 	 * @param string[] $tags               Tag labels.
 	 * @param string   $author             Author label.
 	 * @param string   $published_date     Publication date (Y-m-d).
+	 * @param bool     $noindex            Whether the source is marked noindex.
 	 */
 	public function __construct(
 		string $url,
@@ -94,7 +102,8 @@ final class ArchiveEntry {
 		array $categories = array(),
 		array $tags = array(),
 		string $author = '',
-		string $published_date = ''
+		string $published_date = '',
+		bool $noindex = false
 	) {
 		$this->url                = $url;
 		$this->title              = $title;
@@ -104,6 +113,7 @@ final class ArchiveEntry {
 		$this->tags               = array_values( $tags );
 		$this->author             = $author;
 		$this->published_date     = $published_date;
+		$this->noindex            = $noindex;
 	}
 
 	/**
@@ -185,5 +195,14 @@ final class ArchiveEntry {
 	 */
 	public function published_month(): string {
 		return '' !== $this->published_date ? substr( $this->published_date, 0, 7 ) : '';
+	}
+
+	/**
+	 * Whether the source content is marked noindex.
+	 *
+	 * @return bool
+	 */
+	public function is_noindex(): bool {
+		return $this->noindex;
 	}
 }

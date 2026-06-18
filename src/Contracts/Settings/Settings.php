@@ -103,18 +103,26 @@ final class Settings {
 	private Seo $seo;
 
 	/**
+	 * Content-selection rules applied to the entries before rendering.
+	 *
+	 * @var ContentSelection
+	 */
+	private ContentSelection $content_selection;
+
+	/**
 	 * Construct a settings snapshot.
 	 *
-	 * @param Mode      $mode              Archive mode.
-	 * @param int       $pagination_limit  Pages before the archive link.
-	 * @param LinkTypes $link_types        Entry field toggles.
-	 * @param Filters   $filters           Client-side filter toggles.
-	 * @param int       $news_window_hours News recent window in hours.
-	 * @param int       $blog_max_urls     Blog top-URL cap.
-	 * @param string[]  $blog_urls         Blog URL list.
-	 * @param Targeting $targeting         Archive-type targeting toggles.
-	 * @param string    $archive_url       "View Archive" link destination override.
-	 * @param Seo       $seo               Archive-page SEO settings.
+	 * @param Mode             $mode              Archive mode.
+	 * @param int              $pagination_limit  Pages before the archive link.
+	 * @param LinkTypes        $link_types        Entry field toggles.
+	 * @param Filters          $filters           Client-side filter toggles.
+	 * @param int              $news_window_hours News recent window in hours.
+	 * @param int              $blog_max_urls     Blog top-URL cap.
+	 * @param string[]         $blog_urls         Blog URL list.
+	 * @param Targeting        $targeting         Archive-type targeting toggles.
+	 * @param string           $archive_url       "View Archive" link destination override.
+	 * @param Seo              $seo               Archive-page SEO settings.
+	 * @param ContentSelection $content_selection Content-selection rules.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -126,7 +134,8 @@ final class Settings {
 		array $blog_urls = array(),
 		?Targeting $targeting = null,
 		string $archive_url = '',
-		?Seo $seo = null
+		?Seo $seo = null,
+		?ContentSelection $content_selection = null
 	) {
 		$this->mode              = $mode;
 		$this->pagination_limit  = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
@@ -138,6 +147,7 @@ final class Settings {
 		$this->targeting         = $targeting ?? new Targeting();
 		$this->archive_url       = trim( $archive_url );
 		$this->seo               = $seo ?? new Seo();
+		$this->content_selection = $content_selection ?? new ContentSelection();
 	}
 
 	/**
@@ -204,6 +214,15 @@ final class Settings {
 	}
 
 	/**
+	 * The content-selection rules.
+	 *
+	 * @return ContentSelection
+	 */
+	public function content_selection(): ContentSelection {
+		return $this->content_selection;
+	}
+
+	/**
 	 * News recent window in hours.
 	 *
 	 * @return int
@@ -248,7 +267,8 @@ final class Settings {
 			self::string_list( $data['blog_urls'] ?? array() ),
 			Targeting::from_array( self::sub_array( $data, 'targeting' ) ),
 			self::to_string( $data['archive_url'] ?? null ),
-			Seo::from_array( self::sub_array( $data, 'seo' ) )
+			Seo::from_array( self::sub_array( $data, 'seo' ) ),
+			ContentSelection::from_array( self::sub_array( $data, 'content_selection' ) )
 		);
 	}
 
@@ -269,6 +289,7 @@ final class Settings {
 			'targeting'         => $this->targeting->to_array(),
 			'archive_url'       => $this->archive_url,
 			'seo'               => $this->seo->to_array(),
+			'content_selection' => $this->content_selection->to_array(),
 		);
 	}
 

@@ -71,6 +71,7 @@ final class SettingsView {
 
 		echo '<div class="cannyforge-archive-col">';
 		$this->render_mode_panel( $settings );
+		$this->render_content_selection( $settings );
 		echo '</div>';
 		echo '</div>';
 
@@ -239,6 +240,42 @@ final class SettingsView {
 		echo '<p><textarea name="blog_urls" rows="8" cols="50">';
 		echo esc_textarea( implode( "\n", $settings->blog_urls() ) );
 		echo '</textarea></p>';
+	}
+
+	/**
+	 * Render the content-selection controls (ticket 111).
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return void
+	 */
+	private function render_content_selection( Settings $settings ): void {
+		$selection = $settings->content_selection();
+
+		echo '<h2>' . esc_html__( 'Content Selection', 'cannyforge-archive' ) . '</h2>';
+
+		$this->list_field( 'select_include_categories', __( 'Include categories', 'cannyforge-archive' ), $selection->include_categories() );
+		$this->list_field( 'select_include_tags', __( 'Include tags', 'cannyforge-archive' ), $selection->include_tags() );
+		$this->list_field( 'select_exclude_categories', __( 'Exclude categories', 'cannyforge-archive' ), $selection->exclude_categories() );
+		$this->list_field( 'select_exclude_tags', __( 'Exclude tags', 'cannyforge-archive' ), $selection->exclude_tags() );
+		$this->checkbox( 'select_exclude_noindex', __( 'Exclude noindex content', 'cannyforge-archive' ), $selection->exclude_noindex() );
+		$this->list_field( 'select_pinned_urls', __( 'Pinned URLs (shown first)', 'cannyforge-archive' ), $selection->pinned_urls() );
+	}
+
+	/**
+	 * Render a labelled textarea holding one value per line.
+	 *
+	 * @param string   $name   Field name.
+	 * @param string   $label  Human label.
+	 * @param string[] $values Current values.
+	 * @return void
+	 */
+	private function list_field( string $name, string $label, array $values ): void {
+		printf( '<p><label>%s<br>', esc_html( $label ) );
+		printf(
+			'<textarea name="%s" rows="3" cols="40">%s</textarea></label></p>',
+			esc_attr( $name ),
+			esc_textarea( implode( "\n", $values ) )
+		);
 	}
 
 	/**

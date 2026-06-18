@@ -119,8 +119,28 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 			$this->term_names( $post_id, 'category' ),
 			$this->term_names( $post_id, 'post_tag' ),
 			get_the_author_meta( 'display_name', (int) $post->post_author ),
-			is_string( $date ) ? $date : ''
+			is_string( $date ) ? $date : '',
+			$this->is_noindex( $post_id )
 		);
+	}
+
+	/**
+	 * Whether the post is marked noindex by a common SEO plugin meta key.
+	 *
+	 * Plugin-agnostic: reads the Yoast / Rank Math noindex markers without taking
+	 * a dependency on either plugin. Unknown / absent meta means indexable.
+	 *
+	 * @param int $post_id The post ID.
+	 * @return bool
+	 */
+	private function is_noindex( int $post_id ): bool {
+		if ( '1' === get_post_meta( $post_id, '_yoast_wpseo_meta-robots-noindex', true ) ) {
+			return true;
+		}
+
+		$rank_math = get_post_meta( $post_id, 'rank_math_robots', true );
+
+		return is_array( $rank_math ) && in_array( 'noindex', $rank_math, true );
 	}
 
 	/**

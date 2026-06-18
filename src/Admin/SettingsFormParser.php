@@ -59,6 +59,14 @@ final class SettingsFormParser {
 					'follow'           => $this->checkbox( $input, 'seo_follow' ),
 					'canonical'        => $this->string( $input, 'seo_canonical' ),
 				),
+				'content_selection' => array(
+					'include_categories' => $this->lines( $input, 'select_include_categories' ),
+					'include_tags'       => $this->lines( $input, 'select_include_tags' ),
+					'exclude_categories' => $this->lines( $input, 'select_exclude_categories' ),
+					'exclude_tags'       => $this->lines( $input, 'select_exclude_tags' ),
+					'exclude_noindex'    => $this->checkbox( $input, 'select_exclude_noindex' ),
+					'pinned_urls'        => $this->lines( $input, 'select_pinned_urls' ),
+				),
 			)
 		);
 	}

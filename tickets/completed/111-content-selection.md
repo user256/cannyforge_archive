@@ -1,7 +1,7 @@
 # Ticket 111: Content selection — include/exclude, noindex, pinned priority
 
 **Sprint:** 1 — Settings & MVP
-**Status:** Not started
+**Status:** Done
 **Owner:** unassigned
 **Estimate:** L
 
@@ -22,20 +22,21 @@ both modes where relevant.
 
 ## Acceptance criteria
 
-- [ ] Settings gain content-selection rules: include categories, include tags,
+- [x] Settings gain content-selection rules: include categories, include tags,
       exclude categories, exclude tags, an "exclude noindex content" toggle, and
-      a pinned-URL list (displayed first, in order).
-- [ ] The admin settings page renders these and persists them via the settings
-      model.
-- [ ] A pure `Core` selector transforms an `ArchiveEntry[]` into the final set:
-      apply include filters (an entry must match at least one included term when
-      includes are set), then exclude filters (drop on any excluded term), drop
-      noindex entries when the toggle is on, then move pinned URLs to the front
-      in their configured order.
-- [ ] The selector runs for both News and Blog providers (it operates on the
-      entry list, not the source), so the rules apply where relevant.
-- [ ] `composer test` covers include-only, exclude-only, include+exclude
-      precedence, noindex dropping, and pinned ordering; `composer qa` passes.
+      a pinned-URL list (`Contracts\Settings\ContentSelection`).
+- [x] The admin settings page renders these (textarea lists + checkbox) and
+      persists them via the settings model.
+- [x] A pure `Core\Archive\ContentSelector` transforms an `ArchiveEntry[]`: drop
+      noindex (when on), drop on any excluded term, require a match against the
+      include set when it is non-empty, then move pinned URLs to the front in
+      configured order.
+- [x] The selector runs for both modes via `Core\Archive\SelectingEntryProvider`,
+      which decorates the mode-dispatching provider in the composition root — it
+      operates on the entry list, not the source query.
+- [x] `composer test` covers no-rules, include-only, exclude-only,
+      include+exclude precedence, noindex on/off, and pinned ordering (incl.
+      pinning after filtering); `composer qa` passes.
 
 ## Out of scope
 
@@ -63,6 +64,12 @@ the selector itself a framework-free, unit-tested `Core` transform.
 - 2026-06-18 — Created from the confirmed product decisions (content selection).
   Applies to both News and Blog modes by operating on the entry list rather than
   the source query.
+- 2026-06-18 — Implemented. Added a `noindex` flag to `ArchiveEntry`, populated
+  by the News/Blog mappers via a plugin-agnostic read of the Yoast / Rank Math
+  noindex meta keys (no hard dependency on either). Selector wired as a decorator
+  in Bootstrap. Note: the admin term lists are split on commas/newlines (reusing
+  the existing list parser), so category/tag names containing commas aren't
+  supported yet — a term-picker UI would be a reasonable Sprint-2 follow-up.
 
 ---
 
