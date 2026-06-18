@@ -71,6 +71,14 @@ class SettingsTest extends TestCase {
 					'author'   => true,
 					'date'     => true,
 				),
+				'archive_url'       => 'https://example.com/all/',
+				'seo'               => array(
+					'title'            => 'Archive',
+					'meta_description' => 'All our stories.',
+					'index'            => false,
+					'follow'           => true,
+					'canonical'        => 'https://example.com/canonical/',
+				),
 			)
 		);
 
@@ -82,6 +90,9 @@ class SettingsTest extends TestCase {
 		$this->assertTrue( $restored->filters()->author() );
 		$this->assertFalse( $restored->targeting()->category() );
 		$this->assertTrue( $restored->targeting()->author() );
+		$this->assertSame( 'https://example.com/all/', $restored->archive_url() );
+		$this->assertSame( 'noindex,follow', $restored->seo()->robots() );
+		$this->assertSame( 'https://example.com/canonical/', $restored->seo()->canonical() );
 	}
 
 	/**

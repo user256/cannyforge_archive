@@ -96,6 +96,13 @@ final class Settings {
 	private string $archive_url;
 
 	/**
+	 * SEO settings for the archive page.
+	 *
+	 * @var Seo
+	 */
+	private Seo $seo;
+
+	/**
 	 * Construct a settings snapshot.
 	 *
 	 * @param Mode      $mode              Archive mode.
@@ -107,6 +114,7 @@ final class Settings {
 	 * @param string[]  $blog_urls         Blog URL list.
 	 * @param Targeting $targeting         Archive-type targeting toggles.
 	 * @param string    $archive_url       "View Archive" link destination override.
+	 * @param Seo       $seo               Archive-page SEO settings.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -117,7 +125,8 @@ final class Settings {
 		int $blog_max_urls = 100,
 		array $blog_urls = array(),
 		?Targeting $targeting = null,
-		string $archive_url = ''
+		string $archive_url = '',
+		?Seo $seo = null
 	) {
 		$this->mode              = $mode;
 		$this->pagination_limit  = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
@@ -128,6 +137,7 @@ final class Settings {
 		$this->blog_urls         = array_values( $blog_urls );
 		$this->targeting         = $targeting ?? new Targeting();
 		$this->archive_url       = trim( $archive_url );
+		$this->seo               = $seo ?? new Seo();
 	}
 
 	/**
@@ -185,6 +195,15 @@ final class Settings {
 	}
 
 	/**
+	 * The archive-page SEO settings.
+	 *
+	 * @return Seo
+	 */
+	public function seo(): Seo {
+		return $this->seo;
+	}
+
+	/**
 	 * News recent window in hours.
 	 *
 	 * @return int
@@ -228,7 +247,8 @@ final class Settings {
 			self::to_int( $data['blog_max_urls'] ?? null, 100 ),
 			self::string_list( $data['blog_urls'] ?? array() ),
 			Targeting::from_array( self::sub_array( $data, 'targeting' ) ),
-			self::to_string( $data['archive_url'] ?? null )
+			self::to_string( $data['archive_url'] ?? null ),
+			Seo::from_array( self::sub_array( $data, 'seo' ) )
 		);
 	}
 
@@ -248,6 +268,7 @@ final class Settings {
 			'blog_urls'         => $this->blog_urls,
 			'targeting'         => $this->targeting->to_array(),
 			'archive_url'       => $this->archive_url,
+			'seo'               => $this->seo->to_array(),
 		);
 	}
 

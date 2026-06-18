@@ -1,7 +1,7 @@
 # Ticket 110: SEO controls
 
 **Sprint:** 1 — Settings & MVP
-**Status:** Not started
+**Status:** Done
 **Owner:** unassigned
 **Estimate:** M
 
@@ -21,17 +21,19 @@ description, robots directives, and canonical URL.
 
 ## Acceptance criteria
 
-- [ ] Settings gain an SEO group: archive title, archive meta description,
-      index/noindex toggle, follow/nofollow toggle, and a canonical URL override.
-- [ ] The admin settings page renders these under a dedicated "SEO" section and
+- [x] Settings gain an SEO group: archive title, meta description, index/noindex,
+      follow/nofollow, and canonical override (`Contracts\Settings\Seo`).
+- [x] The admin settings page renders these under a dedicated "SEO" section and
       persists them via the settings model.
-- [ ] On the archive page (ticket 103), the configured title, meta description,
-      `robots` directives (index/follow), and canonical are emitted in `<head>`;
-      an empty canonical override falls back to the archive's own URL.
-- [ ] Robots default is index, follow (the archive is meant to be crawled and to
-      pass link equity — that is the point of the plugin).
-- [ ] `composer test` covers the head-tag builder for the directive
-      combinations and the canonical fallback; `composer qa` passes.
+- [x] On the archive page (ticket 103), the configured title, meta description,
+      `robots` directive, and canonical are emitted in `<head>` by
+      `Frontend\SeoHead` (on `wp_head`, archive request only); an empty canonical
+      override falls back to the archive's own URL.
+- [x] Robots default is index, follow.
+- [x] `composer test` covers the pure `Core\Seo\HeadTagBuilder` for the
+      directive combinations (index/follow, noindex/nofollow, mixed), the
+      canonical fallback + override, and omission of empty title/description;
+      `composer qa` passes.
 
 ## Out of scope
 
@@ -58,6 +60,13 @@ emit duplicate canonical/robots tags on non-archive pages.
 ## Notes / decisions log
 
 - 2026-06-18 — Created from the confirmed product decisions (SEO section).
+- 2026-06-18 — Implemented. Confirmed decision: self-contained, archive page
+  only — emit our own tags with a `cannyforge_archive_seo_head` filter for
+  override; do NOT detect/defer to Yoast/Rank Math (a noted Sprint-2 follow-up).
+  `SeoHead` gates on the archive query var so it never emits duplicate
+  robots/canonical on other pages. Bumped the PHPStan `stan` script memory limit
+  512M→1G (the growing src tree exceeded the old ceiling in parallel mode; the
+  code itself is clean).
 
 ---
 

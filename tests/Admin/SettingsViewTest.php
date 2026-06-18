@@ -81,6 +81,11 @@ class SettingsViewTest extends TestCase {
 				'name="target_author"',
 				'name="target_date"',
 				'name="archive_url"',
+				'name="seo_title"',
+				'name="seo_meta_description"',
+				'name="seo_index"',
+				'name="seo_follow"',
+				'name="seo_canonical"',
 				SettingsView::NONCE_FIELD,
 			) as $needle
 		) {

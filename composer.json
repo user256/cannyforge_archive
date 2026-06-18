@@ -43,7 +43,7 @@
     "scripts": {
         "cs": "phpcs",
         "cs:fix": "phpcbf",
-        "stan": "phpstan analyse --memory-limit=512M",
+        "stan": "phpstan analyse --memory-limit=1G",
         "rector": "rector process --dry-run",
         "rector:fix": "rector process",
         "arch": "phparkitect check --config=phparkitect.php",

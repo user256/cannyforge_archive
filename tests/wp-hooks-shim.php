@@ -38,6 +38,20 @@ if ( ! function_exists( 'add_filter' ) ) {
 	}
 }
 
+if ( ! function_exists( 'apply_filters' ) ) {
+	/**
+	 * Pass-through filter: returns the value unchanged in the test runtime.
+	 *
+	 * @param string $hook  Filter name.
+	 * @param mixed  $value Value to filter.
+	 * @return mixed
+	 */
+	function apply_filters( string $hook, $value ) {
+		unset( $hook );
+		return $value;
+	}
+}
+
 if ( ! function_exists( 'add_shortcode' ) ) {
 	/**
 	 * Record a shortcode registration.

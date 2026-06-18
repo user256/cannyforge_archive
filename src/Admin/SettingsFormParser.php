@@ -52,6 +52,13 @@ final class SettingsFormParser {
 					'author'   => $this->checkbox( $input, 'target_author' ),
 					'date'     => $this->checkbox( $input, 'target_date' ),
 				),
+				'seo'               => array(
+					'title'            => $this->string( $input, 'seo_title' ),
+					'meta_description' => $this->string( $input, 'seo_meta_description' ),
+					'index'            => $this->checkbox( $input, 'seo_index' ),
+					'follow'           => $this->checkbox( $input, 'seo_follow' ),
+					'canonical'        => $this->string( $input, 'seo_canonical' ),
+				),
 			)
 		);
 	}

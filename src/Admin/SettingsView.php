@@ -66,6 +66,7 @@ final class SettingsView {
 		$this->render_link_types( $settings );
 		$this->render_filters( $settings );
 		$this->render_targeting( $settings );
+		$this->render_seo( $settings );
 		echo '</div>';
 
 		echo '<div class="cannyforge-archive-col">';
@@ -179,6 +180,37 @@ final class SettingsView {
 		$this->checkbox( 'target_tag', __( 'Tag archives', 'cannyforge-archive' ), $targeting->tag() );
 		$this->checkbox( 'target_author', __( 'Author archives', 'cannyforge-archive' ), $targeting->author() );
 		$this->checkbox( 'target_date', __( 'Date archives', 'cannyforge-archive' ), $targeting->date() );
+	}
+
+	/**
+	 * Render the SEO controls (ticket 110).
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return void
+	 */
+	private function render_seo( Settings $settings ): void {
+		$seo = $settings->seo();
+
+		echo '<h2>' . esc_html__( 'SEO', 'cannyforge-archive' ) . '</h2>';
+
+		echo '<p><label>' . esc_html__( 'Archive title', 'cannyforge-archive' ) . ' ';
+		printf( '<input type="text" name="seo_title" value="%s"></label></p>', esc_attr( $seo->title() ) );
+
+		echo '<p><label>' . esc_html__( 'Meta description', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<textarea name="seo_meta_description" rows="2" cols="50">%s</textarea></label></p>',
+			esc_textarea( $seo->meta_description() )
+		);
+
+		$this->checkbox( 'seo_index', __( 'Allow indexing (index)', 'cannyforge-archive' ), $seo->index() );
+		$this->checkbox( 'seo_follow', __( 'Allow following links (follow)', 'cannyforge-archive' ), $seo->follow() );
+
+		echo '<p><label>' . esc_html__( 'Canonical URL (optional)', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<input type="url" name="seo_canonical" value="%s" placeholder="%s"></label></p>',
+			esc_attr( $seo->canonical() ),
+			esc_attr__( 'Defaults to the archive URL', 'cannyforge-archive' )
+		);
 	}
 
 	/**

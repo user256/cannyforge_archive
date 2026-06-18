@@ -19,10 +19,12 @@ use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use CannyForge\Archive\Core\Pagination\TargetingPredicate;
+use CannyForge\Archive\Core\Seo\HeadTagBuilder;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchiveAssets;
 use CannyForge\Archive\Frontend\ArchivePage;
 use CannyForge\Archive\Frontend\PaginationController;
+use CannyForge\Archive\Frontend\SeoHead;
 
 /**
  * Composition root for CannyForge Archive.
@@ -89,6 +91,12 @@ class Plugin {
 
 		$assets = new ArchiveAssets( $this->base_url(), $this->version() );
 		$assets->register();
+
+		$seo = new SeoHead(
+			new OptionsSettingsRepository(),
+			new HeadTagBuilder()
+		);
+		$seo->register();
 	}
 
 	/**
