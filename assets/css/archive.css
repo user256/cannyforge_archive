@@ -1,0 +1,51 @@
+/* CannyForge Archive — front-end archive styles.
+ * Functional layout for the archive and its client-side filters (ticket 106).
+ * Brand tokens (palette/typography) are layered on in ticket 108. */
+
+.cannyforge-archive {
+	margin: 1.5rem 0;
+}
+
+.cannyforge-archive-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.cannyforge-archive-filters__search,
+.cannyforge-archive-filters__select {
+	padding: 0.4rem 0.6rem;
+	font: inherit;
+}
+
+.cannyforge-archive-filters__search {
+	flex: 1 1 16rem;
+}
+
+.cannyforge-archive__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.cannyforge-archive__item {
+	padding: 0.35rem 0;
+}
+
+.cannyforge-archive__item[hidden] {
+	display: none;
+}
+
+.cannyforge-archive__image {
+	max-width: 3rem;
+	height: auto;
+	margin-right: 0.5rem;
+	vertical-align: middle;
+}
+
+.cannyforge-archive__desc {
+	display: block;
+	font-size: 0.85em;
+	opacity: 0.8;
+}

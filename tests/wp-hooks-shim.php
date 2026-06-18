@@ -77,6 +77,52 @@ if ( ! function_exists( 'get_pagenum_link' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_enqueue_style' ) ) {
+	/**
+	 * Record a stylesheet enqueue.
+	 *
+	 * @param string   $handle  Handle.
+	 * @param string   $src     Source URL.
+	 * @param string[] $deps    Dependencies.
+	 * @param string   $version Version.
+	 * @return void
+	 */
+	function wp_enqueue_style( string $handle, string $src = '', array $deps = array(), string $version = '' ): void {
+		unset( $src, $deps, $version );
+		\CannyForge\Archive\Tests\HookSpy::record( 'style:' . $handle, static fn () => $handle );
+	}
+}
+
+if ( ! function_exists( 'wp_enqueue_script' ) ) {
+	/**
+	 * Record a script enqueue.
+	 *
+	 * @param string   $handle    Handle.
+	 * @param string   $src       Source URL.
+	 * @param string[] $deps      Dependencies.
+	 * @param string   $version   Version.
+	 * @param bool     $in_footer Whether to enqueue in the footer.
+	 * @return void
+	 */
+	function wp_enqueue_script( string $handle, string $src = '', array $deps = array(), string $version = '', bool $in_footer = false ): void {
+		unset( $src, $deps, $version, $in_footer );
+		\CannyForge\Archive\Tests\HookSpy::record( 'script:' . $handle, static fn () => $handle );
+	}
+}
+
+if ( ! function_exists( 'plugin_dir_url' ) ) {
+	/**
+	 * Build a plugin directory URL.
+	 *
+	 * @param string $file Plugin file path.
+	 * @return string
+	 */
+	function plugin_dir_url( string $file ): string {
+		unset( $file );
+		return 'http://example.test/wp-content/plugins/cannyforge-archive/';
+	}
+}
+
 if ( ! function_exists( 'home_url' ) ) {
 	/**
 	 * Build a home URL.

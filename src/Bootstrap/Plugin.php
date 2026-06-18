@@ -19,6 +19,7 @@ use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use CannyForge\Archive\Core\Pagination\TargetingPredicate;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
+use CannyForge\Archive\Frontend\ArchiveAssets;
 use CannyForge\Archive\Frontend\ArchivePage;
 use CannyForge\Archive\Frontend\PaginationController;
 
@@ -81,5 +82,30 @@ class Plugin {
 			new PaginationRenderer()
 		);
 		$pagination->register();
+
+		$assets = new ArchiveAssets( $this->base_url(), $this->version() );
+		$assets->register();
+	}
+
+	/**
+	 * The plugin's base URL, resolved from the main file when WordPress is loaded.
+	 *
+	 * @return string
+	 */
+	private function base_url(): string {
+		if ( defined( 'CANNYFORGE_ARCHIVE_FILE' ) && function_exists( 'plugin_dir_url' ) ) {
+			return plugin_dir_url( CANNYFORGE_ARCHIVE_FILE );
+		}
+
+		return '';
+	}
+
+	/**
+	 * The plugin version, for asset cache-busting.
+	 *
+	 * @return string
+	 */
+	private function version(): string {
+		return defined( 'CANNYFORGE_ARCHIVE_VERSION' ) ? CANNYFORGE_ARCHIVE_VERSION : '0';
 	}
 }

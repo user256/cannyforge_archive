@@ -9,7 +9,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | Area | State | Outstanding / next |
 |------|--------|---------------------|
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
-| **Sprint 1 — Settings & MVP** | In progress | 101–105 + 107 + 109 done; SEO, content selection, filters, branding remaining. |
+| **Sprint 1 — Settings & MVP** | In progress | 101–107 + 109 done; SEO, content selection, branding remaining. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -25,7 +25,7 @@ tool. Blog mode uses manual / CSV URL entry only — analytics-driven URL sourci
 - [x] 103 — Archive / HTML-sitemap page generator
 - [x] 104 — News mode: recent-window content query
 - [x] 105 — Blog mode: manual / CSV top-URL list
-- [ ] 106 — Client-side search & filters (search, category, tag, month+year, author)
+- [x] 106 — Client-side search & filters (search, category, tag, month+year, author)
 - [x] 107 — Pagination replacement with "View Archive" link
 - [ ] 108 — Branding & admin styling (CannyForge design system)
 - [x] 109 — Archive-type targeting controls (where pagination replacement applies)

@@ -23,7 +23,23 @@ use CannyForge\Archive\Contracts\Settings\Settings;
  */
 final class ArchiveRenderer {
 	/**
-	 * Render the full archive list.
+	 * Renders the (optional) client-side filter controls.
+	 *
+	 * @var FilterControlsRenderer
+	 */
+	private FilterControlsRenderer $controls;
+
+	/**
+	 * Construct the renderer.
+	 *
+	 * @param FilterControlsRenderer|null $controls Filter-controls renderer.
+	 */
+	public function __construct( ?FilterControlsRenderer $controls = null ) {
+		$this->controls = $controls ?? new FilterControlsRenderer();
+	}
+
+	/**
+	 * Render the full archive: enabled filter controls then the crawlable list.
 	 *
 	 * @param ArchiveEntry[] $entries  Entries to render.
 	 * @param Settings       $settings Current settings (drives link-type toggles).
@@ -35,7 +51,10 @@ final class ArchiveRenderer {
 			$items .= $this->render_entry( $entry, $settings->link_types() );
 		}
 
+		$controls = $this->controls->render( $entries, $settings->filters() );
+
 		return '<nav class="cannyforge-archive" aria-label="' . esc_attr__( 'Archive', 'cannyforge-archive' ) . '">'
+			. $controls
 			. '<ul class="cannyforge-archive__list">' . $items . '</ul></nav>';
 	}
 
