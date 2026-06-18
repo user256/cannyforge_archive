@@ -34,6 +34,10 @@ class SettingsTest extends TestCase {
 		$this->assertFalse( $settings->link_types()->featured_image() );
 		$this->assertTrue( $settings->filters()->search() );
 		$this->assertFalse( $settings->filters()->author() );
+		$this->assertTrue( $settings->targeting()->category() );
+		$this->assertTrue( $settings->targeting()->tag() );
+		$this->assertFalse( $settings->targeting()->author() );
+		$this->assertFalse( $settings->targeting()->date() );
 	}
 
 	/**
@@ -61,6 +65,12 @@ class SettingsTest extends TestCase {
 				'news_window_hours' => 48,
 				'blog_max_urls'     => 25,
 				'blog_urls'         => array( 'https://example.com/a' ),
+				'targeting'         => array(
+					'category' => false,
+					'tag'      => true,
+					'author'   => true,
+					'date'     => true,
+				),
 			)
 		);
 
@@ -70,6 +80,8 @@ class SettingsTest extends TestCase {
 		$this->assertSame( Mode::News, $restored->mode() );
 		$this->assertTrue( $restored->link_types()->description() );
 		$this->assertTrue( $restored->filters()->author() );
+		$this->assertFalse( $restored->targeting()->category() );
+		$this->assertTrue( $restored->targeting()->author() );
 	}
 
 	/**

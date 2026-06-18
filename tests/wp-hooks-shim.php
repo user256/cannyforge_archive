@@ -85,6 +85,50 @@ if ( ! function_exists( 'status_header' ) ) {
 	}
 }
 
+if ( ! function_exists( 'is_category' ) ) {
+	/**
+	 * Conditional tag stub: not a category archive in the test runtime.
+	 *
+	 * @return bool
+	 */
+	function is_category(): bool {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_tag' ) ) {
+	/**
+	 * Conditional tag stub: not a tag archive in the test runtime.
+	 *
+	 * @return bool
+	 */
+	function is_tag(): bool {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_author' ) ) {
+	/**
+	 * Conditional tag stub: not an author archive in the test runtime.
+	 *
+	 * @return bool
+	 */
+	function is_author(): bool {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_date' ) ) {
+	/**
+	 * Conditional tag stub: not a date archive in the test runtime.
+	 *
+	 * @return bool
+	 */
+	function is_date(): bool {
+		return false;
+	}
+}
+
 if ( ! function_exists( 'admin_url' ) ) {
 	/**
 	 * Build an admin URL.

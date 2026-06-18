@@ -61,6 +61,13 @@ final class Settings {
 	private Filters $filters;
 
 	/**
+	 * Which archive types the pagination replacement applies to.
+	 *
+	 * @var Targeting
+	 */
+	private Targeting $targeting;
+
+	/**
 	 * News mode: recent window in hours (brief default 72).
 	 *
 	 * @var int
@@ -91,6 +98,7 @@ final class Settings {
 	 * @param int       $news_window_hours News recent window in hours.
 	 * @param int       $blog_max_urls     Blog top-URL cap.
 	 * @param string[]  $blog_urls         Blog URL list.
+	 * @param Targeting $targeting         Archive-type targeting toggles.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -99,7 +107,8 @@ final class Settings {
 		?Filters $filters = null,
 		int $news_window_hours = 72,
 		int $blog_max_urls = 100,
-		array $blog_urls = array()
+		array $blog_urls = array(),
+		?Targeting $targeting = null
 	) {
 		$this->mode              = $mode;
 		$this->pagination_limit  = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
@@ -108,6 +117,7 @@ final class Settings {
 		$this->news_window_hours = max( self::MIN_NEWS_WINDOW_HOURS, $news_window_hours );
 		$this->blog_max_urls     = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
 		$this->blog_urls         = array_values( $blog_urls );
+		$this->targeting         = $targeting ?? new Targeting();
 	}
 
 	/**
@@ -144,6 +154,15 @@ final class Settings {
 	 */
 	public function filters(): Filters {
 		return $this->filters;
+	}
+
+	/**
+	 * The archive-type targeting toggles.
+	 *
+	 * @return Targeting
+	 */
+	public function targeting(): Targeting {
+		return $this->targeting;
 	}
 
 	/**
@@ -188,7 +207,8 @@ final class Settings {
 			Filters::from_array( self::sub_array( $data, 'filters' ) ),
 			self::to_int( $data['news_window_hours'] ?? null, 72 ),
 			self::to_int( $data['blog_max_urls'] ?? null, 100 ),
-			self::string_list( $data['blog_urls'] ?? array() )
+			self::string_list( $data['blog_urls'] ?? array() ),
+			Targeting::from_array( self::sub_array( $data, 'targeting' ) )
 		);
 	}
 
@@ -206,6 +226,7 @@ final class Settings {
 			'news_window_hours' => $this->news_window_hours,
 			'blog_max_urls'     => $this->blog_max_urls,
 			'blog_urls'         => $this->blog_urls,
+			'targeting'         => $this->targeting->to_array(),
 		);
 	}
 

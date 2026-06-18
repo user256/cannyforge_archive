@@ -1,7 +1,7 @@
 # Ticket 109: Archive-type targeting controls
 
 **Sprint:** 1 — Settings & MVP
-**Status:** Not started
+**Status:** Done
 **Owner:** unassigned
 **Estimate:** M
 
@@ -21,17 +21,19 @@ with the confirmed default recommendation.
 
 ## Acceptance criteria
 
-- [ ] Settings gain a targeting group with four toggles: Categories, Tags,
-      Authors, Date Archives.
-- [ ] Defaults match the confirmed recommendation: Categories **on**, Tags
+- [x] Settings gain a targeting group with four toggles: Categories, Tags,
+      Authors, Date Archives (`Contracts\Settings\Targeting`).
+- [x] Defaults match the confirmed recommendation: Categories **on**, Tags
       **on**, Authors **off**, Date Archives **off**.
-- [ ] The admin settings page renders the four toggles (per the brief's
+- [x] The admin settings page renders the four toggles (per the brief's
       checkbox style) and persists them via the settings model.
-- [ ] A small, pure helper answers "does the replacement apply to *this* request
-      type?" given the current WordPress query context and these toggles — so
-      ticket 107 has one testable decision point.
-- [ ] `composer test` covers the helper for each archive type in both enabled
-      and disabled states; `composer qa` passes.
+- [x] A small, pure helper answers "does the replacement apply to *this* request
+      type?" — `Core\Pagination\TargetingPredicate::applies(Targeting,
+      ArchiveContext)`, with `ArchiveContext::from_wp()` building the context
+      from the live conditional tags. Ticket 107 has one testable decision point.
+- [x] `composer test` covers the helper for each archive type in both enabled
+      and disabled states (plus defaults and a non-archive request); `composer qa`
+      passes.
 
 ## Out of scope
 
@@ -56,6 +58,12 @@ predicate is unit-testable without a WP runtime.
 
 - 2026-06-18 — Created from the confirmed product decisions (archive-type
   targeting). Default recommendation recorded above.
+- 2026-06-18 — Implemented. `Targeting` VO in `Contracts\Settings` (mirrors
+  `LinkTypes`/`Filters`), wired into `Settings` + admin view ("Pagination
+  Targeting" section) + form parser. Decision logic is the pure
+  `Core\Pagination\TargetingPredicate` over a `Core\Pagination\ArchiveContext`
+  (decoupled from `is_category`/`is_tag`/`is_author`/`is_date` so it's testable
+  without WP). Ticket 107 consumes the predicate.
 
 ---
 

@@ -49,6 +49,7 @@ final class SettingsView {
 		$this->render_mode_and_pagination( $settings );
 		$this->render_link_types( $settings );
 		$this->render_filters( $settings );
+		$this->render_targeting( $settings );
 		echo '</div>';
 
 		echo '<div class="cannyforge-archive-col">';
@@ -113,6 +114,25 @@ final class SettingsView {
 		$this->checkbox( 'filter_tag', __( 'Tag filters', 'cannyforge-archive' ), $filters->tag() );
 		$this->checkbox( 'filter_month_year', __( 'Month + Year filters', 'cannyforge-archive' ), $filters->month_year() );
 		$this->checkbox( 'filter_author', __( 'Author filters', 'cannyforge-archive' ), $filters->author() );
+	}
+
+	/**
+	 * Render the archive-type targeting checkboxes (ticket 109).
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return void
+	 */
+	private function render_targeting( Settings $settings ): void {
+		$targeting = $settings->targeting();
+
+		echo '<h2>' . esc_html__( 'Pagination Targeting', 'cannyforge-archive' ) . '</h2>';
+		echo '<p class="description">';
+		echo esc_html__( 'Replace pagination on these archive types.', 'cannyforge-archive' );
+		echo '</p>';
+		$this->checkbox( 'target_category', __( 'Category archives', 'cannyforge-archive' ), $targeting->category() );
+		$this->checkbox( 'target_tag', __( 'Tag archives', 'cannyforge-archive' ), $targeting->tag() );
+		$this->checkbox( 'target_author', __( 'Author archives', 'cannyforge-archive' ), $targeting->author() );
+		$this->checkbox( 'target_date', __( 'Date archives', 'cannyforge-archive' ), $targeting->date() );
 	}
 
 	/**

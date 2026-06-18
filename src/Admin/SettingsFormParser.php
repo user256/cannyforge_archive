@@ -45,6 +45,12 @@ final class SettingsFormParser {
 					'author'     => $this->checkbox( $input, 'filter_author' ),
 				),
 				'blog_urls'         => $this->lines( $input, 'blog_urls' ),
+				'targeting'         => array(
+					'category' => $this->checkbox( $input, 'target_category' ),
+					'tag'      => $this->checkbox( $input, 'target_tag' ),
+					'author'   => $this->checkbox( $input, 'target_author' ),
+					'date'     => $this->checkbox( $input, 'target_date' ),
+				),
 			)
 		);
 	}
