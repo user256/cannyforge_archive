@@ -53,20 +53,34 @@ class PaginationControllerTest extends TestCase {
 	public function test_register_wires_filter_and_shortcode(): void {
 		$this->controller()->register();
 
-		$this->assertTrue( HookSpy::has( 'filter:the_posts_pagination' ) );
+		$this->assertTrue( HookSpy::has( 'filter:navigation_markup_template' ) );
 		$this->assertTrue( HookSpy::has( 'shortcode:' . PaginationController::SHORTCODE ) );
 	}
 
 	/**
 	 * Off a targeted archive (the test runtime is no archive type), the original
-	 * pagination markup is returned untouched — no double-render, no hijack.
+	 * pagination template is returned untouched — no double-render, no hijack.
 	 *
 	 * @return void
 	 */
 	public function test_leaves_untargeted_requests_untouched(): void {
-		$original = '<nav class="theme-pagination">default</nav>';
+		$original = '<nav class="navigation pagination">%s</nav>';
 
-		$result = $this->controller()->filter_pagination( $original );
+		$result = $this->controller()->filter_pagination( $original, 'pagination' );
+
+		$this->assertSame( $original, $result );
+	}
+
+	/**
+	 * Non-pagination navigation blocks (e.g. post-to-post nav) are never touched,
+	 * even though they share the filter.
+	 *
+	 * @return void
+	 */
+	public function test_ignores_non_pagination_navigation(): void {
+		$original = '<nav class="navigation post-navigation">%s</nav>';
+
+		$result = $this->controller()->filter_pagination( $original, 'post-navigation' );
 
 		$this->assertSame( $original, $result );
 	}

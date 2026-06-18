@@ -102,6 +102,11 @@ final class ArchivePage {
 	/**
 	 * Render the archive page when the current request targets the endpoint.
 	 *
+	 * Renders inside the active theme (`get_header()` / `get_footer()`) so the
+	 * output is a valid HTML document, `wp_head` fires (the SEO tags from
+	 * {@see SeoHead} are emitted), and the archive inherits theme styling. The
+	 * request is forced to a 200 (not a 404) since the endpoint has no post.
+	 *
 	 * @return void
 	 */
 	public function maybe_render(): void {
@@ -114,8 +119,14 @@ final class ArchivePage {
 		$settings = $this->repository->get();
 		$entries  = $this->provider->provide( $settings );
 
+		if ( $wp_query instanceof \WP_Query ) {
+			$wp_query->is_404 = false;
+		}
 		status_header( 200 );
+
+		get_header();
 		echo $this->renderer->render( $entries, $settings ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes each value.
+		get_footer();
 		exit;
 	}
 }

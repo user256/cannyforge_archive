@@ -9,7 +9,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | Area | State | Outstanding / next |
 |------|--------|---------------------|
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
-| **Sprint 1 — Settings & MVP** | Build complete | 101–111 done; 199 = GO, pending live-staging smoke (3 items need a WP install). |
+| **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -31,7 +31,9 @@ tool. Blog mode uses manual / CSV URL entry only — analytics-driven URL sourci
 - [x] 109 — Archive-type targeting controls (where pagination replacement applies)
 - [x] 110 — SEO controls (title, meta description, index/follow, canonical)
 - [x] 111 — Content selection: include/exclude, noindex, pinned-priority URLs
-- [ ] 199 — Sprint 1 review gate (Go / No-Go)
+- [x] 120 — Plugin Check: packaging (.distignore) + WordPress readme.txt
+- [x] 121 — Admin UX: CSV import, rename to "Archive Generator", preview link, real branding
+- [x] 199 — Sprint 1 review gate (GO; live smoke passed, 2 defects fixed)
 
 ## Ticket numbering
 

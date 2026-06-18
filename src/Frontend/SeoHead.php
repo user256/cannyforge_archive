@@ -67,16 +67,41 @@ final class SeoHead {
 	}
 
 	/**
-	 * Register the head-output hook.
+	 * Register the head-output and document-title hooks.
 	 *
 	 * @return void
 	 */
 	public function register(): void {
 		add_action( 'wp_head', array( $this, 'maybe_render' ) );
+		add_filter( 'pre_get_document_title', array( $this, 'filter_title' ) );
+	}
+
+	/**
+	 * Override the document title on the archive page with the configured title.
+	 *
+	 * Returns the existing title unchanged off the archive, or when no archive
+	 * title is configured — so the theme/site default still applies.
+	 *
+	 * @param string $title The current document title.
+	 * @return string
+	 */
+	public function filter_title( string $title ): string {
+		global $wp_query;
+
+		if ( ! isset( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ) ) {
+			return $title;
+		}
+
+		$configured = $this->repository->get()->seo()->title();
+
+		return '' !== $configured ? $configured : $title;
 	}
 
 	/**
 	 * Emit the SEO tags when the current request is the archive page.
+	 *
+	 * The `<title>` is handled by {@see self::filter_title()} (so the theme owns
+	 * one canonical title tag), so the head fragment here is title-less.
 	 *
 	 * @return void
 	 */
@@ -89,7 +114,8 @@ final class SeoHead {
 
 		$tags = $this->builder->build(
 			$this->repository->get()->seo(),
-			home_url( '/' . $this->archive_slug . '/' )
+			home_url( '/' . $this->archive_slug . '/' ),
+			false
 		);
 
 		/**

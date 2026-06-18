@@ -28,11 +28,14 @@ if ( ! function_exists( 'add_filter' ) ) {
 	/**
 	 * Record a filter registration.
 	 *
-	 * @param string   $hook     Hook name.
-	 * @param callable $callback Callback.
+	 * @param string   $hook          Hook name.
+	 * @param callable $callback      Callback.
+	 * @param int      $priority      Priority (ignored).
+	 * @param int      $accepted_args Accepted-arg count (ignored).
 	 * @return bool
 	 */
-	function add_filter( string $hook, callable $callback ): bool {
+	function add_filter( string $hook, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool {
+		unset( $priority, $accepted_args );
 		\CannyForge\Archive\Tests\HookSpy::record( 'filter:' . $hook, $callback );
 		return true;
 	}
@@ -195,6 +198,32 @@ if ( ! function_exists( 'add_rewrite_endpoint' ) ) {
 	function add_rewrite_endpoint( string $name, int $places, string $query_var = '' ): void {
 		unset( $places );
 		\CannyForge\Archive\Tests\HookSpy::record( 'endpoint:' . $name, static fn () => $query_var );
+	}
+}
+
+if ( ! function_exists( 'get_header' ) ) {
+	/**
+	 * Emit a representative theme header (fires wp_head in real WP).
+	 *
+	 * @param string $name Header template name.
+	 * @return void
+	 */
+	function get_header( string $name = '' ): void {
+		unset( $name );
+		echo '<!DOCTYPE html><html><head></head><body>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}
+
+if ( ! function_exists( 'get_footer' ) ) {
+	/**
+	 * Emit a representative theme footer.
+	 *
+	 * @param string $name Footer template name.
+	 * @return void
+	 */
+	function get_footer( string $name = '' ): void {
+		unset( $name );
+		echo '</body></html>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 

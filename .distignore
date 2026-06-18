@@ -1,0 +1,41 @@
+# Files and directories excluded from the distributable plugin build.
+# Used by the deploy step (rsync --exclude-from) so dev/config/docs never ship
+# into wp-content/plugins. See ticket 120.
+
+# VCS + env
+.git
+.gitignore
+.gitattributes
+.github
+.env
+.env.*
+
+# Dev caches
+.phpunit.result.cache
+.deptrac.cache
+.phpunit.cache
+
+# Tooling configs (not runtime)
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+phpmd.xml
+rector.php
+phparkitect.php
+phpinsights.php
+infection.json5
+deptrac.yaml
+composer.json
+composer.lock
+
+# Tests + docs + project artefacts
+tests
+docs
+tickets
+node_modules
+process_tickets.py
+CannyForge-Archive-Overview.md
+README.md
+
+# This file itself
+.distignore

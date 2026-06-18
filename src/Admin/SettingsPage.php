@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Admin;
 
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
+use CannyForge\Archive\Core\Settings\CsvUrlExtractor;
 
 /**
  * Registers and renders the CannyForge Archive settings page.
@@ -28,6 +29,12 @@ final class SettingsPage {
 	 * Capability required to view and save settings.
 	 */
 	private const CAPABILITY = 'manage_options';
+
+	/**
+	 * Default archive endpoint slug for the preview link. Mirrors the Frontend
+	 * ArchivePage endpoint slug; kept local so Admin needn't depend on Frontend.
+	 */
+	private const DEFAULT_ARCHIVE_SLUG = 'archive';
 
 	/**
 	 * Settings persistence.
@@ -51,20 +58,30 @@ final class SettingsPage {
 	private SettingsView $view;
 
 	/**
+	 * CSV → URL extractor for the Blog-mode import.
+	 *
+	 * @var CsvUrlExtractor
+	 */
+	private CsvUrlExtractor $csv;
+
+	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface $repository Settings persistence.
 	 * @param SettingsFormParser          $parser     Form mapper.
 	 * @param SettingsView                $view       Form renderer.
+	 * @param CsvUrlExtractor|null        $csv        CSV URL extractor.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		SettingsFormParser $parser,
-		SettingsView $view
+		SettingsView $view,
+		?CsvUrlExtractor $csv = null
 	) {
 		$this->repository = $repository;
 		$this->parser     = $parser;
 		$this->view       = $view;
+		$this->csv        = $csv ?? new CsvUrlExtractor();
 	}
 
 	/**
@@ -83,8 +100,8 @@ final class SettingsPage {
 	 */
 	public function add_menu_page(): void {
 		add_menu_page(
-			__( 'CannyForge Archive', 'cannyforge-archive' ),
-			__( 'CannyForge Archive', 'cannyforge-archive' ),
+			__( 'Archive Generator', 'cannyforge-archive' ),
+			__( 'Archive Generator', 'cannyforge-archive' ),
 			self::CAPABILITY,
 			self::PAGE_SLUG,
 			array( $this, 'render_page' ),
@@ -110,7 +127,21 @@ final class SettingsPage {
 		}
 
 		$action_url = esc_url_raw( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
-		$this->view->render( $this->repository->get(), $action_url );
+		$this->view->render( $this->repository->get(), $action_url, $this->preview_url() );
+	}
+
+	/**
+	 * The live archive URL for the "Preview" link: the configured destination
+	 * override, or the archive endpoint under the site root.
+	 *
+	 * @return string
+	 */
+	private function preview_url(): string {
+		$override = $this->repository->get()->archive_url();
+
+		return '' !== $override
+			? $override
+			: home_url( '/' . self::DEFAULT_ARCHIVE_SLUG . '/' );
 	}
 
 	/**
@@ -133,9 +164,38 @@ final class SettingsPage {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
-		$input = wp_unslash( $_POST );
-		$this->repository->save( $this->parser->parse( is_array( $input ) ? $input : array() ) );
+		$input    = wp_unslash( $_POST );
+		$csv_urls = $this->uploaded_csv_urls();
+		$this->repository->save(
+			$this->parser->parse( is_array( $input ) ? $input : array(), $csv_urls )
+		);
 
 		return true;
+	}
+
+	/**
+	 * Read the uploaded Blog-URL CSV and extract its URLs.
+	 *
+	 * Returns an empty list when no file was uploaded or the upload failed. Only a
+	 * genuinely uploaded file is read (guards against path injection).
+	 *
+	 * @return string[]
+	 */
+	private function uploaded_csv_urls(): array {
+		// Nonce + capability are verified by the caller, maybe_save(), before this runs.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( empty( $_FILES['blog_urls_csv']['tmp_name'] ) ) {
+			return array();
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- path validated via is_uploaded_file below.
+		$tmp = (string) $_FILES['blog_urls_csv']['tmp_name'];
+		if ( ! is_uploaded_file( $tmp ) ) {
+			return array();
+		}
+
+		$contents = file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading a small uploaded temp file.
+
+		return false === $contents ? array() : $this->csv->extract( $contents );
 	}
 }

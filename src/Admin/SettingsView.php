@@ -49,15 +49,16 @@ final class SettingsView {
 	/**
 	 * Render the whole settings page.
 	 *
-	 * @param Settings $settings  Current settings to populate the form with.
-	 * @param string   $action_url The form post target.
+	 * @param Settings $settings    Current settings to populate the form with.
+	 * @param string   $action_url  The form post target.
+	 * @param string   $preview_url The live archive URL for the "Preview" link.
 	 * @return void
 	 */
-	public function render( Settings $settings, string $action_url ): void {
+	public function render( Settings $settings, string $action_url, string $preview_url = '' ): void {
 		echo '<div class="wrap cannyforge-archive-settings">';
 		$this->render_brand_header();
 
-		printf( '<form method="post" action="%s">', esc_url( $action_url ) );
+		printf( '<form method="post" enctype="multipart/form-data" action="%s">', esc_url( $action_url ) );
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 
 		echo '<div class="cannyforge-archive-grid">';
@@ -75,32 +76,50 @@ final class SettingsView {
 		echo '</div>';
 		echo '</div>';
 
-		submit_button( __( 'Save', 'cannyforge-archive' ) );
+		echo '<p class="cannyforge-archive-actions">';
+		submit_button( __( 'Save', 'cannyforge-archive' ), 'primary', 'submit', false );
+		if ( '' !== $preview_url ) {
+			printf(
+				' <a class="button button-secondary" href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+				esc_url( $preview_url ),
+				esc_html__( 'Preview archive', 'cannyforge-archive' )
+			);
+		}
+		echo '</p>';
 		echo '</form>';
 		echo '</div>';
 	}
 
 	/**
-	 * Render the branded page header (logo + title).
+	 * Render the branded page header: the CannyForge wordmark above the page title.
 	 *
-	 * The CannyForge wordmark is shown when a base URL is configured; the page
-	 * title always renders so the header is meaningful without the asset.
+	 * Mirrors the sibling cannyforge-lead-capture plugin's settings branding —
+	 * the bundled wordmark SVG with a text fallback, skinned to the design system
+	 * (forge violet, royal-purple heading) — but without the premium upgrade CTA
+	 * (this plugin has no premium tier). The wordmark shows when a base URL is
+	 * configured; the title always renders.
 	 *
 	 * @return void
 	 */
 	private function render_brand_header(): void {
-		echo '<div class="cannyforge-archive-brand">';
+		echo '<h1 class="screen-reader-text">' . esc_html__( 'Archive Generator settings', 'cannyforge-archive' ) . '</h1>';
+		echo '<div class="cf-brand-header" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:.5em 0 1.25em">';
 
 		if ( '' !== $this->base_url ) {
 			printf(
-				'<img class="cannyforge-archive-brand__logo" src="%s" alt="%s">',
+				'<img src="%s" alt="%s" style="height:40px;width:auto;display:block">',
 				esc_url( $this->base_url . 'assets/branding/cannyforge-font-dark.svg' ),
 				esc_attr__( 'CannyForge', 'cannyforge-archive' )
 			);
+		} else {
+			echo '<span style="font-size:1.4rem;font-weight:800;letter-spacing:-.02em;color:#1b143f">cannyforge</span>';
 		}
 
-		printf( '<h1>%s</h1>', esc_html__( 'HTML Sitemap Generator Settings', 'cannyforge-archive' ) );
 		echo '</div>';
+		printf(
+			'<h2 style="font-family:\'Instrument Serif\',Georgia,serif;font-weight:400;letter-spacing:-.03em;color:#372580;font-size:1.8rem;margin:.25em 0 1em">%s</h2>',
+			esc_html__( 'Archive Generator', 'cannyforge-archive' )
+		);
 	}
 
 	/**
@@ -240,6 +259,17 @@ final class SettingsView {
 		echo '<p><textarea name="blog_urls" rows="8" cols="50">';
 		echo esc_textarea( implode( "\n", $settings->blog_urls() ) );
 		echo '</textarea></p>';
+
+		echo '<p><label>' . esc_html__( 'Import URLs from CSV', 'cannyforge-archive' ) . '<br>';
+		echo '<input type="file" name="blog_urls_csv" accept=".csv,text/csv"></label></p>';
+		$this->checkbox(
+			'blog_urls_csv_replace',
+			__( 'Replace the list with the CSV (otherwise merge)', 'cannyforge-archive' ),
+			false
+		);
+		echo '<p class="description">';
+		echo esc_html__( 'The first URL-like value in each CSV row is imported.', 'cannyforge-archive' );
+		echo '</p>';
 	}
 
 	/**

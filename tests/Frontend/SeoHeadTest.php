@@ -96,7 +96,8 @@ class SeoHeadTest extends TestCase {
 	}
 
 	/**
-	 * Configured SEO values are reflected in the output.
+	 * Configured SEO values are reflected in the head output (title is handled by
+	 * the document-title filter, so it is not in the head fragment).
 	 *
 	 * @return void
 	 */
@@ -117,8 +118,43 @@ class SeoHeadTest extends TestCase {
 		$this->head()->maybe_render();
 		$out = (string) ob_get_clean();
 
-		$this->assertStringContainsString( '<title>Story Archive</title>', $out );
+		$this->assertStringNotContainsString( '<title>', $out );
 		$this->assertStringContainsString( 'content="noindex,follow"', $out );
 		$this->assertStringContainsString( 'href="https://site.test/all/"', $out );
+	}
+
+	/**
+	 * On the archive, the configured title overrides the document title.
+	 *
+	 * @return void
+	 */
+	public function test_filter_title_overrides_on_archive(): void {
+		$this->onArchive();
+		OptionStore::set(
+			OptionsSettingsRepository::OPTION_KEY,
+			array( 'seo' => array( 'title' => 'Story Archive' ) )
+		);
+
+		$this->assertSame( 'Story Archive', $this->head()->filter_title( 'Theme Default' ) );
+	}
+
+	/**
+	 * Off the archive, the document title is left unchanged.
+	 *
+	 * @return void
+	 */
+	public function test_filter_title_untouched_off_archive(): void {
+		$this->assertSame( 'Theme Default', $this->head()->filter_title( 'Theme Default' ) );
+	}
+
+	/**
+	 * With no configured title, the archive keeps the theme/site default.
+	 *
+	 * @return void
+	 */
+	public function test_filter_title_falls_back_when_unset(): void {
+		$this->onArchive();
+
+		$this->assertSame( 'Theme Default', $this->head()->filter_title( 'Theme Default' ) );
 	}
 }

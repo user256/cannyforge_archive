@@ -83,27 +83,38 @@ final class PaginationController {
 	/**
 	 * Register the pagination filter, shortcode, and template-tag hooks.
 	 *
+	 * Hooks `navigation_markup_template` — the filter WordPress actually applies to
+	 * the pagination wrapper (there is no `the_posts_pagination` markup filter) —
+	 * and narrows to the pagination nav by its CSS class.
+	 *
 	 * @return void
 	 */
 	public function register(): void {
-		add_filter( 'the_posts_pagination', array( $this, 'filter_pagination' ) );
+		add_filter( 'navigation_markup_template', array( $this, 'filter_pagination' ), 10, 2 );
 		add_shortcode( self::SHORTCODE, array( $this, 'shortcode' ) );
 	}
 
 	/**
 	 * Replace the theme's pagination markup on a targeted archive.
 	 *
-	 * @param string $markup The default pagination markup.
+	 * `navigation_markup_template` fires for several navigation blocks (posts
+	 * pagination, post navigation, comments); act only on the posts-pagination
+	 * wrapper, and only on a targeted archive. Returning a complete template (with
+	 * no `%s` placeholder) replaces the generated links entirely — the crawl-budget
+	 * goal — without double-rendering.
+	 *
+	 * @param string $template  The navigation wrapper template (contains `%s`).
+	 * @param string $css_class The navigation block's CSS class.
 	 * @return string
 	 */
-	public function filter_pagination( string $markup ): string {
-		if ( ! $this->applies_here() ) {
-			return $markup;
+	public function filter_pagination( string $template, string $css_class = '' ): string {
+		if ( false === strpos( $css_class, 'pagination' ) || ! $this->applies_here() ) {
+			return $template;
 		}
 
 		$block = $this->render_block();
 
-		return '' !== $block ? $block : $markup;
+		return '' !== $block ? $block : $template;
 	}
 
 	/**

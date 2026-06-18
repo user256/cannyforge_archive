@@ -81,6 +81,62 @@ class SettingsFormParserTest extends TestCase {
 	}
 
 	/**
+	 * CSV-imported URLs merge with the textarea list by default.
+	 *
+	 * @return void
+	 */
+	public function test_csv_urls_merge_with_textarea(): void {
+		$settings = ( new SettingsFormParser() )->parse(
+			array(
+				'mode'      => 'blog',
+				'blog_urls' => 'https://example.com/typed',
+			),
+			array( 'https://example.com/csv' )
+		);
+
+		$this->assertSame(
+			array( 'https://example.com/typed', 'https://example.com/csv' ),
+			$settings->blog_urls()
+		);
+	}
+
+	/**
+	 * With the replace box ticked, CSV URLs replace the textarea list.
+	 *
+	 * @return void
+	 */
+	public function test_csv_urls_replace_when_box_ticked(): void {
+		$settings = ( new SettingsFormParser() )->parse(
+			array(
+				'mode'                  => 'blog',
+				'blog_urls'             => 'https://example.com/typed',
+				'blog_urls_csv_replace' => '1',
+			),
+			array( 'https://example.com/csv' )
+		);
+
+		$this->assertSame( array( 'https://example.com/csv' ), $settings->blog_urls() );
+	}
+
+	/**
+	 * The replace box has no effect when no CSV was uploaded (keeps the textarea).
+	 *
+	 * @return void
+	 */
+	public function test_replace_box_no_op_without_csv(): void {
+		$settings = ( new SettingsFormParser() )->parse(
+			array(
+				'mode'                  => 'blog',
+				'blog_urls'             => 'https://example.com/typed',
+				'blog_urls_csv_replace' => '1',
+			),
+			array()
+		);
+
+		$this->assertSame( array( 'https://example.com/typed' ), $settings->blog_urls() );
+	}
+
+	/**
 	 * Out-of-range numbers are clamped by the value object, not the parser.
 	 *
 	 * @return void

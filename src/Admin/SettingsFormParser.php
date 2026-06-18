@@ -22,10 +22,14 @@ final class SettingsFormParser {
 	/**
 	 * Build a Settings value object from a raw form payload.
 	 *
-	 * @param array<string, mixed> $input Raw, already-unslashed form data.
+	 * @param array<string, mixed> $input    Raw, already-unslashed form data.
+	 * @param string[]             $csv_urls URLs extracted from an uploaded CSV
+	 *                                       (empty when none). Merged with — or, when
+	 *                                       the "replace" box is ticked, substituted
+	 *                                       for — the textarea list.
 	 * @return Settings
 	 */
-	public function parse( array $input ): Settings {
+	public function parse( array $input, array $csv_urls = array() ): Settings {
 		return Settings::from_array(
 			array(
 				'mode'              => $this->string( $input, 'mode' ),
@@ -45,7 +49,7 @@ final class SettingsFormParser {
 					'month_year' => $this->checkbox( $input, 'filter_month_year' ),
 					'author'     => $this->checkbox( $input, 'filter_author' ),
 				),
-				'blog_urls'         => $this->lines( $input, 'blog_urls' ),
+				'blog_urls'         => $this->blog_urls( $input, $csv_urls ),
 				'targeting'         => array(
 					'category' => $this->checkbox( $input, 'target_category' ),
 					'tag'      => $this->checkbox( $input, 'target_tag' ),
@@ -93,6 +97,31 @@ final class SettingsFormParser {
 	 */
 	private function checkbox( array $input, string $key ): bool {
 		return ! empty( $input[ $key ] );
+	}
+
+	/**
+	 * Resolve the Blog URL list from the textarea plus any CSV-imported URLs.
+	 *
+	 * The textarea is always read. CSV URLs are merged in (appended, de-duplicated
+	 * downstream by the settings model) — or, when the "replace" box is ticked and
+	 * the CSV actually had URLs, they replace the textarea list entirely.
+	 *
+	 * @param array<string, mixed> $input    Raw form data.
+	 * @param string[]             $csv_urls URLs extracted from the uploaded CSV.
+	 * @return string[]
+	 */
+	private function blog_urls( array $input, array $csv_urls ): array {
+		$typed = $this->lines( $input, 'blog_urls' );
+
+		if ( array() === $csv_urls ) {
+			return $typed;
+		}
+
+		if ( $this->checkbox( $input, 'blog_urls_csv_replace' ) ) {
+			return $csv_urls;
+		}
+
+		return array_merge( $typed, $csv_urls );
 	}
 
 	/**

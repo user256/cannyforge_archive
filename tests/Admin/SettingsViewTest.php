@@ -113,26 +113,71 @@ class SettingsViewTest extends TestCase {
 	}
 
 	/**
-	 * When a base URL is supplied, the CannyForge brand logo is rendered.
+	 * When a base URL is supplied, the CannyForge wordmark is rendered.
 	 *
 	 * @return void
 	 */
 	public function test_renders_brand_logo_when_base_url_set(): void {
 		$html = $this->render( new Settings(), 'http://example.test/wp-content/plugins/cannyforge-archive/' );
 
-		$this->assertStringContainsString( 'cannyforge-archive-brand__logo', $html );
+		$this->assertStringContainsString( 'cf-brand-header', $html );
 		$this->assertStringContainsString( 'assets/branding/cannyforge-font-dark.svg', $html );
 	}
 
 	/**
-	 * With no base URL, the header still renders the title but no logo image.
+	 * With no base URL, the header falls back to the text wordmark, no image.
 	 *
 	 * @return void
 	 */
 	public function test_omits_logo_without_base_url(): void {
 		$html = $this->render( new Settings() );
 
-		$this->assertStringContainsString( 'HTML Sitemap Generator Settings', $html );
-		$this->assertStringNotContainsString( 'cannyforge-archive-brand__logo', $html );
+		$this->assertStringContainsString( 'Archive Generator', $html );
+		$this->assertStringContainsString( '>cannyforge<', $html );
+		$this->assertStringNotContainsString( 'cannyforge-font-dark.svg', $html );
+	}
+
+	/**
+	 * The page is renamed to "Archive Generator" (not "HTML Sitemap Generator").
+	 *
+	 * @return void
+	 */
+	public function test_titled_archive_generator(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringContainsString( 'Archive Generator', $html );
+		$this->assertStringNotContainsString( 'HTML Sitemap Generator Settings', $html );
+	}
+
+	/**
+	 * The CSV import controls render in Blog mode.
+	 *
+	 * @return void
+	 */
+	public function test_renders_csv_import_controls(): void {
+		$html = $this->render( Settings::from_array( array( 'mode' => 'blog' ) ) );
+
+		$this->assertStringContainsString( 'name="blog_urls_csv"', $html );
+		$this->assertStringContainsString( 'name="blog_urls_csv_replace"', $html );
+		$this->assertStringContainsString( 'multipart/form-data', $html );
+	}
+
+	/**
+	 * A preview link is rendered when a preview URL is supplied.
+	 *
+	 * @return void
+	 */
+	public function test_renders_preview_link(): void {
+		ob_start();
+		( new SettingsView() )->render(
+			new Settings(),
+			'admin.php?page=cannyforge-archive',
+			'http://example.test/archive/'
+		);
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Preview archive', $html );
+		$this->assertStringContainsString( 'href="http://example.test/archive/"', $html );
+		$this->assertStringContainsString( 'target="_blank"', $html );
 	}
 }

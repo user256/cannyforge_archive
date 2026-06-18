@@ -23,14 +23,16 @@ final class HeadTagBuilder {
 	/**
 	 * Build the head-tag fragment for the archive page.
 	 *
-	 * @param Seo    $seo          The SEO settings.
-	 * @param string $fallback_url The archive's own URL (canonical fallback).
+	 * @param Seo    $seo           The SEO settings.
+	 * @param string $fallback_url  The archive's own URL (canonical fallback).
+	 * @param bool   $include_title Whether to emit a `<title>` tag (false when the
+	 *                              theme owns the document title via a filter).
 	 * @return string
 	 */
-	public function build( Seo $seo, string $fallback_url ): string {
+	public function build( Seo $seo, string $fallback_url, bool $include_title = true ): string {
 		$tags = $this->robots_tag( $seo->robots() );
 
-		if ( '' !== $seo->title() ) {
+		if ( $include_title && '' !== $seo->title() ) {
 			$tags .= sprintf( '<title>%s</title>', esc_html( $seo->title() ) );
 		}
 
