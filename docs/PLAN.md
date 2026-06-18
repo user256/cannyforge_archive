@@ -108,3 +108,43 @@ The admin page requires:
 
 (In News mode the same panel reads "Create News Sitemap" and the right-hand
 panel becomes "News Sitemap Settings" with the recent-window control.)
+
+## Confirmed product decisions
+
+These refine and extend the original brief. They are the authoritative scope for
+Sprint 1.
+
+1. **Archive / HTML sitemap page** — a dedicated archive page with a search box,
+   category / tag / month+year filters, an optional author filter, and
+   configurable display fields (Title, Description, Featured Image), as in the
+   brief. (Tickets 103, 106.)
+
+2. **Blog mode** — the administrator manually defines which URLs to include, via
+   manual URL entry or CSV import. **No analytics integrations.** Explicitly out
+   of scope: Snowflake, Adobe Analytics, automatic popularity scoring, and
+   traffic-based selection. The admin chooses which URLs appear. (Ticket 105.)
+
+3. **News mode** — the archive automatically includes content published within a
+   configurable recent window (hours; default 72), updating dynamically by
+   publish date. (Ticket 104.)
+
+4. **Pagination replacement** — replace the standard tail
+   (`Previous « 1 2 3 4 5 … » Next`) with `1 2 3 4 5 6 7 8 9  View Archive →`.
+   The pagination limit is configurable (default 1), the archive-link
+   destination is configurable, and it works on supported archive types only.
+   (Tickets 107, 109.)
+
+5. **Archive targeting controls** — the administrator chooses where the
+   pagination replacement applies, per archive type. Default recommendation:
+   Categories **enabled**, Tags **enabled**, Authors **disabled**, Date archives
+   **disabled**. (Ticket 109.)
+
+6. **SEO controls** — a dedicated SEO section: archive title, archive meta
+   description, index/noindex, follow/nofollow, and a canonical URL override.
+   The plugin is fundamentally an SEO / internal-linking tool and needs basic SEO
+   configuration. (Ticket 110.)
+
+7. **Content selection controls** — inclusion/exclusion rules: include
+   categories/tags, exclude categories/tags, exclude noindex content, and pinned
+   URLs that display first. These apply to both News and Blog modes where
+   relevant. (Ticket 111.)

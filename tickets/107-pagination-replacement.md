@@ -21,30 +21,38 @@ then a "View Archive" link instead of the long default tail.
 
 ## Acceptance criteria
 
-- [ ] On taxonomy / archive listings, the default paginated tail is replaced
+- [ ] On supported archive listings, the default paginated tail is replaced
       with a sequence capped at `pagination_limit` (default 1) followed by a
-      "View Archive" link pointing at the ticket-103 page.
-- [ ] Beyond the limit, deep page links are not emitted (crawl-budget goal),
-      and the replacement doesn't double-render alongside the theme's default.
-- [ ] Behaviour is opt-in/scoped so it doesn't hijack unrelated paginated views
-      unexpectedly.
-- [ ] `composer test` covers link-count for several `pagination_limit` values
-      and that the archive link target is correct.
+      "View Archive" link.
+- [ ] The "View Archive" link destination is configurable (defaults to the
+      ticket-103 archive endpoint).
+- [ ] The replacement only applies to the archive types enabled in the
+      targeting controls (ticket 109); it never hijacks unrelated paginated
+      views, and does not double-render alongside the theme's default.
+- [ ] Beyond the limit, deep page links are not emitted (the crawl-budget goal).
+- [ ] `composer test` covers link-count for several `pagination_limit` values,
+      that the archive link target is correct (including a configured override),
+      and that an unsupported/disabled archive type is left untouched.
 
 ## Out of scope
 
 - The archive page itself (ticket 103).
+- Which archive types are eligible — that selection is ticket 109; this ticket
+  only consumes it.
 - Theme-specific styling beyond ticket 108.
 
 ## Dependencies
 
 - **Blocks:** none
-- **Blocked by:** 101 (limit setting), 103 (archive URL to link to)
+- **Blocked by:** 101 (limit setting), 103 (archive URL to link to),
+  109 (archive-type targeting — which listings the replacement applies to)
 - **External:** none
 
 ## Notes / decisions log
 
-- {date} — {decision or finding}
+- 2026-06-18 — Confirmed product decisions: pagination limit stays default 1;
+  the archive-link destination is configurable; the replacement is restricted
+  to the archive types selected in the targeting controls (ticket 109).
 
 ---
 

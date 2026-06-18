@@ -32,9 +32,12 @@ the configured maximum) into archive entries.
 
 ## Out of scope
 
-- Analytics-driven URL sourcing (e.g. Snowflake / Adobe) — explicitly dropped
-  from this plugin's scope.
+- Analytics-driven URL sourcing (Snowflake, Adobe Analytics, automatic
+  popularity scoring, traffic-based selection) — explicitly dropped. The admin
+  chooses which URLs appear.
 - News recent-window query (ticket 104).
+- Include/exclude rules and pinned-priority URLs — those are the cross-mode
+  content-selection controls in ticket 111.
 
 ## Dependencies
 
