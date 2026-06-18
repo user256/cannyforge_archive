@@ -115,6 +115,19 @@ if ( ! function_exists( 'absint' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	/**
+	 * Parse a URL, optionally returning a single component (like PHP's parse_url).
+	 *
+	 * @param string $url       URL to parse.
+	 * @param int    $component Component constant, or -1 for the full array.
+	 * @return mixed
+	 */
+	function wp_parse_url( string $url, int $component = -1 ) {
+		return parse_url( $url, $component ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+	}
+}
+
 if ( ! function_exists( 'esc_url_raw' ) ) {
 	/**
 	 * URL sanitise (storage/redirect).

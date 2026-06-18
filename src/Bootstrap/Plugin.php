@@ -13,7 +13,7 @@ use CannyForge\Archive\Admin\SettingsFormParser;
 use CannyForge\Archive\Admin\SettingsPage;
 use CannyForge\Archive\Admin\SettingsView;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
-use CannyForge\Archive\Core\Archive\FixtureEntryProvider;
+use CannyForge\Archive\Core\Archive\BlogEntryProvider;
 use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
@@ -55,15 +55,14 @@ class Plugin {
 	 * Wire and register the front-end archive page.
 	 *
 	 * The entry source is mode-aware: News mode uses the recent-window query;
-	 * Blog mode uses the fixture provider until the Blog provider (ticket 105)
-	 * lands.
+	 * Blog mode uses the curated URL list.
 	 *
 	 * @return void
 	 */
 	private function register_frontend(): void {
 		$provider = new ModeEntryProvider(
 			new NewsEntryProvider(),
-			new FixtureEntryProvider()
+			new BlogEntryProvider()
 		);
 
 		$page = new ArchivePage(
