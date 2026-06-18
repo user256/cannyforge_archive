@@ -9,7 +9,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | Area | State | Outstanding / next |
 |------|--------|---------------------|
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
-| **Sprint 1 — Settings & MVP** | In progress | 101–111 done; review gate (199) remaining. |
+| **Sprint 1 — Settings & MVP** | Build complete | 101–111 done; 199 = GO, pending live-staging smoke (3 items need a WP install). |
 
 ## Sprint 1 — Settings & MVP
 
