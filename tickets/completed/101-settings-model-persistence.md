@@ -41,7 +41,7 @@ options API with sane defaults from the brief.
 ## Out of scope
 
 - The admin UI that edits these settings (ticket 102).
-- Snowflake / Adobe URL sourcing (final version, not MVP).
+- Analytics-driven URL sourcing (out of scope for this plugin).
 
 ## Dependencies
 

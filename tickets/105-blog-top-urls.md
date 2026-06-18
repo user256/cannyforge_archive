@@ -9,10 +9,10 @@
 
 ## Context
 
-In Blog mode the archive includes a curated set of top URLs. The brief scopes
-the **MVP** to manual text entry or CSV import (the Snowflake/Adobe automation
-is a *final-version* concern). This is the Blog-mode entry provider feeding the
-generator (ticket 103).
+In Blog mode the archive includes a curated set of top URLs, defined by manual
+text entry or CSV import. (The original proposal's analytics-driven URL sourcing
+is out of scope for this plugin.) This is the Blog-mode entry provider feeding
+the generator (ticket 103).
 
 ## Goal
 
@@ -32,7 +32,8 @@ the configured maximum) into archive entries.
 
 ## Out of scope
 
-- Snowflake / Adobe popularity sourcing (final version — separate sprint).
+- Analytics-driven URL sourcing (e.g. Snowflake / Adobe) — explicitly dropped
+  from this plugin's scope.
 - News recent-window query (ticket 104).
 
 ## Dependencies

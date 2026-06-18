@@ -11,7 +11,7 @@
 
 The mandatory `N99` sprint review gate. Sprint 1 is the MVP from the brief; this
 ticket verifies the whole thing hangs together end-to-end before the sprint is
-declared done and Sprint 2 (Snowflake/Adobe automation, etc.) is planned.
+declared done and the next sprint is planned.
 
 ## Goal
 

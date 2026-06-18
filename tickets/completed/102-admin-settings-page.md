@@ -38,7 +38,7 @@ control through the settings model.
 ## Out of scope
 
 - The actual archive page generation (ticket 103) and pagination (107).
-- Final-version Snowflake/Adobe controls.
+- Analytics-driven URL-sourcing controls (out of scope for this plugin).
 
 ## Dependencies
 

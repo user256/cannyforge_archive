@@ -15,8 +15,8 @@ This is the central roadmap for the plugin. The product brief lives in
 
 The MVP per the brief: an admin settings page, a generated archive page that
 doubles as an HTML sitemap, and the limited-pagination replacement. Blog mode
-uses manual / CSV URL entry (the Snowflake/Adobe integration is explicitly a
-*final-version* concern, out of scope for the MVP).
+uses manual / CSV URL entry only — the original proposal's analytics-driven URL
+sourcing is out of scope for this plugin.
 
 - [x] 101 — Settings model & persistence (Core + Contracts)
 - [x] 102 — Admin settings page UI (Blog/News toggle, link-types, filters)

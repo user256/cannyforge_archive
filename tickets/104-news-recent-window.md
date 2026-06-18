@@ -31,7 +31,6 @@ recent window, ordered for archive display.
 ## Out of scope
 
 - Blog top-URL sourcing (ticket 105).
-- Snowflake/Adobe popularity sourcing (final version).
 
 ## Dependencies
 

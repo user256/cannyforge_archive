@@ -2,6 +2,10 @@
 
 > Transcribed from the original proposal ([`PLAN.pdf`](PLAN.pdf)). This is the
 > standalone-plugin design the tickets are derived from.
+>
+> **Scope deviation from the original proposal:** the "final version" Snowflake /
+> Adobe Analytics integrations for sourcing top Blog URLs are **out of scope**.
+> Blog URLs come from manual text entry or CSV import only.
 
 ## Overview
 
@@ -56,10 +60,8 @@ The admin page requires:
 
 ### If Blog
 
-- **MVP:** a text input or CSV import to define URLs to include
+- A text input or CSV import to define the URLs to include
   (`<user-specified number of top URLs, default 100>`).
-- **Final version:** use Snowflake or Adobe (analytics) to define the URLs to
-  include (`<user-specified number of top URLs, default 100>`).
 
 ### Else if News
 
