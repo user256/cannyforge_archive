@@ -13,3 +13,5 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/wp-options-shim.php';
+require __DIR__ . '/wp-view-shim.php';
+require __DIR__ . '/wp-hooks-shim.php';

@@ -16,6 +16,13 @@ deptrac:
         - type: directory
           value: src/Core/.*
 
+    # WordPress-admin surface: settings page, form rendering and parsing. Reads
+    # and writes the settings via Contracts + Core; never the other way round.
+    - name: Admin
+      collectors:
+        - type: directory
+          value: src/Admin/.*
+
     # Composition root — the only layer allowed to wire everything together
     # against WordPress hooks.
     - name: Bootstrap
@@ -28,11 +35,18 @@ deptrac:
     Contracts: ~
 
     # Core is the heart: it knows only the contracts. It must NOT know about
-    # Bootstrap (the composition root) — the dependency arrow points one way.
+    # Admin or Bootstrap — the dependency arrow points one way.
     Core:
       - Contracts
+
+    # Admin builds the settings UI on the contracts (settings types) and the
+    # engine (the repository). It never reaches into Bootstrap.
+    Admin:
+      - Contracts
+      - Core
 
     # Bootstrap is the composition root: it may see everything to wire it.
     Bootstrap:
       - Contracts
       - Core
+      - Admin

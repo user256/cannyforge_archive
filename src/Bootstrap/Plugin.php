@@ -9,12 +9,17 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Bootstrap;
 
+use CannyForge\Archive\Admin\SettingsFormParser;
+use CannyForge\Archive\Admin\SettingsPage;
+use CannyForge\Archive\Admin\SettingsView;
+use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
+
 /**
  * Composition root for CannyForge Archive.
  *
- * The only layer permitted to wire the engine (Core) and its contracts
- * together against WordPress hooks. Keep this thin: construct collaborators
- * and register hooks — no business logic lives here.
+ * The only layer permitted to wire the engine (Core), the admin surface, and
+ * the contracts together against WordPress hooks. Keep this thin: construct
+ * collaborators and register hooks — no business logic lives here.
  */
 class Plugin {
 	/**
@@ -23,6 +28,20 @@ class Plugin {
 	 * @return void
 	 */
 	public function init(): void {
-		// Wiring is registered here as the engine layers land (see tickets 1xx).
+		$this->register_admin();
+	}
+
+	/**
+	 * Wire and register the admin settings page.
+	 *
+	 * @return void
+	 */
+	private function register_admin(): void {
+		$page = new SettingsPage(
+			new OptionsSettingsRepository(),
+			new SettingsFormParser(),
+			new SettingsView()
+		);
+		$page->register();
 	}
 }
