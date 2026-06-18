@@ -23,6 +23,13 @@ deptrac:
         - type: directory
           value: src/Admin/.*
 
+    # WordPress front-end surface: the archive page endpoint and its rendering.
+    # Pulls settings + entries via Contracts + Core; never reaches Bootstrap.
+    - name: Frontend
+      collectors:
+        - type: directory
+          value: src/Frontend/.*
+
     # Composition root — the only layer allowed to wire everything together
     # against WordPress hooks.
     - name: Bootstrap
@@ -45,8 +52,15 @@ deptrac:
       - Contracts
       - Core
 
+    # Frontend exposes the archive page, building on the contracts and engine.
+    # It never reaches into Admin or Bootstrap.
+    Frontend:
+      - Contracts
+      - Core
+
     # Bootstrap is the composition root: it may see everything to wire it.
     Bootstrap:
       - Contracts
       - Core
       - Admin
+      - Frontend

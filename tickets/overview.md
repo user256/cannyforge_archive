@@ -20,7 +20,7 @@ uses manual / CSV URL entry (the Snowflake/Adobe integration is explicitly a
 
 - [x] 101 — Settings model & persistence (Core + Contracts)
 - [x] 102 — Admin settings page UI (Blog/News toggle, link-types, filters)
-- [ ] 103 — Archive / HTML-sitemap page generator
+- [x] 103 — Archive / HTML-sitemap page generator
 - [ ] 104 — News mode: recent-window content query
 - [ ] 105 — Blog mode: manual / CSV top-URL list
 - [ ] 106 — Client-side search & filters (search, category, tag, month+year, author)

@@ -50,6 +50,37 @@ if ( ! function_exists( 'add_menu_page' ) ) {
 	}
 }
 
+if ( ! defined( 'EP_ROOT' ) ) {
+	define( 'EP_ROOT', 64 );
+}
+
+if ( ! function_exists( 'add_rewrite_endpoint' ) ) {
+	/**
+	 * Record a rewrite-endpoint registration.
+	 *
+	 * @param string $name      Endpoint slug.
+	 * @param int    $places    Endpoint mask.
+	 * @param string $query_var Query var.
+	 * @return void
+	 */
+	function add_rewrite_endpoint( string $name, int $places, string $query_var = '' ): void {
+		unset( $places );
+		\CannyForge\Archive\Tests\HookSpy::record( 'endpoint:' . $name, static fn () => $query_var );
+	}
+}
+
+if ( ! function_exists( 'status_header' ) ) {
+	/**
+	 * No-op status header.
+	 *
+	 * @param int $code HTTP status code.
+	 * @return void
+	 */
+	function status_header( int $code ): void {
+		unset( $code );
+	}
+}
+
 if ( ! function_exists( 'admin_url' ) ) {
 	/**
 	 * Build an admin URL.

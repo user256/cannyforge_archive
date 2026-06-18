@@ -41,6 +41,20 @@ if ( ! function_exists( 'esc_html__' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esc_attr__' ) ) {
+	/**
+	 * Translate then attribute-escape.
+	 *
+	 * @param string $text   Text.
+	 * @param string $domain Text domain (ignored).
+	 * @return string
+	 */
+	function esc_attr__( string $text, string $domain = 'default' ): string {
+		unset( $domain );
+		return htmlspecialchars( $text, ENT_QUOTES );
+	}
+}
+
 if ( ! function_exists( 'esc_html' ) ) {
 	/**
 	 * HTML-escape.

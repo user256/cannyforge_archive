@@ -35,6 +35,8 @@ Layered with enforced seams (see [`deptrac.yaml`](deptrac.yaml)):
   the archive/sitemap generator and pagination logic. Depends only on Contracts.
 - **Admin** — the WordPress admin surface (settings page, form rendering and
   parsing). Depends on Contracts + Core.
+- **Frontend** — the WordPress front-end surface (the archive page rewrite
+  endpoint and its rendering). Depends on Contracts + Core.
 - **Bootstrap** — the composition root; the only layer that wires everything
   together against WordPress hooks.
 
