@@ -1,0 +1,38 @@
+deptrac:
+  paths:
+    - ./src
+  layers:
+    # The seam: interfaces the engine and the composition root share. Depends
+    # on nothing internal.
+    - name: Contracts
+      collectors:
+        - type: directory
+          value: src/Contracts/.*
+
+    # The archive engine: sitemap/archive generation and the pagination
+    # replacement. May use Contracts; never reaches back up into Bootstrap.
+    - name: Core
+      collectors:
+        - type: directory
+          value: src/Core/.*
+
+    # Composition root — the only layer allowed to wire everything together
+    # against WordPress hooks.
+    - name: Bootstrap
+      collectors:
+        - type: directory
+          value: src/Bootstrap/.*
+
+  ruleset:
+    # Contracts are the dependency sink: they depend on nothing internal.
+    Contracts: ~
+
+    # Core is the heart: it knows only the contracts. It must NOT know about
+    # Bootstrap (the composition root) — the dependency arrow points one way.
+    Core:
+      - Contracts
+
+    # Bootstrap is the composition root: it may see everything to wire it.
+    Bootstrap:
+      - Contracts
+      - Core

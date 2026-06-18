@@ -1,0 +1,12 @@
+parameters:
+    level: 9
+    paths:
+        - src
+        - cannyforge-archive.php
+    treatPhpDocTypesAsCertain: false
+    # Dead-code / redundancy detection — start clean (ticket 101).
+    reportUnmatchedIgnoredErrors: true
+
+includes:
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon

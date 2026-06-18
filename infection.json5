@@ -1,0 +1,31 @@
+{
+    // Mutation testing config (ticket 201). Infection mutates src/ and re-runs
+    // the PHPUnit suite; a mutation that no test catches is an "escaped mutant"
+    // and reveals a gap in test strength (coverage % alone lies — a suite can
+    // cover a line without asserting its behaviour). The MSI (mutation score
+    // indicator) is the real measure.
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            // The composition root / bootstrap is mostly WP-hook wiring that the
+            // unit suite can't exercise without a WP runtime; mutating it just
+            // produces noise. Covered by the integration/strip smoke instead.
+            "Bootstrap"
+        ]
+    },
+    "mutators": {
+        "@default": true
+    },
+    "logs": {
+        "text": "infection.log"
+    },
+    // NOTE: no minMsi gate yet — on purpose. We have not measured the real MSI
+    // locally (no coverage driver on the dev box), so gating on a guessed number
+    // would be dishonest. Infection runs REPORT-ONLY in CI first; once the first
+    // run prints the actual MSI, set minMsi/minCoveredMsi to just under it and
+    // ratchet up as the engine + its tests grow (ticket 201).
+    "timeout": 30
+}

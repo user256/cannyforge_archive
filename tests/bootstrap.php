@@ -1,0 +1,15 @@
+<?php
+/**
+ * PHPUnit bootstrap.
+ *
+ * Loads the Composer autoloader and a minimal in-memory shim for the handful
+ * of WordPress option functions the engine touches, so the unit suite runs
+ * without a full WordPress runtime.
+ *
+ * @package CannyForge\Archive
+ */
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/wp-options-shim.php';

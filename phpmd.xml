@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ruleset name="CannyForge Archive god-class budget"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0">
+    <description>
+        The REAL, hard-failing god-class budget (ticket 102). PHPMD exits
+        non-zero on violation, per-method and per-class — unlike PHP Insights'
+        aggregate "complexity score" which drifts and only advises. This is the
+        gate that actually fails the build when a class/method grows too complex.
+        Calibrated to keep the archive engine small and cohesive: the kind of
+        thousand-line settings/calculator god classes seen in legacy WordPress
+        plugins would fail loudly here.
+
+        Only the code-size rules are enabled here; style/naming/unused are PHPCS,
+        PHPStan, and Rector's job (no double-gating).
+    </description>
+
+    <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
+        <properties>
+            <!-- Per-method decision points. 12 = a method may branch a fair bit
+                 but a tangled god method (15+) fails. -->
+            <property name="reportLevel" value="12"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <properties>
+            <property name="minimum" value="60"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveClassLength">
+        <properties>
+            <!-- A class over this is doing too much. -->
+            <property name="minimum" value="400"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/TooManyMethods">
+        <properties>
+            <property name="maxmethods" value="25"/>
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/NPathComplexity"/>
+</ruleset>

@@ -1,0 +1,40 @@
+<?php
+/**
+ * Minimal in-memory shim for the WordPress options API.
+ *
+ * Only what the engine's repository needs (get_option / update_option), backed
+ * by a static store so tests can round-trip without a WordPress runtime. Guarded
+ * so a real WordPress environment (or wp-stubs) takes precedence if present.
+ *
+ * @package CannyForge\Archive
+ */
+
+declare(strict_types=1);
+
+if ( ! function_exists( 'get_option' ) ) {
+	/**
+	 * In-memory get_option.
+	 *
+	 * @param string $option  Option name.
+	 * @param mixed  $default_value Value returned when the option is unset.
+	 * @return mixed
+	 */
+	function get_option( string $option, $default_value = false ) {
+		$store = \CannyForge\Archive\Tests\OptionStore::all();
+		return $store[ $option ] ?? $default_value;
+	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	/**
+	 * In-memory update_option.
+	 *
+	 * @param string $option Option name.
+	 * @param mixed  $value  Value to store.
+	 * @return bool
+	 */
+	function update_option( string $option, $value ): bool {
+		\CannyForge\Archive\Tests\OptionStore::set( $option, $value );
+		return true;
+	}
+}

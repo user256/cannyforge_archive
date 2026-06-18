@@ -1,0 +1,59 @@
+name: QA
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: sodium, mbstring
+          tools: composer:v2
+          # pcov so Infection (mutation testing) can generate coverage in CI.
+          coverage: pcov
+
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # Each gate runs as its own step so CI shows exactly which one failed.
+      - name: PHPCS / WPCS
+        run: composer cs
+
+      - name: PHPStan (level 9 + dead-code + WP stubs)
+        run: composer stan
+
+      - name: Rector (dead-code dry-run)
+        run: composer rector
+
+      - name: PHParkitect (architecture rules)
+        run: composer arch
+
+      - name: Deptrac (layer dependency rules)
+        run: composer deptrac
+
+      - name: PHPMD (god-class budget — hard-fails on complexity/length/size)
+        run: composer mess
+
+      - name: PHPUnit
+        run: composer test
+
+      # Report-only for now: prints the real MSI but does not fail the build
+      # until we've seen the first measured number and set a threshold (ticket
+      # 201). Flip `continue-on-error` to false once minMsi is set.
+      - name: Infection (mutation testing — report only)
+        continue-on-error: true
+        run: composer infection
