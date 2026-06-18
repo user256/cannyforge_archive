@@ -49,6 +49,7 @@ Gated out of the box:
 - Run `composer qa` to execute all tests and static analysis (the merge gate).
 - Run `composer cs:fix` to automatically resolve formatting issues.
 - Document planned work as markdown tickets in [`tickets/`](tickets/).
+- Keep git commit messages to a single summary line.
 
 ## License
 
