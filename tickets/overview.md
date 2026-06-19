@@ -2,7 +2,8 @@
 
 This is the central roadmap for the plugin. The product brief lives in
 [`docs/PLAN.md`](../docs/PLAN.md); the design system in
-[`docs/DESIGN.md`](../docs/DESIGN.md).
+[`docs/DESIGN.md`](../docs/DESIGN.md); the developer extension points in
+[`docs/HOOKS.md`](../docs/HOOKS.md).
 
 ## Programme Status
 
@@ -11,6 +12,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
+| **Sprint 3 — Next** | Not started | Feature-complete at v0.1.1; next is WP.org submission / maintenance. No `3xx` tickets open. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -34,7 +36,7 @@ tool. Blog mode uses manual / CSV URL entry only — analytics-driven URL sourci
 - [x] 111 — Content selection: include/exclude, noindex, pinned-priority URLs
 - [x] 120 — Plugin Check: packaging (.distignore) + WordPress readme.txt
 - [x] 121 — Admin UX: CSV import, rename to "Archive Generator", preview link, real branding
-- [x] 199 — Sprint 1 review gate (GO; live smoke passed, 2 defects fixed)
+- [x] [199 — Sprint 1 review gate (GO; live smoke passed, 2 defects fixed)](completed/199-sprint-1-review.md)
 
 ## Ticket numbering
 
@@ -53,10 +55,30 @@ real sites.
 
 - [x] [201 — Archive endpoint lifecycle hardening](201-archive-endpoint-lifecycle-hardening.md)
 - [x] [202 — Content selection normalisation](202-content-selection-normalisation.md)
-- [x] [203 — Distributable build helper + ZIP output](203-distributable-build-helper-zip-output.md)
-- [x] [204 — Front-end theming controls](204-front-end-theming-controls.md)
-- [x] [205 — Historic-content seeding + archive smoke data](205-historic-content-seeding-archive-smoke-data.md)
+- [x] [203 — Distributable build helper + ZIP output](completed/203-distributable-build-helper-zip-output.md)
+- [x] [204 — Front-end theming controls](completed/204-front-end-theming-controls.md)
+- [x] [205 — Historic-content seeding + archive smoke data](completed/205-historic-content-seeding-archive-smoke-data.md)
 - [x] [206 — Fragment caching via transients for HTML sitemap](completed/206-fragment-caching-html-sitemap.md)
 - [x] [207 — Extensibility hooks and filters for third-party integrations](completed/207-extensibility-hooks-filters.md)
 - [x] [208 — Refactor inline CSS to enqueued stylesheets](completed/208-refactor-inline-css.md)
 - [x] [299 — Sprint 2 review gate (GO)](completed/299-sprint-2-review.md)
+
+## Documentation & audits
+
+- [`docs/PLAN.md`](../docs/PLAN.md) — product brief and confirmed product decisions.
+- [`docs/DESIGN.md`](../docs/DESIGN.md) — design system.
+- [`docs/HOOKS.md`](../docs/HOOKS.md) — developer action/filter hooks (ticket 207).
+- [`sprint-2-implementation-audit-2026-06-18.md`](sprint-2-implementation-audit-2026-06-18.md)
+  — code-vs-ticket audit of 201–205.
+
+## Sprint 3 — Next
+
+Both sprints are GO and the plugin is feature-complete against the brief at
+**v0.1.1**. No Sprint 3 work tickets are open. Likely next steps when work
+resumes:
+
+- WordPress.org submission (Plugin Check pass, assets, screenshots).
+- Maintenance: keep `Tested up to` current; address user-reported issues.
+
+Open a `3xx` block (starting at `301`, with `399` as the review gate) when
+new feature work begins.

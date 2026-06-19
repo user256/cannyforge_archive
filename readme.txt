@@ -3,7 +3,7 @@ Tags: sitemap, archive, pagination, seo, crawl-budget
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,12 @@ render pagination in a non-standard way can use the `[cannyforge_pagination]`
 shortcode or the template tag instead.
 
 == Changelog ==
+
+= 0.1.1 =
+* Sprint 2 hardening: archive endpoint lifecycle, content-selection
+  normalisation, distributable build helper, front-end theming controls,
+  historic-content seeding, fragment caching, extensibility hooks, and
+  CSS moved to enqueued stylesheets.
 
 = 0.1.0 =
 * Initial release: archive page, News and Blog modes, client-side filters,
