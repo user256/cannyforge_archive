@@ -12,7 +12,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
-| **Sprint 3 — Findability** | In progress | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 gate pending. |
+| **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -79,6 +79,5 @@ the PageRank-sculpting surface. The **search and filters** must let a user
 discover the *whole site database*, paginated by category/tag/author/date — not
 just filter the promoted subset. Sprint 3 separates these two concerns.
 
-- [x] [301 — Whole-database search & filter navigation](301-whole-database-search-filter-navigation.md)
-
-`399` remains the sprint review gate.
+- [x] [301 — Whole-database search & filter navigation](completed/301-whole-database-search-filter-navigation.md)
+- [x] [399 — Sprint 3 review gate (GO)](completed/399-sprint-3-review.md)
