@@ -17,7 +17,9 @@ use CannyForge\Archive\Core\Cache\ArchiveCache;
 use CannyForge\Archive\Core\Cache\CacheInvalidator;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\BlogEntryProvider;
+use CannyForge\Archive\Core\Archive\ContentIndexProvider;
 use CannyForge\Archive\Core\Archive\ContentSelector;
+use CannyForge\Archive\Core\Archive\FilterOptionsProvider;
 use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Archive\SelectingEntryProvider;
@@ -28,6 +30,7 @@ use CannyForge\Archive\Core\Seo\HeadTagBuilder;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchiveAssets;
 use CannyForge\Archive\Frontend\ArchivePage;
+use CannyForge\Archive\Frontend\ArchiveSearchEndpoint;
 use CannyForge\Archive\Frontend\PaginationController;
 use CannyForge\Archive\Frontend\SeoHead;
 
@@ -86,16 +89,25 @@ class Plugin {
 			new ContentSelector()
 		);
 
-		$cache = new ArchiveCache();
+		$cache    = new ArchiveCache();
+		$renderer = new ArchiveRenderer();
 
 		$page = new ArchivePage(
 			$repository,
 			$provider,
-			new ArchiveRenderer(),
+			$renderer,
 			ArchivePage::DEFAULT_SLUG,
-			$cache
+			$cache,
+			new FilterOptionsProvider()
 		);
 		$page->register();
+
+		$search = new ArchiveSearchEndpoint(
+			$repository,
+			new ContentIndexProvider(),
+			$renderer
+		);
+		$search->register();
 
 		$invalidator = new CacheInvalidator( $cache );
 		$invalidator->register();

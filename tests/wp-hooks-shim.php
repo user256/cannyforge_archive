@@ -165,6 +165,34 @@ if ( ! function_exists( 'wp_enqueue_script' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_localize_script' ) ) {
+	/**
+	 * Record a localized-data attachment for a script handle.
+	 *
+	 * @param string               $handle      Script handle.
+	 * @param string               $object_name JS object name.
+	 * @param array<string, mixed> $data        Data to expose.
+	 * @return bool
+	 */
+	function wp_localize_script( string $handle, string $object_name, array $data ): bool {
+		unset( $data );
+		\CannyForge\Archive\Tests\HookSpy::record( 'localize:' . $handle . ':' . $object_name, static fn () => $object_name );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_create_nonce' ) ) {
+	/**
+	 * Build a representative nonce.
+	 *
+	 * @param string $action Nonce action.
+	 * @return string
+	 */
+	function wp_create_nonce( string $action = '-1' ): string {
+		return 'test-nonce-' . $action;
+	}
+}
+
 if ( ! function_exists( 'plugin_dir_url' ) ) {
 	/**
 	 * Build a plugin directory URL.
@@ -334,5 +362,59 @@ if ( ! function_exists( 'admin_url' ) ) {
 	 */
 	function admin_url( string $path = '' ): string {
 		return 'http://example.test/wp-admin/' . $path;
+	}
+}
+
+if ( ! function_exists( 'get_terms' ) ) {
+	/**
+	 * Return no terms by default (whole-database option sourcing is exercised
+	 * live, not in unit tests).
+	 *
+	 * @param array<string, mixed> $args Query args.
+	 * @return array<int, mixed>
+	 */
+	function get_terms( array $args = array() ): array {
+		unset( $args );
+		return array();
+	}
+}
+
+if ( ! function_exists( 'get_users' ) ) {
+	/**
+	 * Return no users by default.
+	 *
+	 * @param array<string, mixed> $args Query args.
+	 * @return array<int, mixed>
+	 */
+	function get_users( array $args = array() ): array {
+		unset( $args );
+		return array();
+	}
+}
+
+if ( ! function_exists( 'get_posts' ) ) {
+	/**
+	 * Return no posts by default.
+	 *
+	 * @param array<string, mixed> $args Query args.
+	 * @return array<int, mixed>
+	 */
+	function get_posts( array $args = array() ): array {
+		unset( $args );
+		return array();
+	}
+}
+
+if ( ! function_exists( 'get_the_date' ) ) {
+	/**
+	 * Return an empty date by default.
+	 *
+	 * @param string $format Date format.
+	 * @param mixed  $post   Post or post ID.
+	 * @return string
+	 */
+	function get_the_date( string $format = '', $post = null ): string {
+		unset( $format, $post );
+		return '';
 	}
 }

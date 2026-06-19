@@ -133,6 +133,17 @@ final class ArchiveAssets {
 				$this->version,
 				true
 			);
+
+			wp_localize_script(
+				self::SCRIPT_HANDLE,
+				'cannyforgeArchive',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'action'  => ArchiveSearchEndpoint::ACTION,
+					'nonce'   => wp_create_nonce( ArchiveSearchEndpoint::NONCE ),
+					'perPage' => 20,
+				)
+			);
 		}
 	}
 

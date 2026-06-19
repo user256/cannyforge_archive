@@ -9,27 +9,29 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Archive;
 
-use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Settings\Filters;
 
 /**
- * Renders the search box and filter dropdowns the client-side JS (ticket 106)
- * enhances.
+ * Renders the search box and filter dropdowns the client-side JS enhances.
  *
- * Only the controls enabled in {@see Filters} are emitted; the select options
- * are derived from the entries themselves so the JS needs no extra data. The
- * controls are inert without JavaScript — the crawlable archive list rendered
- * by {@see ArchiveRenderer} remains the source of truth. All values are escaped.
+ * Only the controls enabled in {@see Filters} are emitted. The select options
+ * are supplied as whole-database `[value, label]` lists (ticket 301) so a filter
+ * surfaces *all* site content, not just the promoted entries currently rendered.
+ * The controls submit to the search endpoint; the crawlable promoted list
+ * rendered by {@see ArchiveRenderer} remains the no-JS default. All values are
+ * escaped.
+ *
+ * @phpstan-type OptionList array<int, array{value: string, label: string}>
  */
 final class FilterControlsRenderer {
 	/**
 	 * Render the controls block for the enabled filters.
 	 *
-	 * @param ArchiveEntry[] $entries Entries the options are derived from.
-	 * @param Filters        $filters Which controls are enabled.
+	 * @param Filters                                                        $filters Which controls are enabled.
+	 * @param array<string, array<int, array{value: string, label: string}>> $options Whole-database option lists keyed by dimension (category/tag/author/month).
 	 * @return string HTML fragment (empty when no filter is enabled).
 	 */
-	public function render( array $entries, Filters $filters ): string {
+	public function render( Filters $filters, array $options ): string {
 		$controls = '';
 
 		if ( $filters->search() ) {
@@ -37,26 +39,25 @@ final class FilterControlsRenderer {
 		}
 
 		if ( $filters->category() ) {
-			$controls .= $this->select( 'category', __( 'All categories', 'cannyforge-archive' ), $this->categories( $entries ) );
+			$controls .= $this->select( 'category', __( 'All categories', 'cannyforge-archive' ), $options['category'] ?? array() );
 		}
 
 		if ( $filters->tag() ) {
-			$controls .= $this->select( 'tag', __( 'All tags', 'cannyforge-archive' ), $this->tags( $entries ) );
+			$controls .= $this->select( 'tag', __( 'All tags', 'cannyforge-archive' ), $options['tag'] ?? array() );
 		}
 
 		if ( $filters->month_year() ) {
-			$controls .= $this->select( 'month', __( 'All dates', 'cannyforge-archive' ), $this->months( $entries ) );
+			$controls .= $this->select( 'month', __( 'All dates', 'cannyforge-archive' ), $options['month'] ?? array() );
 		}
 
 		if ( $filters->author() ) {
-			$controls .= $this->select( 'author', __( 'All authors', 'cannyforge-archive' ), $this->authors( $entries ) );
+			$controls .= $this->select( 'author', __( 'All authors', 'cannyforge-archive' ), $options['author'] ?? array() );
 		}
 
 		if ( '' === $controls ) {
 			return '';
 		}
 
-		$controls .= $this->group_by();
 		$controls .= $this->reset_button();
 
 		return '<form class="cannyforge-archive-filters" role="search">'
@@ -85,9 +86,9 @@ final class FilterControlsRenderer {
 	/**
 	 * Render a labelled select for one filter dimension.
 	 *
-	 * @param string   $filter  The filter key (data-filter attribute).
-	 * @param string   $all     The "all" (no filter) option label.
-	 * @param string[] $options The distinct option values.
+	 * @param string                                          $filter  The filter key (data-filter attribute).
+	 * @param string                                          $all     The "all" (no filter) option label.
+	 * @param array<int, array{value: string, label: string}> $options Whole-database value/label pairs.
 	 * @return string
 	 */
 	private function select( string $filter, string $all, array $options ): string {
@@ -98,28 +99,15 @@ final class FilterControlsRenderer {
 			esc_html( $all )
 		);
 
-		foreach ( $options as $value ) {
-			$markup .= sprintf( '<option value="%s">%1$s</option>', esc_html( $value ) );
+		foreach ( $options as $option ) {
+			$markup .= sprintf(
+				'<option value="%s">%s</option>',
+				esc_attr( $option['value'] ),
+				esc_html( $option['label'] )
+			);
 		}
 
 		return $markup . '</select></label>';
-	}
-
-	/**
-	 * Render the display-grouping selector.
-	 *
-	 * @return string
-	 */
-	private function group_by(): string {
-		return '<label class="cannyforge-archive-filters__field">'
-			. '<span class="cannyforge-archive-filters__label">' . esc_html__( 'Group by', 'cannyforge-archive' ) . '</span>'
-			. '<select class="cannyforge-archive-filters__select" data-display="group">'
-			. '<option value="">' . esc_html__( 'Newest first', 'cannyforge-archive' ) . '</option>'
-			. '<option value="category">' . esc_html__( 'Category', 'cannyforge-archive' ) . '</option>'
-			. '<option value="tag">' . esc_html__( 'Tag / topic', 'cannyforge-archive' ) . '</option>'
-			. '<option value="author">' . esc_html__( 'Author', 'cannyforge-archive' ) . '</option>'
-			. '<option value="month">' . esc_html__( 'Month', 'cannyforge-archive' ) . '</option>'
-			. '</select></label>';
 	}
 
 	/**
@@ -147,83 +135,5 @@ final class FilterControlsRenderer {
 			'author'   => __( 'Author', 'cannyforge-archive' ),
 			default    => __( 'Filter', 'cannyforge-archive' ),
 		};
-	}
-
-	/**
-	 * Distinct category labels across the entries, sorted.
-	 *
-	 * @param ArchiveEntry[] $entries Entries.
-	 * @return string[]
-	 */
-	private function categories( array $entries ): array {
-		return $this->distinct(
-			$entries,
-			static fn ( ArchiveEntry $entry ): array => $entry->categories()
-		);
-	}
-
-	/**
-	 * Distinct tag labels across the entries, sorted.
-	 *
-	 * @param ArchiveEntry[] $entries Entries.
-	 * @return string[]
-	 */
-	private function tags( array $entries ): array {
-		return $this->distinct(
-			$entries,
-			static fn ( ArchiveEntry $entry ): array => $entry->tags()
-		);
-	}
-
-	/**
-	 * Distinct author labels across the entries, sorted.
-	 *
-	 * @param ArchiveEntry[] $entries Entries.
-	 * @return string[]
-	 */
-	private function authors( array $entries ): array {
-		return $this->distinct(
-			$entries,
-			static fn ( ArchiveEntry $entry ): array => '' !== $entry->author() ? array( $entry->author() ) : array()
-		);
-	}
-
-	/**
-	 * Distinct publication months (Y-m) across the entries, newest first.
-	 *
-	 * @param ArchiveEntry[] $entries Entries.
-	 * @return string[]
-	 */
-	private function months( array $entries ): array {
-		$months = $this->distinct(
-			$entries,
-			static fn ( ArchiveEntry $entry ): array => '' !== $entry->published_month() ? array( $entry->published_month() ) : array()
-		);
-		rsort( $months );
-
-		return $months;
-	}
-
-	/**
-	 * Collect the distinct, sorted, non-empty values produced by an extractor.
-	 *
-	 * @param ArchiveEntry[] $entries   Entries.
-	 * @param callable       $extractor Maps an entry to a string[] of values.
-	 * @return string[]
-	 */
-	private function distinct( array $entries, callable $extractor ): array {
-		$values = array();
-		foreach ( $entries as $entry ) {
-			foreach ( $extractor( $entry ) as $value ) {
-				if ( '' !== $value ) {
-					$values[ $value ] = true;
-				}
-			}
-		}
-
-		$distinct = array_keys( $values );
-		sort( $distinct );
-
-		return $distinct;
 	}
 }

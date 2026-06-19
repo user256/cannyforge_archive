@@ -12,7 +12,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
-| **Sprint 3 — Next** | Not started | Feature-complete at v0.1.1; next is WP.org submission / maintenance. No `3xx` tickets open. |
+| **Sprint 3 — Findability** | In progress | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 gate pending. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -71,14 +71,14 @@ real sites.
 - [`sprint-2-implementation-audit-2026-06-18.md`](sprint-2-implementation-audit-2026-06-18.md)
   — code-vs-ticket audit of 201–205.
 
-## Sprint 3 — Next
+## Sprint 3 — Findability
 
-Both sprints are GO and the plugin is feature-complete against the brief at
-**v0.1.1**. No Sprint 3 work tickets are open. Likely next steps when work
-resumes:
+The archive does two distinct jobs that the Sprint 1/2 code conflated. The
+**HTML-sitemap page** shows the *promoted* set (newest / best / a combination) —
+the PageRank-sculpting surface. The **search and filters** must let a user
+discover the *whole site database*, paginated by category/tag/author/date — not
+just filter the promoted subset. Sprint 3 separates these two concerns.
 
-- WordPress.org submission (Plugin Check pass, assets, screenshots).
-- Maintenance: keep `Tested up to` current; address user-reported issues.
+- [x] [301 — Whole-database search & filter navigation](301-whole-database-search-filter-navigation.md)
 
-Open a `3xx` block (starting at `301`, with `399` as the review gate) when
-new feature work begins.
+`399` remains the sprint review gate.

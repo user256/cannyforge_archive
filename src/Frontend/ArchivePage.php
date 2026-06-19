@@ -13,6 +13,7 @@ use CannyForge\Archive\Contracts\Archive\ArchiveEntryProviderInterface;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
+use CannyForge\Archive\Core\Archive\FilterOptionsProvider;
 use CannyForge\Archive\Core\Cache\ArchiveCache;
 
 /**
@@ -70,6 +71,13 @@ final class ArchivePage {
 	private ArchiveCache $cache;
 
 	/**
+	 * Whole-database filter option source (for the dropdowns).
+	 *
+	 * @var FilterOptionsProvider
+	 */
+	private FilterOptionsProvider $options;
+
+	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface   $repository Settings persistence.
@@ -77,19 +85,22 @@ final class ArchivePage {
 	 * @param ArchiveRenderer               $renderer   HTML renderer.
 	 * @param string                        $slug       Endpoint slug.
 	 * @param ArchiveCache|null             $cache      HTML fragment cache.
+	 * @param FilterOptionsProvider|null    $options    Whole-database filter options.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		ArchiveEntryProviderInterface $provider,
 		ArchiveRenderer $renderer,
 		string $slug = self::DEFAULT_SLUG,
-		?ArchiveCache $cache = null
+		?ArchiveCache $cache = null,
+		?FilterOptionsProvider $options = null
 	) {
 		$this->repository = $repository;
 		$this->provider   = $provider;
 		$this->renderer   = $renderer;
 		$this->slug       = '' !== $slug ? $slug : self::DEFAULT_SLUG;
 		$this->cache      = $cache ?? new ArchiveCache();
+		$this->options    = $options ?? new FilterOptionsProvider();
 	}
 
 	/**
@@ -144,7 +155,7 @@ final class ArchivePage {
 		status_header( 200 );
 
 		get_header();
-		echo '<main id="main" class="site-main" role="main" style="max-width: var(--wp--custom--layout--contentSize, 1200px); margin: 0 auto; padding: 2rem 1rem;">';
+		echo '<main id="main" class="site-main" role="main" style="max-width: var(--wp--custom--layout--contentSize, 900px); margin: 0 auto; padding: 2rem 1rem;">';
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes each value.
 		echo '</main>';
 		get_footer();
@@ -169,8 +180,15 @@ final class ArchivePage {
 		$entries = $this->provider->provide( $settings );
 		$entries = apply_filters( 'cannyforge_archive_entries', $entries );
 
+		$options = array(
+			'category' => $this->options->categories(),
+			'tag'      => $this->options->tags(),
+			'author'   => $this->options->authors(),
+			'month'    => $this->options->months(),
+		);
+
 		do_action( 'cannyforge_archive_before_render' );
-		$html = $this->renderer->render( $entries, $settings );
+		$html = $this->renderer->render( $entries, $settings, $options );
 		do_action( 'cannyforge_archive_after_render' );
 		$this->cache->set( $settings, $html );
 

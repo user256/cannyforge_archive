@@ -6,6 +6,7 @@ SITE_PATH="/var/www/html"
 COUNT=120
 PREFIX="Archive Test Story"
 SLUG_PREFIX=""
+DAYS_STEP=0
 
 usage() {
 	cat <<'EOF'
@@ -17,6 +18,10 @@ Options:
   --site-path PATH   WordPress root path (default: /var/www/html)
   --count N          Number of posts to create (default: 120)
   --prefix TEXT      Post-title prefix used for generated content
+  --days-step N      Space posts N days apart instead of ~1/month. Use this to
+                     pack a high --count into a controlled date range (e.g.
+                     --count 1000 --days-step 8 spans ~22 years). Default: 0
+                     (legacy 1-post-per-month spacing).
   --help             Show this help
 EOF
 }
@@ -29,6 +34,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		--count)
 			COUNT="${2:?Missing value for --count}"
+			shift 2
+			;;
+		--days-step)
+			DAYS_STEP="${2:?Missing value for --days-step}"
 			shift 2
 			;;
 		--prefix)
@@ -49,6 +58,11 @@ done
 
 if ! [[ "${COUNT}" =~ ^[0-9]+$ ]] || [[ "${COUNT}" -lt 1 ]]; then
 	echo "--count must be a positive integer." >&2
+	exit 1
+fi
+
+if ! [[ "${DAYS_STEP}" =~ ^[0-9]+$ ]]; then
+	echo "--days-step must be a non-negative integer." >&2
 	exit 1
 fi
 
@@ -175,9 +189,13 @@ for ((i = 1; i <= COUNT; i++)); do
 	tag_one="${tags_a[$index]}"
 	tag_two="${tags_b[$index]}"
 	topic="${topics[$index]}"
-	published_at="$(date -u -d "$i month ago +$(( i % 24 )) day" '+%Y-%m-%d 09:00:00')"
-	title="$(printf '%s %03d' "$PREFIX" "$i")"
-	slug="$(printf '%s%03d' "$SLUG_PREFIX" "$i")"
+	if [[ "${DAYS_STEP}" -gt 0 ]]; then
+		published_at="$(date -u -d "$(( i * DAYS_STEP )) days ago" '+%Y-%m-%d 09:00:00')"
+	else
+		published_at="$(date -u -d "$i month ago +$(( i % 24 )) day" '+%Y-%m-%d 09:00:00')"
+	fi
+	title="$(printf '%s %04d' "$PREFIX" "$i")"
+	slug="$(printf '%s%04d' "$SLUG_PREFIX" "$i")"
 	content="Historic seed post ${i} about ${topic}. This generated content exists to test archive depth, client-side filters, and old-content discovery."
 	excerpt="Generated archive smoke post ${i} covering ${topic}."
 

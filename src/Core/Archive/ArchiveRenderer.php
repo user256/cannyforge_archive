@@ -40,19 +40,17 @@ final class ArchiveRenderer {
 	}
 
 	/**
-	 * Render the full archive: enabled filter controls then the crawlable list.
+	 * Render the full archive: filter controls, the promoted (no-JS) list, and the
+	 * (initially hidden) whole-database results region the search endpoint fills.
 	 *
-	 * @param ArchiveEntry[] $entries  Entries to render.
-	 * @param Settings       $settings Current settings (drives link-type toggles).
+	 * @param ArchiveEntry[]                                                 $entries  Promoted entries (default view).
+	 * @param Settings                                                       $settings Current settings (drives link-type toggles).
+	 * @param array<string, array<int, array{value: string, label: string}>> $options  Whole-database filter option lists.
 	 * @return string HTML fragment.
 	 */
-	public function render( array $entries, Settings $settings ): string {
-		$items = '';
-		foreach ( $entries as $entry ) {
-			$items .= $this->render_entry( $entry, $settings->link_types() );
-		}
-
-		$controls = $this->controls->render( $entries, $settings->filters() );
+	public function render( array $entries, Settings $settings, array $options = array() ): string {
+		$items    = $this->render_entries( $entries, $settings );
+		$controls = $this->controls->render( $settings->filters(), $options );
 		$theme    = $settings->theme();
 
 		return sprintf(
@@ -69,10 +67,36 @@ final class ArchiveRenderer {
 			. '<p class="cannyforge-archive__empty" data-empty-state hidden>'
 			. esc_html__( 'No entries match your current search and filters.', 'cannyforge-archive' )
 			. '</p>'
-			. '<div class="cannyforge-archive__results">'
-			. '<div class="cannyforge-archive__groups" data-grouped-results hidden></div>'
+			// The promoted, server-rendered, crawlable list: the no-JS default view.
+			. '<div class="cannyforge-archive__results" data-promoted-results>'
 			. '<ul class="cannyforge-archive__list" data-archive-list>' . $items . '</ul>'
-			. '</div></nav>';
+			. '</div>'
+			// Whole-database search/filter results, populated by the endpoint via JS.
+			. '<div class="cannyforge-archive__results cannyforge-archive__results--search" data-search-results hidden>'
+			. '<ul class="cannyforge-archive__list"></ul>'
+			. '</div>'
+			. '<nav class="cannyforge-archive__pagination" data-pagination aria-label="'
+			. esc_attr__( 'Archive results pages', 'cannyforge-archive' ) . '" hidden></nav>'
+			. '</nav>';
+	}
+
+	/**
+	 * Render a list of entries as `<li>` items (no wrapper).
+	 *
+	 * Shared by the default view and the search endpoint so promoted and
+	 * whole-database results render identically.
+	 *
+	 * @param ArchiveEntry[] $entries  Entries.
+	 * @param Settings       $settings Current settings (link-type toggles).
+	 * @return string
+	 */
+	public function render_entries( array $entries, Settings $settings ): string {
+		$items = '';
+		foreach ( $entries as $entry ) {
+			$items .= $this->render_entry( $entry, $settings->link_types() );
+		}
+
+		return $items;
 	}
 
 	/**

@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for the client-side filter controls renderer.
+ * Tests for the filter controls renderer.
  *
  * @package CannyForge\Archive
  */
@@ -9,41 +9,56 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Tests\Core\Archive;
 
-use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Settings\Filters;
 use CannyForge\Archive\Core\Archive\FilterControlsRenderer;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Only enabled filters render, with options derived from the entries.
+ * Only enabled filters render, using whole-database option lists (ticket 301).
  */
 class FilterControlsRendererTest extends TestCase {
 	/**
-	 * Two representative entries spanning two categories/tags/authors/months.
+	 * Representative whole-database option lists keyed by dimension.
 	 *
-	 * @return ArchiveEntry[]
+	 * @return array<string, array<int, array{value: string, label: string}>>
 	 */
-	private function entries(): array {
+	private function options(): array {
 		return array(
-			new ArchiveEntry(
-				'https://example.com/a',
-				'A',
-				'',
-				'',
-				array( 'News' ),
-				array( 'world' ),
-				'Jane Doe',
-				'2026-06-18'
+			'category' => array(
+				array(
+					'value' => 'news',
+					'label' => 'News',
+				),
+				array(
+					'value' => 'sport',
+					'label' => 'Sport',
+				),
 			),
-			new ArchiveEntry(
-				'https://example.com/b',
-				'B',
-				'',
-				'',
-				array( 'Sport' ),
-				array( 'tennis' ),
-				'John Roe',
-				'2026-05-02'
+			'tag'      => array(
+				array(
+					'value' => 'world',
+					'label' => 'World',
+				),
+			),
+			'author'   => array(
+				array(
+					'value' => 'jane-doe',
+					'label' => 'Jane Doe',
+				),
+				array(
+					'value' => 'john-roe',
+					'label' => 'John Roe',
+				),
+			),
+			'month'    => array(
+				array(
+					'value' => '2026-06',
+					'label' => 'Jun 2026',
+				),
+				array(
+					'value' => '2026-05',
+					'label' => 'May 2026',
+				),
 			),
 		);
 	}
@@ -55,7 +70,7 @@ class FilterControlsRendererTest extends TestCase {
 	 * @return string
 	 */
 	private function render( Filters $filters ): string {
-		return ( new FilterControlsRenderer() )->render( $this->entries(), $filters );
+		return ( new FilterControlsRenderer() )->render( $filters, $this->options() );
 	}
 
 	/**
@@ -85,19 +100,19 @@ class FilterControlsRendererTest extends TestCase {
 	}
 
 	/**
-	 * Category options are the distinct category labels from the entries.
+	 * Category options carry the whole-database slug value and human label.
 	 *
 	 * @return void
 	 */
-	public function test_category_options_derived_from_entries(): void {
+	public function test_category_options_use_slug_value_and_label(): void {
 		$html = $this->render( new Filters( false, true, false, false, false ) );
 
-		$this->assertStringContainsString( '<option value="News">News</option>', $html );
-		$this->assertStringContainsString( '<option value="Sport">Sport</option>', $html );
+		$this->assertStringContainsString( '<option value="news">News</option>', $html );
+		$this->assertStringContainsString( '<option value="sport">Sport</option>', $html );
 	}
 
 	/**
-	 * The author filter, when enabled, lists the distinct authors.
+	 * The author filter, when enabled, lists the whole-database authors.
 	 *
 	 * @return void
 	 */
@@ -105,16 +120,16 @@ class FilterControlsRendererTest extends TestCase {
 		$html = $this->render( new Filters( false, false, false, false, true ) );
 
 		$this->assertStringContainsString( 'data-filter="author"', $html );
-		$this->assertStringContainsString( '<option value="Jane Doe">Jane Doe</option>', $html );
-		$this->assertStringContainsString( '<option value="John Roe">John Roe</option>', $html );
+		$this->assertStringContainsString( '<option value="jane-doe">Jane Doe</option>', $html );
+		$this->assertStringContainsString( '<option value="john-roe">John Roe</option>', $html );
 	}
 
 	/**
-	 * Month options are distinct Y-m values, newest first.
+	 * Month options preserve the order supplied (newest first).
 	 *
 	 * @return void
 	 */
-	public function test_month_options_newest_first(): void {
+	public function test_month_options_preserve_order(): void {
 		$html = $this->render( new Filters( false, false, false, true, false ) );
 
 		$june = strpos( $html, '2026-06' );
@@ -126,18 +141,21 @@ class FilterControlsRendererTest extends TestCase {
 	}
 
 	/**
-	 * Control values are escaped.
+	 * Option values and labels are escaped.
 	 *
 	 * @return void
 	 */
 	public function test_escapes_option_values(): void {
-		$entries = array(
-			new ArchiveEntry( 'https://example.com/x', 'X', '', '', array( '<b>Hack</b>' ) ),
-		);
-
 		$html = ( new FilterControlsRenderer() )->render(
-			$entries,
-			new Filters( false, true, false, false, false )
+			new Filters( false, true, false, false, false ),
+			array(
+				'category' => array(
+					array(
+						'value' => 'hack',
+						'label' => '<b>Hack</b>',
+					),
+				),
+			)
 		);
 
 		$this->assertStringNotContainsString( '<b>Hack</b>', $html );

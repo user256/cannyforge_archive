@@ -1,215 +1,245 @@
 /**
- * CannyForge Archive — client-side search & filters (ticket 106).
+ * CannyForge Archive — whole-database search & filter navigation (ticket 301).
  *
- * Progressive enhancement over the server-rendered archive: the full list is
- * present and crawlable without JavaScript; this script only narrows what is
- * visible. Filters combine with AND; the search box matches entry text.
+ * The archive page server-renders the *promoted* set (newest / best), which is
+ * crawlable with no JavaScript. This script adds the other half: as soon as the
+ * user searches or applies a filter, it queries the whole content database via
+ * an AJAX endpoint and shows paginated results — so genuinely old / non-promoted
+ * posts are findable. With no active query, the promoted default view is shown.
  */
 ( function () {
 	'use strict';
 
-	function splitValues( raw ) {
-		if ( ! raw ) {
-			return [];
-		}
-		return raw.split( '|' ).map( function ( value ) {
-			return value.trim();
-		} ).filter( Boolean );
-	}
-
-	function normalise( value ) {
-		return value.trim().toLowerCase();
-	}
+	var config = window.cannyforgeArchive || null;
 
 	/**
-	 * Split a pipe-delimited data-attribute into a lowercase value list.
+	 * Read the active filter/search state from a form.
 	 *
-	 * @param {string} raw Raw attribute value.
-	 * @return {string[]} Values.
+	 * @param {HTMLElement} form The filters form.
+	 * @return {Object} State keyed by dimension.
 	 */
-	function values( raw ) {
-		return splitValues( raw ).map( normalise );
+	function readState( form ) {
+		var search = form.querySelector( '[data-filter="search"]' );
+		var state = {
+			search: search ? search.value.trim() : '',
+			category: '',
+			tag: '',
+			author: '',
+			month: ''
+		};
+
+		Array.prototype.slice
+			.call( form.querySelectorAll( 'select[data-filter]' ) )
+			.forEach( function ( select ) {
+				var key = select.getAttribute( 'data-filter' );
+				if ( key in state ) {
+					state[ key ] = select.value;
+				}
+			} );
+
+		return state;
 	}
 
 	/**
-	 * Whether an entry matches a single dimension's selected value.
+	 * Whether any dimension constrains the query.
 	 *
-	 * @param {HTMLElement} item     The entry element.
-	 * @param {string}      filter   The filter key (category/tag/author/month).
-	 * @param {string}      selected The selected value (empty = no constraint).
-	 * @return {boolean} Match.
+	 * @param {Object} state The filter state.
+	 * @return {boolean} Active.
 	 */
-	function matchesDimension( item, filter, selected ) {
-		if ( ! selected ) {
-			return true;
-		}
-
-		var attribute = {
-			category: 'categories',
-			tag: 'tags',
-			author: 'author',
-			month: 'month'
-		}[ filter ];
-
-		return values( item.getAttribute( 'data-' + attribute ) ).indexOf( selected.toLowerCase() ) !== -1;
+	function isActive( state ) {
+		return !! ( state.search || state.category || state.tag || state.author || state.month );
 	}
 
 	/**
-	 * Initialise the filters for one archive nav.
+	 * Initialise the search/filter navigation for one archive nav.
 	 *
 	 * @param {HTMLElement} root The .cannyforge-archive element.
 	 * @return {void}
 	 */
 	function init( root ) {
 		var form = root.querySelector( '.cannyforge-archive-filters' );
-		if ( ! form ) {
+		if ( ! form || ! config ) {
 			return;
 		}
 
-		var items = Array.prototype.slice.call(
-			root.querySelectorAll( '.cannyforge-archive__item' )
-		);
-		var search = form.querySelector( '[data-filter="search"]' );
-		var selects = Array.prototype.slice.call(
-			form.querySelectorAll( 'select[data-filter]' )
-		);
-		var group = form.querySelector( '[data-display="group"]' );
+		var promoted = root.querySelector( '[data-promoted-results]' );
+		var results = root.querySelector( '[data-search-results]' );
+		var resultsList = results ? results.querySelector( 'ul' ) : null;
 		var summary = root.querySelector( '[data-results-summary]' );
 		var empty = root.querySelector( '[data-empty-state]' );
-		var groupedResults = root.querySelector( '[data-grouped-results]' );
-		var list = root.querySelector( '[data-archive-list]' );
+		var pagination = root.querySelector( '[data-pagination]' );
 
-		function groupLabel( filter, item ) {
-			var attribute = {
-				category: 'categories',
-				tag: 'tags',
-				author: 'author',
-				month: 'month'
-			}[ filter ];
-			var labels = splitValues( item.getAttribute( 'data-' + attribute ) );
-
-			if ( labels.length ) {
-				return labels[ 0 ];
-			}
-
-			return {
-				category: 'Uncategorised',
-				tag: 'Untagged',
-				author: 'Unknown author',
-				month: 'Undated'
-			}[ filter ] || 'Other';
+		if ( ! promoted || ! results || ! resultsList || ! pagination ) {
+			return;
 		}
 
-		function renderGrouped( visibleItems, mode ) {
-			if ( ! groupedResults || ! list ) {
+		var currentPage = 1;
+		var requestToken = 0;
+
+		function showPromoted() {
+			promoted.hidden = false;
+			results.hidden = true;
+			pagination.hidden = true;
+			if ( empty ) {
+				empty.hidden = true;
+			}
+			if ( summary ) {
+				summary.textContent = summary.getAttribute( 'data-default' ) || summary.textContent;
+			}
+		}
+
+		function buildBody( state ) {
+			var params = new URLSearchParams();
+			params.set( 'action', config.action );
+			params.set( 'nonce', config.nonce );
+			params.set( 'search', state.search );
+			params.set( 'category', state.category );
+			params.set( 'tag', state.tag );
+			params.set( 'author', state.author );
+			params.set( 'month', state.month );
+			params.set( 'page', String( currentPage ) );
+			params.set( 'per_page', String( config.perPage || 20 ) );
+			return params;
+		}
+
+		function renderPagination( data ) {
+			pagination.innerHTML = '';
+			if ( data.total_pages <= 1 ) {
+				pagination.hidden = true;
 				return;
 			}
 
-			groupedResults.innerHTML = '';
-
-			if ( ! mode ) {
-				list.hidden = false;
-				groupedResults.hidden = true;
-				return;
-			}
-
-			var groups = {};
-			var order = [];
-
-			visibleItems.forEach( function ( item ) {
-				var label = groupLabel( mode, item );
-				if ( ! groups[ label ] ) {
-					groups[ label ] = [];
-					order.push( label );
+			function button( label, page, disabled, current ) {
+				var btn = document.createElement( 'button' );
+				btn.type = 'button';
+				btn.className = 'cannyforge-archive__page';
+				if ( current ) {
+					btn.className += ' is-current';
+					btn.setAttribute( 'aria-current', 'page' );
 				}
-				groups[ label ].push( item );
-			} );
-
-			order.forEach( function ( label ) {
-				var section = document.createElement( 'section' );
-				section.className = 'cannyforge-archive-group';
-
-				var heading = document.createElement( 'div' );
-				heading.className = 'cannyforge-archive-group__header';
-				heading.innerHTML = '<h3 class="cannyforge-archive-group__title"></h3><span class="cannyforge-archive-group__count"></span>';
-				heading.querySelector( '.cannyforge-archive-group__title' ).textContent = label;
-				heading.querySelector( '.cannyforge-archive-group__count' ).textContent = groups[ label ].length + ' item' + ( groups[ label ].length === 1 ? '' : 's' );
-
-				var bucket = document.createElement( 'ul' );
-				bucket.className = 'cannyforge-archive__list cannyforge-archive__list--grouped';
-
-				groups[ label ].forEach( function ( item ) {
-					var clone = item.cloneNode( true );
-					clone.hidden = false;
-					bucket.appendChild( clone );
-				} );
-
-				section.appendChild( heading );
-				section.appendChild( bucket );
-				groupedResults.appendChild( section );
-			} );
-
-			list.hidden = true;
-			groupedResults.hidden = visibleItems.length === 0;
-		}
-
-		function updateSummary( visibleCount ) {
-			if ( ! summary ) {
-				return;
-			}
-
-			var text = visibleCount === items.length
-				? 'Showing all ' + visibleCount + ' entries'
-				: 'Showing ' + visibleCount + ' of ' + items.length + ' entries';
-
-			if ( group && group.value ) {
-				text += ', grouped by ' + group.options[ group.selectedIndex ].text.toLowerCase();
-			}
-
-			summary.textContent = text;
-		}
-
-		function apply() {
-			var term = search ? search.value.trim().toLowerCase() : '';
-			var visibleItems = [];
-
-			items.forEach( function ( item ) {
-				var visible = ! term || item.textContent.toLowerCase().indexOf( term ) !== -1;
-
-				selects.forEach( function ( select ) {
-					if ( visible ) {
-						visible = matchesDimension( item, select.getAttribute( 'data-filter' ), select.value );
-					}
-				} );
-
-				item.hidden = ! visible;
-				if ( visible ) {
-					visibleItems.push( item );
+				btn.textContent = label;
+				btn.disabled = !! disabled;
+				if ( ! disabled && ! current ) {
+					btn.addEventListener( 'click', function () {
+						currentPage = page;
+						run();
+					} );
 				}
-			} );
+				return btn;
+			}
+
+			pagination.appendChild(
+				button( '‹ Prev', data.page - 1, ! data.has_prev, false )
+			);
+
+			var span = document.createElement( 'span' );
+			span.className = 'cannyforge-archive__page-status';
+			span.textContent = 'Page ' + data.page + ' of ' + data.total_pages;
+			pagination.appendChild( span );
+
+			pagination.appendChild(
+				button( 'Next ›', data.page + 1, ! data.has_next, false )
+			);
+
+			pagination.hidden = false;
+		}
+
+		function showResults( data ) {
+			promoted.hidden = true;
+			results.hidden = false;
+			resultsList.innerHTML = data.html;
 
 			if ( empty ) {
-				empty.hidden = visibleItems.length !== 0;
+				empty.hidden = data.total !== 0;
 			}
 
-			updateSummary( visibleItems.length );
-			renderGrouped( visibleItems, group ? group.value : '' );
+			if ( summary ) {
+				summary.textContent = data.total === 0
+					? 'No results match your search.'
+					: 'Found ' + data.total + ' result' + ( data.total === 1 ? '' : 's' ) + ' across the whole archive';
+			}
+
+			renderPagination( data );
 		}
 
+		function run() {
+			var state = readState( form );
+
+			if ( ! isActive( state ) ) {
+				showPromoted();
+				return;
+			}
+
+			var token = ++requestToken;
+
+			fetch( config.ajaxUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: buildBody( state ).toString()
+			} )
+				.then( function ( response ) {
+					return response.json();
+				} )
+				.then( function ( payload ) {
+					if ( token !== requestToken ) {
+						return; // A newer request superseded this one.
+					}
+					if ( payload && payload.success && payload.data ) {
+						showResults( payload.data );
+					}
+				} )
+				.catch( function () {
+					if ( token === requestToken ) {
+						showPromoted();
+					}
+				} );
+		}
+
+		// Any filter/search change resets to page 1 and re-runs.
+		function onChange() {
+			currentPage = 1;
+			run();
+		}
+
+		var search = form.querySelector( '[data-filter="search"]' );
 		if ( search ) {
-			search.addEventListener( 'input', apply );
+			search.addEventListener( 'input', debounce( onChange, 250 ) );
 		}
-		selects.forEach( function ( select ) {
-			select.addEventListener( 'change', apply );
-		} );
-		if ( group ) {
-			group.addEventListener( 'change', apply );
-		}
+		Array.prototype.slice
+			.call( form.querySelectorAll( 'select[data-filter]' ) )
+			.forEach( function ( select ) {
+				select.addEventListener( 'change', onChange );
+			} );
 		form.addEventListener( 'reset', function () {
-			window.setTimeout( apply, 0 );
+			window.setTimeout( function () {
+				currentPage = 1;
+				showPromoted();
+			}, 0 );
 		} );
 
-		apply();
+		if ( summary && ! summary.getAttribute( 'data-default' ) ) {
+			summary.setAttribute( 'data-default', summary.textContent );
+		}
+	}
+
+	/**
+	 * Debounce a function so rapid calls collapse to one trailing call.
+	 *
+	 * @param {Function} fn    The function.
+	 * @param {number}   delay Delay in ms.
+	 * @return {Function} Debounced wrapper.
+	 */
+	function debounce( fn, delay ) {
+		var timer = null;
+		return function () {
+			var args = arguments;
+			var self = this;
+			window.clearTimeout( timer );
+			timer = window.setTimeout( function () {
+				fn.apply( self, args );
+			}, delay );
+		};
 	}
 
 	document.addEventListener( 'DOMContentLoaded', function () {
