@@ -1,80 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap');
+
 /* CannyForge Archive — front-end archive styles.
- * Functional layout for the archive and its client-side filters (ticket 106),
- * plus the CannyForge brand tokens applied in ticket 108. */
+ * Keeps the plugin themeable, but gives the archive a clearer information
+ * hierarchy so the controls and result list are easier to understand. */
+
+.cannyforge-archive,
+.cannyforge-pagination {
+	--cf-accent: #6d4aff;
+	--cf-surface: #ffffff;
+	--cf-text: #1b143f;
+	--cf-border: #d8dbe8;
+}
+
+@keyframes cfFadeInUp {
+	from { opacity: 0; transform: translateY(12px); }
+	to { opacity: 1; transform: translateY(0); }
+}
 
 .cannyforge-archive {
-	--cf-violet: #6d4aff;
-	--cf-royal: #372580;
-	--cf-ink: #1b143f;
-	--cf-gold: #ca8a04;
-	--cf-border: #e5e7eb;
-
-	margin: 1.5rem 0;
-	color: var(--cf-ink);
-	font-family: Inter, system-ui, sans-serif;
-}
-
-.cannyforge-archive__link {
-	color: var(--cf-violet);
-	text-decoration: none;
-}
-
-.cannyforge-archive__link:hover {
-	text-decoration: underline;
-}
-
-.cannyforge-pagination {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	margin: 1.5rem 0;
-	font-family: Inter, system-ui, sans-serif;
-}
-
-.cannyforge-pagination__page,
-.cannyforge-pagination__archive {
-	border-radius: 999px;
-	padding: 0.35rem 0.85rem;
-	text-decoration: none;
-	color: var(--cf-violet);
+	margin: 1.75rem 0;
+	padding: 1.5rem;
+	color: var(--cf-text);
+	background:
+		linear-gradient(140deg, color-mix(in srgb, var(--cf-accent) 6%, rgba(255,255,255,0.8)) 0%, rgba(255,255,255,0.85) 42%),
+		var(--cf-surface);
+	backdrop-filter: blur(16px);
 	border: 1px solid var(--cf-border);
+	border-radius: 28px;
+	box-shadow: 0 20px 50px -34px color-mix(in srgb, var(--cf-text) 20%, transparent);
+	font-family: 'Inter', system-ui, sans-serif;
+	animation: cfFadeInUp 0.6s ease-out both;
 }
 
-.cannyforge-pagination__page.is-current {
-	background: var(--cf-violet);
-	color: #fff;
-	border-color: var(--cf-violet);
+.cannyforge-archive__hero {
+	margin-bottom: 1.25rem;
 }
 
-.cannyforge-pagination__archive {
-	border-color: rgba(202, 138, 4, 0.42);
-	font-weight: 700;
-}
-
-.cannyforge-archive-filters {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
-	margin-bottom: 1rem;
-}
-
-.cannyforge-archive-filters__search,
-.cannyforge-archive-filters__select {
-	padding: 0.5rem 0.75rem;
-	font: inherit;
-	border: 1px solid #d1d5db;
-	border-radius: 16px;
-}
-
-.cannyforge-archive-filters__search:focus,
-.cannyforge-archive-filters__select:focus {
-	outline: none;
-	border-color: var(--cf-violet);
-	box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.12);
-}
-
-.cannyforge-archive-filters__search {
-	flex: 1 1 16rem;
+.cannyforge-archive__title {
+	margin: 0;
+	font-family: "Instrument Serif", Georgia, serif;
+	font-size: clamp(2rem, 2.5vw, 2.75rem);
+	line-height: 1.05;
+	letter-spacing: -0.04em;
+	color: var(--cf-text);
 }
 
 .cannyforge-archive__list {
@@ -83,8 +51,51 @@
 	padding: 0;
 }
 
+.cannyforge-archive.is-layout-cards .cannyforge-archive__list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+	gap: 1rem;
+}
+
 .cannyforge-archive__item {
-	padding: 0.35rem 0;
+	padding: 1.1rem;
+	background: color-mix(in srgb, var(--cf-surface) 85%, rgba(255,255,255,0.8));
+	backdrop-filter: blur(10px);
+	border: 1px solid color-mix(in srgb, var(--cf-border) 88%, #fff);
+	border-radius: 20px;
+	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+	animation: cfFadeInUp 0.6s ease-out both;
+	animation-fill-mode: backwards;
+}
+
+.cannyforge-archive__item:nth-child(1) { animation-delay: 0.05s; }
+.cannyforge-archive__item:nth-child(2) { animation-delay: 0.1s; }
+.cannyforge-archive__item:nth-child(3) { animation-delay: 0.15s; }
+.cannyforge-archive__item:nth-child(4) { animation-delay: 0.2s; }
+.cannyforge-archive__item:nth-child(5) { animation-delay: 0.25s; }
+.cannyforge-archive__item:nth-child(n+6) { animation-delay: 0.3s; }
+
+.cannyforge-archive.is-layout-list .cannyforge-archive__item {
+	padding: 1rem 0;
+	background: transparent;
+	backdrop-filter: none;
+	border-width: 0 0 1px;
+	border-style: solid;
+	border-color: color-mix(in srgb, var(--cf-border) 75%, transparent);
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.cannyforge-archive__item:hover {
+	transform: translateY(-4px);
+	border-color: color-mix(in srgb, var(--cf-accent) 45%, var(--cf-border));
+	box-shadow: 0 24px 54px rgba(59, 37, 128, 0.12);
+}
+
+.cannyforge-archive.is-layout-list .cannyforge-archive__item:hover {
+	transform: translateX(4px);
+	box-shadow: none;
+	border-color: var(--cf-accent);
 }
 
 .cannyforge-archive__item[hidden] {
@@ -92,14 +103,287 @@
 }
 
 .cannyforge-archive__image {
-	max-width: 3rem;
-	height: auto;
-	margin-right: 0.5rem;
-	vertical-align: middle;
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	border-radius: 14px;
+	margin-bottom: 0.85rem;
+	background: color-mix(in srgb, var(--cf-border) 60%, #fff);
+	transition: transform 0.4s ease;
+}
+
+.cannyforge-archive__item:hover .cannyforge-archive__image {
+	transform: scale(1.02);
+}
+
+.cannyforge-archive__link {
+	color: var(--cf-accent);
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 1.1rem;
+	line-height: 1.4;
+	transition: color 0.2s ease;
+}
+
+.cannyforge-archive__link:hover,
+.cannyforge-archive__link:focus {
+	color: color-mix(in srgb, var(--cf-accent) 70%, #000);
+	text-decoration: none;
 }
 
 .cannyforge-archive__desc {
 	display: block;
-	font-size: 0.85em;
-	opacity: 0.8;
+	margin-top: 0.45rem;
+	font-size: 0.93em;
+	line-height: 1.55;
+	color: color-mix(in srgb, var(--cf-text) 78%, transparent);
+}
+
+.cannyforge-archive__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	margin-top: 0.7rem;
+}
+
+.cannyforge-archive__meta-chip {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.9rem;
+	padding: 0.18rem 0.7rem;
+	font-size: 0.76rem;
+	font-weight: 700;
+	color: color-mix(in srgb, var(--cf-text) 84%, transparent);
+	background: color-mix(in srgb, var(--cf-accent) 8%, var(--cf-surface));
+	border: 1px solid color-mix(in srgb, var(--cf-border) 90%, #fff);
+	border-radius: 999px;
+}
+
+.cannyforge-archive-filters {
+	display: grid;
+	gap: 0.9rem;
+	margin-bottom: 1rem;
+	padding: 1rem;
+	background: color-mix(in srgb, var(--cf-accent) 6%, var(--cf-surface));
+	border: 1px solid color-mix(in srgb, var(--cf-border) 75%, #fff);
+	border-radius: 22px;
+}
+
+.cannyforge-archive-filters__intro {
+	display: grid;
+	gap: 0.2rem;
+}
+
+.cannyforge-archive-filters__intro strong {
+	font-size: 0.96rem;
+}
+
+.cannyforge-archive-filters__intro span {
+	font-size: 0.9rem;
+	line-height: 1.5;
+	color: color-mix(in srgb, var(--cf-text) 72%, transparent);
+}
+
+.cannyforge-archive-filters__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+	gap: 0.75rem;
+	align-items: end;
+}
+
+.cannyforge-archive-filters__field {
+	display: grid;
+	gap: 0.35rem;
+}
+
+.cannyforge-archive-filters__label {
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--cf-text) 70%, transparent);
+}
+
+.cannyforge-archive-filters__search,
+.cannyforge-archive-filters__select {
+	width: 100%;
+	min-height: 2.85rem;
+	padding: 0.6rem 0.85rem;
+	font: inherit;
+	color: var(--cf-text);
+	background: color-mix(in srgb, var(--cf-surface) 92%, #fff);
+	border: 1px solid color-mix(in srgb, var(--cf-border) 88%, #fff);
+	border-radius: 14px;
+	transition: all 0.2s ease;
+}
+
+.cannyforge-archive-filters__search::placeholder {
+	color: color-mix(in srgb, var(--cf-text) 55%, transparent);
+}
+
+.cannyforge-archive-filters__search:hover,
+.cannyforge-archive-filters__select:hover {
+	border-color: color-mix(in srgb, var(--cf-accent) 40%, var(--cf-border));
+}
+
+.cannyforge-archive-filters__search:focus,
+.cannyforge-archive-filters__select:focus {
+	outline: none;
+	background: var(--cf-surface);
+	border-color: color-mix(in srgb, var(--cf-accent) 65%, var(--cf-border));
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--cf-accent) 16%, transparent);
+	transform: translateY(-1px);
+}
+
+.cannyforge-archive-filters__search {
+	min-width: 0;
+}
+
+.cannyforge-archive-filters__actions {
+	display: flex;
+	align-items: end;
+}
+
+.cannyforge-archive-filters__reset {
+	min-height: 2.85rem;
+	padding: 0.6rem 1rem;
+	font: inherit;
+	font-weight: 700;
+	color: var(--cf-accent);
+	background: transparent;
+	border: 1px solid color-mix(in srgb, var(--cf-border) 85%, #fff);
+	border-radius: 14px;
+	cursor: pointer;
+}
+
+.cannyforge-archive__status {
+	margin: 0 0 0.9rem;
+	font-size: 0.92rem;
+	font-weight: 700;
+	color: color-mix(in srgb, var(--cf-text) 84%, transparent);
+}
+
+.cannyforge-archive__empty {
+	margin: 0 0 0.9rem;
+	padding: 0.9rem 1rem;
+	font-weight: 700;
+	color: color-mix(in srgb, var(--cf-text) 82%, transparent);
+	background: color-mix(in srgb, var(--cf-accent) 7%, var(--cf-surface));
+	border: 1px dashed color-mix(in srgb, var(--cf-border) 80%, var(--cf-accent));
+	border-radius: 18px;
+}
+
+.cannyforge-archive__results {
+	display: grid;
+	gap: 1rem;
+}
+
+.cannyforge-archive__groups {
+	display: grid;
+	gap: 1rem;
+}
+
+.cannyforge-archive-group {
+	padding: 0.95rem;
+	background: color-mix(in srgb, var(--cf-surface) 92%, #fff);
+	border: 1px solid color-mix(in srgb, var(--cf-border) 85%, #fff);
+	border-radius: 22px;
+}
+
+.cannyforge-archive-group__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-bottom: 0.8rem;
+}
+
+.cannyforge-archive-group__title {
+	margin: 0;
+	font-size: 1.02rem;
+	line-height: 1.2;
+}
+
+.cannyforge-archive-group__count {
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: color-mix(in srgb, var(--cf-text) 70%, transparent);
+}
+
+.cannyforge-archive__list--grouped {
+	display: grid;
+	gap: 0.7rem;
+}
+
+.cannyforge-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.55rem;
+	margin: 1.5rem 0;
+	font-family: inherit;
+}
+
+.cannyforge-pagination__page,
+.cannyforge-pagination__archive {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.5rem;
+	padding: 0.45rem 0.95rem;
+	text-decoration: none;
+	color: var(--cf-accent);
+	background: color-mix(in srgb, var(--cf-surface) 94%, #fff);
+	border: 1px solid color-mix(in srgb, var(--cf-border) 88%, #fff);
+	border-radius: 999px;
+	box-shadow: 0 10px 24px -24px color-mix(in srgb, var(--cf-text) 22%, transparent);
+	transition: all 0.2s ease;
+}
+
+.cannyforge-pagination__page:not(.is-current):hover,
+.cannyforge-pagination__archive:hover {
+	transform: translateY(-2px);
+	background: #fff;
+	border-color: color-mix(in srgb, var(--cf-accent) 45%, var(--cf-border));
+	box-shadow: 0 12px 28px -18px color-mix(in srgb, var(--cf-accent) 30%, transparent);
+	text-decoration: none;
+}
+
+.cannyforge-pagination__page.is-current {
+	background: var(--cf-accent);
+	color: #fff;
+	border-color: var(--cf-accent);
+	box-shadow: 0 4px 14px color-mix(in srgb, var(--cf-accent) 30%, transparent);
+}
+
+.cannyforge-pagination__archive {
+	font-weight: 700;
+}
+
+@media (max-width: 700px) {
+	.cannyforge-archive {
+		padding: 0.95rem;
+		border-radius: 18px;
+	}
+
+	.cannyforge-archive__hero,
+	.cannyforge-archive__stats,
+	.cannyforge-archive-filters__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.cannyforge-archive.is-layout-cards .cannyforge-archive__list {
+		grid-template-columns: 1fr;
+	}
+
+	.cannyforge-archive-filters {
+		padding: 0.7rem;
+	}
+
+	.cannyforge-archive-filters__search,
+	.cannyforge-archive-filters__select {
+		width: 100%;
+	}
 }

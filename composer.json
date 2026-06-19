@@ -43,6 +43,9 @@
     "scripts": {
         "cs": "phpcs",
         "cs:fix": "phpcbf",
+        "dist": "bash scripts/install-plugin.sh --build-only",
+        "install:local": "bash scripts/install-plugin.sh --site-path /var/www/html",
+        "seed:historic": "bash scripts/seed-historic-content.sh --site-path /var/www/html",
         "stan": "phpstan analyse --memory-limit=1G",
         "rector": "rector process --dry-run",
         "rector:fix": "rector process",
@@ -71,6 +74,9 @@
     },
     "scripts-descriptions": {
         "cs": "PHPCS / WordPress Coding Standards (gating)",
+        "dist": "Build the distributable plugin folder and ZIP archive",
+        "install:local": "Build, zip, and install the plugin into the local WordPress site at /var/www/html",
+        "seed:historic": "Seed the local WordPress site with older posts for archive smoke testing",
         "stan": "PHPStan static analysis (high level + dead-code + WP stubs)",
         "rector": "Rector dead-code set, dry-run (zero changes expected)",
         "arch": "PHParkitect architecture rules",

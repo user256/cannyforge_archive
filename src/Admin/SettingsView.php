@@ -11,6 +11,7 @@ namespace CannyForge\Archive\Admin;
 
 use CannyForge\Archive\Contracts\Settings\Mode;
 use CannyForge\Archive\Contracts\Settings\Settings;
+use CannyForge\Archive\Contracts\Settings\Theme;
 
 /**
  * Renders the "HTML Sitemap Generator Settings" form from a Settings snapshot.
@@ -30,21 +31,7 @@ final class SettingsView {
 	 */
 	public const NONCE_ACTION = 'cannyforge_archive_save_settings';
 
-	/**
-	 * Plugin base URL, for the brand logo (empty = omit the logo).
-	 *
-	 * @var string
-	 */
-	private string $base_url;
 
-	/**
-	 * Construct the view.
-	 *
-	 * @param string $base_url Plugin base URL (trailing slash optional).
-	 */
-	public function __construct( string $base_url = '' ) {
-		$this->base_url = '' !== $base_url ? rtrim( $base_url, '/' ) . '/' : '';
-	}
 
 	/**
 	 * Render the whole settings page.
@@ -56,35 +43,47 @@ final class SettingsView {
 	 */
 	public function render( Settings $settings, string $action_url, string $preview_url = '' ): void {
 		echo '<div class="wrap cannyforge-archive-settings">';
-		$this->render_brand_header();
+		$this->render_brand_header( $preview_url );
 
 		printf( '<form method="post" enctype="multipart/form-data" action="%s">', esc_url( $action_url ) );
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 
+		// Top Section: Mode & Mode Settings (Full Width).
+		echo '<div class="cannyforge-archive-top-section" style="margin-bottom: 2rem;">';
+		echo '<div class="cannyforge-archive-col" style="width: 100%;">';
+		$this->render_mode_and_pagination( $settings );
+		$this->render_mode_panel( $settings );
+		echo '</div>';
+		echo '</div>';
+
+		// Theme Section.
+		echo '<div class="cannyforge-archive-theme-section" style="margin-bottom: 2rem;">';
+		echo '<div class="cannyforge-archive-col" style="width: 100%;">';
+		$this->render_theme( $settings );
+		echo '</div>';
+		echo '</div>';
+
+		// Grid Section: Other Settings.
 		echo '<div class="cannyforge-archive-grid">';
 		echo '<div class="cannyforge-archive-col">';
-		$this->render_mode_and_pagination( $settings );
-		$this->render_link_types( $settings );
-		$this->render_filters( $settings );
 		$this->render_targeting( $settings );
-		$this->render_seo( $settings );
 		echo '</div>';
-
 		echo '<div class="cannyforge-archive-col">';
-		$this->render_mode_panel( $settings );
+		$this->render_filters( $settings );
+		echo '</div>';
+		echo '<div class="cannyforge-archive-col">';
 		$this->render_content_selection( $settings );
 		echo '</div>';
+		echo '<div class="cannyforge-archive-col">';
+		$this->render_link_types( $settings );
+		echo '</div>';
+		echo '<div class="cannyforge-archive-col">';
+		$this->render_seo( $settings );
+		echo '</div>';
 		echo '</div>';
 
-		echo '<p class="cannyforge-archive-actions">';
-		submit_button( __( 'Save', 'cannyforge-archive' ), 'primary', 'submit', false );
-		if ( '' !== $preview_url ) {
-			printf(
-				' <a class="button button-secondary" href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
-				esc_url( $preview_url ),
-				esc_html__( 'Preview archive', 'cannyforge-archive' )
-			);
-		}
+		echo '<p class="cannyforge-archive-actions" style="margin-top: 2rem;">';
+		submit_button( __( 'Save Settings', 'cannyforge-archive' ), 'primary', 'submit', false );
 		echo '</p>';
 		echo '</form>';
 		echo '</div>';
@@ -99,27 +98,21 @@ final class SettingsView {
 	 * (this plugin has no premium tier). The wordmark shows when a base URL is
 	 * configured; the title always renders.
 	 *
+	 * @param string $preview_url The URL to preview the archive.
 	 * @return void
 	 */
-	private function render_brand_header(): void {
-		echo '<h1 class="screen-reader-text">' . esc_html__( 'Archive Generator settings', 'cannyforge-archive' ) . '</h1>';
-		echo '<div class="cf-brand-header" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:.5em 0 1.25em">';
+	private function render_brand_header( string $preview_url ): void {
+		echo '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">';
+		echo '<h1>' . esc_html__( 'Archive Generator', 'cannyforge-archive' ) . '</h1>';
 
-		if ( '' !== $this->base_url ) {
+		if ( '' !== $preview_url ) {
 			printf(
-				'<img src="%s" alt="%s" style="height:40px;width:auto;display:block">',
-				esc_url( $this->base_url . 'assets/branding/cannyforge-font-dark.svg' ),
-				esc_attr__( 'CannyForge', 'cannyforge-archive' )
+				'<a class="button button-secondary" href="%s" target="_blank" rel="noopener noreferrer" style="border-radius:999px;padding:0.4rem 1.25rem;font-weight:600;display:inline-flex;align-items:center;text-decoration:none;border:1px solid var(--cf-violet);color:var(--cf-violet);">%s <span style="margin-left:0.4rem;">&rarr;</span></a>',
+				esc_url( $preview_url ),
+				esc_html__( 'Preview Archive', 'cannyforge-archive' )
 			);
-		} else {
-			echo '<span style="font-size:1.4rem;font-weight:800;letter-spacing:-.02em;color:#1b143f">cannyforge</span>';
 		}
-
 		echo '</div>';
-		printf(
-			'<h2 style="font-family:\'Instrument Serif\',Georgia,serif;font-weight:400;letter-spacing:-.03em;color:#372580;font-size:1.8rem;margin:.25em 0 1em">%s</h2>',
-			esc_html__( 'Archive Generator', 'cannyforge-archive' )
-		);
 	}
 
 	/**
@@ -129,13 +122,30 @@ final class SettingsView {
 	 * @return void
 	 */
 	private function render_mode_and_pagination( Settings $settings ): void {
-		$is_news = Mode::News === $settings->mode();
+		$mode = $settings->mode();
 
 		echo '<h2>' . esc_html__( 'Mode', 'cannyforge-archive' ) . '</h2>';
-		echo '<p><label><input type="radio" name="mode" value="blog" ' . checked( ! $is_news, true, false ) . '> ';
-		echo esc_html__( 'Create Blog Sitemap', 'cannyforge-archive' ) . '</label></p>';
-		echo '<p><label><input type="radio" name="mode" value="news" ' . checked( $is_news, true, false ) . '> ';
-		echo esc_html__( 'Create News Sitemap', 'cannyforge-archive' ) . '</label></p>';
+		echo '<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">';
+
+		// News Mode.
+		echo '<label style="flex: 1; min-width: 200px; padding: 1rem; border: 1px solid var(--cf-border); border-radius: 12px; cursor: pointer; background: ' . ( Mode::News === $mode ? 'var(--cf-lavender-tint)' : '#fff' ) . ';">';
+		echo '<div style="font-weight: 600; margin-bottom: 0.5rem;"><input type="radio" name="mode" value="news" ' . checked( Mode::News === $mode, true, false ) . '> ' . esc_html__( 'News Cycle', 'cannyforge-archive' ) . '</div>';
+		echo '<div class="description" style="margin: 0; padding-left: 1.5rem;">' . esc_html__( 'Only newest', 'cannyforge-archive' ) . '</div>';
+		echo '</label>';
+
+		// Blog Mode.
+		echo '<label style="flex: 1; min-width: 200px; padding: 1rem; border: 1px solid var(--cf-border); border-radius: 12px; cursor: pointer; background: ' . ( Mode::Blog === $mode ? 'var(--cf-lavender-tint)' : '#fff' ) . ';">';
+		echo '<div style="font-weight: 600; margin-bottom: 0.5rem;"><input type="radio" name="mode" value="blog" ' . checked( Mode::Blog === $mode, true, false ) . '> ' . esc_html__( 'Blog', 'cannyforge-archive' ) . '</div>';
+		echo '<div class="description" style="margin: 0; padding-left: 1.5rem;">' . esc_html__( 'Only your top content', 'cannyforge-archive' ) . '</div>';
+		echo '</label>';
+
+		// Hybrid Mode.
+		echo '<label style="flex: 1; min-width: 200px; padding: 1rem; border: 1px solid var(--cf-border); border-radius: 12px; cursor: pointer; background: ' . ( Mode::Hybrid === $mode ? 'var(--cf-lavender-tint)' : '#fff' ) . ';">';
+		echo '<div style="font-weight: 600; margin-bottom: 0.5rem;"><input type="radio" name="mode" value="hybrid" ' . checked( Mode::Hybrid === $mode, true, false ) . '> ' . esc_html__( 'Hybrid', 'cannyforge-archive' ) . '</div>';
+		echo '<div class="description" style="margin: 0; padding-left: 1.5rem;">' . esc_html__( 'A hybrid approach', 'cannyforge-archive' ) . '</div>';
+		echo '</label>';
+
+		echo '</div>';
 
 		echo '<p><label>' . esc_html__( 'Pagination (default 1)', 'cannyforge-archive' ) . ' ';
 		printf(
@@ -234,24 +244,83 @@ final class SettingsView {
 	}
 
 	/**
+	 * Render the front-end theming controls.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return void
+	 */
+	private function render_theme( Settings $settings ): void {
+		$theme = $settings->theme();
+
+		echo '<h2>' . esc_html__( 'Front-end Theme', 'cannyforge-archive' ) . '</h2>';
+		echo '<p class="description">';
+		echo esc_html__( 'These styles apply to the archive page and the "View Archive" pagination block.', 'cannyforge-archive' );
+		echo '</p>';
+
+		echo '<p><label>' . esc_html__( 'Layout', 'cannyforge-archive' ) . ' ';
+		echo '<select name="theme_layout">';
+		printf(
+			'<option value="%s"%s>%s</option>',
+			esc_attr( Theme::LAYOUT_DEFAULT ),
+			selected( $theme->layout(), Theme::LAYOUT_DEFAULT, false ),
+			esc_html__( 'Default (follows blog pagination layout)', 'cannyforge-archive' )
+		);
+		printf(
+			'<option value="%s"%s>%s</option>',
+			esc_attr( Theme::LAYOUT_LIST ),
+			selected( $theme->layout(), Theme::LAYOUT_LIST, false ),
+			esc_html__( 'Simple list', 'cannyforge-archive' )
+		);
+		printf(
+			'<option value="%s"%s>%s</option>',
+			esc_attr( Theme::LAYOUT_CARDS ),
+			selected( $theme->layout(), Theme::LAYOUT_CARDS, false ),
+			esc_html__( 'Cards', 'cannyforge-archive' )
+		);
+		echo '</select></label></p>';
+
+		echo '<p><button type="button" class="button button-secondary" onclick="document.getElementById(\'cf-colors-modal\').showModal()">' . esc_html__( 'Edit Colours', 'cannyforge-archive' ) . '</button></p>';
+
+		// Colours Modal.
+		echo '<dialog id="cf-colors-modal" style="border: none; border-radius: 16px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-width: 400px; width: 100%;">';
+		echo '<h3>' . esc_html__( 'Edit Colours', 'cannyforge-archive' ) . '</h3>';
+
+		printf( '<p><label>%s <input type="color" name="theme_accent_color" value="%s"></label></p>', esc_html__( 'Accent Color', 'cannyforge-archive' ), esc_attr( $theme->accent_color() ) );
+		printf( '<p><label>%s <input type="color" name="theme_surface_color" value="%s"></label></p>', esc_html__( 'Surface Color', 'cannyforge-archive' ), esc_attr( $theme->surface_color() ) );
+		printf( '<p><label>%s <input type="color" name="theme_text_color" value="%s"></label></p>', esc_html__( 'Text Color', 'cannyforge-archive' ), esc_attr( $theme->text_color() ) );
+		printf( '<p><label>%s <input type="color" name="theme_border_color" value="%s"></label></p>', esc_html__( 'Border Color', 'cannyforge-archive' ), esc_attr( $theme->border_color() ) );
+
+		echo '<div style="text-align: right; margin-top: 1.5rem;">';
+		echo '<button type="button" class="button button-primary" onclick="document.getElementById(\'cf-colors-modal\').close()">' . esc_html__( 'Done', 'cannyforge-archive' ) . '</button>';
+		echo '</div>';
+		echo '</dialog>';
+	}
+
+	/**
 	 * Render the mode-dependent right-hand panel.
 	 *
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
 	private function render_mode_panel( Settings $settings ): void {
-		if ( Mode::News === $settings->mode() ) {
-			echo '<h2>' . esc_html__( 'News Sitemap Settings', 'cannyforge-archive' ) . '</h2>';
-			echo '<p><label>' . esc_html__( 'Include content published in the last (hours)', 'cannyforge-archive' ) . ' ';
-			printf(
-				'<input type="number" min="1" name="news_window_hours" value="%d"></label></p>',
-				absint( $settings->news_window_hours() )
-			);
-			return;
-		}
+		echo '<div class="cf-panel-news" style="margin-top: 1rem; border-top: 1px solid var(--cf-border); padding-top: 1rem;">';
+		echo '<h2>' . esc_html__( 'News Cycle Settings', 'cannyforge-archive' ) . '</h2>';
+		echo '<p class="description">';
+		echo esc_html__( 'A list of posts published in the last <insert newscycle settings>.', 'cannyforge-archive' );
+		echo '</p>';
+		echo '<p><label>' . esc_html__( 'Include content published in the last (hours)', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<input type="number" min="1" step="1" name="news_window_hours" value="%d"></label></p>',
+			absint( $settings->news_window_hours() )
+		);
+		echo '</div>';
 
-		echo '<h2>' . esc_html__( 'Blog URLs to include', 'cannyforge-archive' ) . '</h2>';
-		echo '<p><label>' . esc_html__( 'Include up to (URLs)', 'cannyforge-archive' ) . ' ';
+		echo '<div class="cf-panel-blog" style="margin-top: 1rem; border-top: 1px solid var(--cf-border); padding-top: 1rem;">';
+		echo '<h2>' . esc_html__( 'Top Articles', 'cannyforge-archive' ) . '</h2>';
+		echo '<p class="description">';
+		echo esc_html__( 'A list of top articles manually set.', 'cannyforge-archive' );
+		echo '</p>';
+		echo '<p><label>' . esc_html__( 'Maximum curated URLs', 'cannyforge-archive' ) . ' ';
 		printf(
 			'<input type="number" min="1" name="blog_max_urls" value="%d"></label></p>',
 			absint( $settings->blog_max_urls() )
@@ -270,6 +339,7 @@ final class SettingsView {
 		echo '<p class="description">';
 		echo esc_html__( 'The first URL-like value in each CSV row is imported.', 'cannyforge-archive' );
 		echo '</p>';
+		echo '</div>';
 	}
 
 	/**

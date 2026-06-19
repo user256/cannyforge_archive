@@ -158,6 +158,24 @@ if ( ! function_exists( 'checked' ) ) {
 	}
 }
 
+if ( ! function_exists( 'selected' ) ) {
+	/**
+	 * Emit the selected attribute when values match.
+	 *
+	 * @param mixed $selected Value to compare.
+	 * @param mixed $current  Value to compare against.
+	 * @param bool  $display  Whether to echo (true) or return.
+	 * @return string
+	 */
+	function selected( $selected, $current = true, bool $display = true ): string {
+		$result = ( $selected === $current ) ? ' selected="selected"' : '';
+		if ( $display ) {
+			echo $result; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		return $result;
+	}
+}
+
 if ( ! function_exists( 'wp_nonce_field' ) ) {
 	/**
 	 * Emit a representative nonce field.

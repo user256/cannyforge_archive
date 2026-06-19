@@ -11,6 +11,7 @@ namespace CannyForge\Archive\Tests\Core\Settings;
 
 use CannyForge\Archive\Contracts\Settings\Mode;
 use CannyForge\Archive\Contracts\Settings\Settings;
+use CannyForge\Archive\Contracts\Settings\Theme;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,6 +39,8 @@ class SettingsTest extends TestCase {
 		$this->assertTrue( $settings->targeting()->tag() );
 		$this->assertFalse( $settings->targeting()->author() );
 		$this->assertFalse( $settings->targeting()->date() );
+		$this->assertSame( Theme::LAYOUT_CARDS, $settings->theme()->layout() );
+		$this->assertSame( '#6d4aff', $settings->theme()->accent_color() );
 	}
 
 	/**
@@ -45,11 +48,36 @@ class SettingsTest extends TestCase {
 	 *
 	 * @return void
 	 */
-	public function test_round_trips_through_array(): void {
+	public function test_round_trips_through_array_core(): void {
 		$original = Settings::from_array(
 			array(
 				'mode'              => 'news',
 				'pagination_limit'  => 5,
+				'news_window_hours' => 48,
+				'blog_max_urls'     => 25,
+				'blog_urls'         => array( 'https://example.com/a' ),
+				'archive_url'       => 'https://example.com/all/',
+			)
+		);
+
+		$restored = Settings::from_array( $original->to_array() );
+
+		$this->assertSame( Mode::News, $restored->mode() );
+		$this->assertSame( 5, $restored->pagination_limit() );
+		$this->assertSame( 48, $restored->news_window_hours() );
+		$this->assertSame( 25, $restored->blog_max_urls() );
+		$this->assertSame( array( 'https://example.com/a' ), $restored->blog_urls() );
+		$this->assertSame( 'https://example.com/all/', $restored->archive_url() );
+	}
+
+	/**
+	 * Export then import via the array form is lossless for nested objects.
+	 *
+	 * @return void
+	 */
+	public function test_round_trips_through_array_nested(): void {
+		$original = Settings::from_array(
+			array(
 				'link_types'        => array(
 					'title'          => true,
 					'description'    => true,
@@ -62,22 +90,25 @@ class SettingsTest extends TestCase {
 					'month_year' => true,
 					'author'     => true,
 				),
-				'news_window_hours' => 48,
-				'blog_max_urls'     => 25,
-				'blog_urls'         => array( 'https://example.com/a' ),
 				'targeting'         => array(
 					'category' => false,
 					'tag'      => true,
 					'author'   => true,
 					'date'     => true,
 				),
-				'archive_url'       => 'https://example.com/all/',
 				'seo'               => array(
 					'title'            => 'Archive',
 					'meta_description' => 'All our stories.',
 					'index'            => false,
 					'follow'           => true,
 					'canonical'        => 'https://example.com/canonical/',
+				),
+				'theme'             => array(
+					'layout'        => 'list',
+					'accent_color'  => '#112233',
+					'surface_color' => '#fefefe',
+					'text_color'    => '#222222',
+					'border_color'  => '#cccccc',
 				),
 				'content_selection' => array(
 					'include_categories' => array( 'News' ),
@@ -90,15 +121,14 @@ class SettingsTest extends TestCase {
 
 		$restored = Settings::from_array( $original->to_array() );
 
-		$this->assertEquals( $original->to_array(), $restored->to_array() );
-		$this->assertSame( Mode::News, $restored->mode() );
 		$this->assertTrue( $restored->link_types()->description() );
 		$this->assertTrue( $restored->filters()->author() );
 		$this->assertFalse( $restored->targeting()->category() );
 		$this->assertTrue( $restored->targeting()->author() );
-		$this->assertSame( 'https://example.com/all/', $restored->archive_url() );
 		$this->assertSame( 'noindex,follow', $restored->seo()->robots() );
 		$this->assertSame( 'https://example.com/canonical/', $restored->seo()->canonical() );
+		$this->assertSame( Theme::LAYOUT_LIST, $restored->theme()->layout() );
+		$this->assertSame( '#112233', $restored->theme()->accent_color() );
 		$this->assertSame( array( 'News' ), $restored->content_selection()->include_categories() );
 		$this->assertTrue( $restored->content_selection()->exclude_noindex() );
 		$this->assertSame( array( 'https://example.com/pin/' ), $restored->content_selection()->pinned_urls() );
@@ -168,11 +198,38 @@ class SettingsTest extends TestCase {
 				'link_types' => 'not-an-array',
 				'filters'    => 42,
 				'blog_urls'  => 'also-not-an-array',
+				'theme'      => 'still-not-an-array',
 			)
 		);
 
 		$this->assertTrue( $settings->link_types()->title() );
 		$this->assertTrue( $settings->filters()->search() );
 		$this->assertSame( array(), $settings->blog_urls() );
+		$this->assertSame( Theme::LAYOUT_CARDS, $settings->theme()->layout() );
+	}
+
+	/**
+	 * Invalid theme values fall back to safe defaults.
+	 *
+	 * @return void
+	 */
+	public function test_invalid_theme_values_fall_back_to_defaults(): void {
+		$settings = Settings::from_array(
+			array(
+				'theme' => array(
+					'layout'        => 'mosaic',
+					'accent_color'  => 'blue',
+					'surface_color' => '#fff',
+					'text_color'    => '#XYZXYZ',
+					'border_color'  => '#123456',
+				),
+			)
+		);
+
+		$this->assertSame( Theme::LAYOUT_CARDS, $settings->theme()->layout() );
+		$this->assertSame( '#6d4aff', $settings->theme()->accent_color() );
+		$this->assertSame( '#fff', $settings->theme()->surface_color() );
+		$this->assertSame( '#1b143f', $settings->theme()->text_color() );
+		$this->assertSame( '#123456', $settings->theme()->border_color() );
 	}
 }

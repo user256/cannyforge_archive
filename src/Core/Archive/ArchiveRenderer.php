@@ -11,6 +11,7 @@ namespace CannyForge\Archive\Core\Archive;
 
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Settings\LinkTypes;
+use CannyForge\Archive\Contracts\Settings\Mode;
 use CannyForge\Archive\Contracts\Settings\Settings;
 
 /**
@@ -52,10 +53,26 @@ final class ArchiveRenderer {
 		}
 
 		$controls = $this->controls->render( $entries, $settings->filters() );
+		$theme    = $settings->theme();
 
-		return '<nav class="cannyforge-archive" aria-label="' . esc_attr__( 'Archive', 'cannyforge-archive' ) . '">'
+		return sprintf(
+			'<nav class="cannyforge-archive %s" aria-label="%s">',
+			esc_attr( 'is-layout-' . $theme->layout() ),
+			esc_attr__( 'Archive', 'cannyforge-archive' )
+		)
+			. $this->intro()
 			. $controls
-			. '<ul class="cannyforge-archive__list">' . $items . '</ul></nav>';
+			. '<div class="cannyforge-archive__status" data-results-summary aria-live="polite">'
+			/* translators: %d is the number of archive entries currently shown. */
+			. esc_html( sprintf( __( 'Showing all %d entries', 'cannyforge-archive' ), count( $entries ) ) )
+			. '</div>'
+			. '<p class="cannyforge-archive__empty" data-empty-state hidden>'
+			. esc_html__( 'No entries match your current search and filters.', 'cannyforge-archive' )
+			. '</p>'
+			. '<div class="cannyforge-archive__results">'
+			. '<div class="cannyforge-archive__groups" data-grouped-results hidden></div>'
+			. '<ul class="cannyforge-archive__list" data-archive-list>' . $items . '</ul>'
+			. '</div></nav>';
 	}
 
 	/**
@@ -89,7 +106,73 @@ final class ArchiveRenderer {
 			);
 		}
 
+		$inner .= $this->meta( $entry );
+
 		return sprintf( '<li class="cannyforge-archive__item"%s>%s</li>', $this->data_attributes( $entry ), $inner );
+	}
+
+	/**
+	 * Render the explanatory intro and top-line stats.
+	 *
+	 * @return string
+	 */
+	private function intro(): string {
+		return '<div class="cannyforge-archive__hero">'
+			. '<h1 class="cannyforge-archive__title">' . esc_html__( 'Archive', 'cannyforge-archive' ) . '</h1>'
+			. '</div>';
+	}
+
+
+
+	/**
+	 * Render readable metadata chips beneath an entry.
+	 *
+	 * @param ArchiveEntry $entry The entry.
+	 * @return string
+	 */
+	private function meta( ArchiveEntry $entry ): string {
+		$parts = array();
+
+		if ( array() !== $entry->categories() ) {
+			$parts[] = '<span class="cannyforge-archive__meta-chip">'
+				. esc_html( $entry->categories()[0] )
+				. '</span>';
+		}
+
+		if ( '' !== $entry->author() ) {
+			$parts[] = '<span class="cannyforge-archive__meta-chip">'
+				. esc_html( $entry->author() )
+				. '</span>';
+		}
+
+		$month = $this->human_month( $entry->published_date() );
+		if ( '' !== $month ) {
+			$parts[] = '<span class="cannyforge-archive__meta-chip">'
+				. esc_html( $month )
+				. '</span>';
+		}
+
+		if ( array() === $parts ) {
+			return '';
+		}
+
+		return '<div class="cannyforge-archive__meta">' . implode( '', $parts ) . '</div>';
+	}
+
+	/**
+	 * Format a stored Y-m-d date into a short month label.
+	 *
+	 * @param string $date Raw date.
+	 * @return string
+	 */
+	private function human_month( string $date ): string {
+		if ( '' === $date ) {
+			return '';
+		}
+
+		$parsed = \DateTimeImmutable::createFromFormat( 'Y-m-d', $date );
+
+		return false === $parsed ? substr( $date, 0, 7 ) : $parsed->format( 'M Y' );
 	}
 
 	/**

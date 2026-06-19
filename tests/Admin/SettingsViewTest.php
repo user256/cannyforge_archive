@@ -17,43 +17,34 @@ use PHPUnit\Framework\TestCase;
  * The view renders the mock-up controls and the mode-dependent panel.
  */
 class SettingsViewTest extends TestCase {
-	/**
-	 * Render to a string.
-	 *
-	 * @param Settings $settings Settings to render.
-	 * @param string   $base_url Plugin base URL (for the brand logo).
-	 * @return string
-	 */
-	private function render( Settings $settings, string $base_url = '' ): string {
+	private function render( Settings $settings ): string {
 		ob_start();
-		( new SettingsView( $base_url ) )->render( $settings, 'admin.php?page=cannyforge-archive' );
+		( new SettingsView() )->render( $settings, 'admin.php?page=cannyforge-archive' );
 		return (string) ob_get_clean();
 	}
 
 	/**
-	 * Blog mode shows the Blog URL panel and not the News window.
+	 * Both panels are rendered to support CSS-driven toggling.
 	 *
 	 * @return void
 	 */
-	public function test_blog_mode_renders_blog_panel(): void {
+	public function test_renders_blog_panel(): void {
 		$html = $this->render( Settings::from_array( array( 'mode' => 'blog' ) ) );
 
-		$this->assertStringContainsString( 'Blog URLs to include', $html );
+		$this->assertStringContainsString( 'Top Articles', $html );
 		$this->assertStringContainsString( 'name="blog_urls"', $html );
-		$this->assertStringNotContainsString( 'News Sitemap Settings', $html );
 	}
 
 	/**
-	 * News mode shows the News window panel and not the Blog URL list.
+	 * Both panels are rendered to support CSS-driven toggling.
 	 *
 	 * @return void
 	 */
-	public function test_news_mode_renders_news_panel(): void {
+	public function test_renders_news_panel(): void {
 		$html = $this->render( Settings::from_array( array( 'mode' => 'news' ) ) );
 
-		$this->assertStringContainsString( 'News Sitemap Settings', $html );
+		$this->assertStringContainsString( 'News Cycle Settings', $html );
 		$this->assertStringContainsString( 'name="news_window_hours"', $html );
-		$this->assertStringNotContainsString( 'name="blog_urls"', $html );
 	}
 
 	/**
@@ -86,6 +77,8 @@ class SettingsViewTest extends TestCase {
 				'name="seo_index"',
 				'name="seo_follow"',
 				'name="seo_canonical"',
+				'name="theme_layout"',
+
 				'name="select_include_categories"',
 				'name="select_exclude_tags"',
 				'name="select_exclude_noindex"',
@@ -110,32 +103,10 @@ class SettingsViewTest extends TestCase {
 		$this->assertDoesNotMatchRegularExpression( '/name="filter_author"[^>]*checked/', $html );
 		$this->assertMatchesRegularExpression( '/name="target_category"[^>]*checked/', $html );
 		$this->assertDoesNotMatchRegularExpression( '/name="target_date"[^>]*checked/', $html );
+		$this->assertMatchesRegularExpression( '/name="theme_layout"[\s\S]*value="cards" selected/', $html );
 	}
 
-	/**
-	 * When a base URL is supplied, the CannyForge wordmark is rendered.
-	 *
-	 * @return void
-	 */
-	public function test_renders_brand_logo_when_base_url_set(): void {
-		$html = $this->render( new Settings(), 'http://example.test/wp-content/plugins/cannyforge-archive/' );
 
-		$this->assertStringContainsString( 'cf-brand-header', $html );
-		$this->assertStringContainsString( 'assets/branding/cannyforge-font-dark.svg', $html );
-	}
-
-	/**
-	 * With no base URL, the header falls back to the text wordmark, no image.
-	 *
-	 * @return void
-	 */
-	public function test_omits_logo_without_base_url(): void {
-		$html = $this->render( new Settings() );
-
-		$this->assertStringContainsString( 'Archive Generator', $html );
-		$this->assertStringContainsString( '>cannyforge<', $html );
-		$this->assertStringNotContainsString( 'cannyforge-font-dark.svg', $html );
-	}
 
 	/**
 	 * The page is renamed to "Archive Generator" (not "HTML Sitemap Generator").
@@ -176,7 +147,7 @@ class SettingsViewTest extends TestCase {
 		);
 		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( 'Preview archive', $html );
+		$this->assertStringContainsString( 'Preview Archive', $html );
 		$this->assertStringContainsString( 'href="http://example.test/archive/"', $html );
 		$this->assertStringContainsString( 'target="_blank"', $html );
 	}

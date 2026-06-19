@@ -53,6 +53,15 @@ final class ModeEntryProvider implements ArchiveEntryProviderInterface {
 	 * @return \CannyForge\Archive\Contracts\Archive\ArchiveEntry[]
 	 */
 	public function provide( Settings $settings ): array {
+		if ( Mode::Hybrid === $settings->mode() ) {
+			$entries = array_merge( $this->blog->provide( $settings ), $this->news->provide( $settings ) );
+			$unique  = array();
+			foreach ( $entries as $entry ) {
+				$unique[ $entry->url() ] = $entry;
+			}
+			return array_values( $unique );
+		}
+
 		$provider = Mode::News === $settings->mode() ? $this->news : $this->blog;
 
 		return $provider->provide( $settings );

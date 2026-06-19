@@ -1,12 +1,10 @@
 <?php
 /**
- * Plugin Name: CannyForge Archive
- * Plugin URI: https://cannyforge.com/archive
+ * Plugin Name: Archive Generator
  * Description: A combined HTML sitemap + JS-powered archive, and a crawl-budget-friendly replacement for default WordPress taxonomy pagination.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Requires at least: 6.4
  * Requires PHP: 8.1
- * Author: CannyForge
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: cannyforge-archive
@@ -21,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'CANNYFORGE_ARCHIVE_VERSION' ) ) {
-	define( 'CANNYFORGE_ARCHIVE_VERSION', '0.1.0' );
+	define( 'CANNYFORGE_ARCHIVE_VERSION', '0.1.1' );
 }
 
 if ( ! defined( 'CANNYFORGE_ARCHIVE_FILE' ) ) {
@@ -39,5 +37,23 @@ add_action(
 	function () {
 		$plugin = new \CannyForge\Archive\Bootstrap\Plugin();
 		$plugin->init();
+	}
+);
+
+// Flush rewrite rules on activation.
+register_activation_hook(
+	__FILE__,
+	function () {
+		$plugin = new \CannyForge\Archive\Bootstrap\Plugin();
+		$plugin->init();
+		flush_rewrite_rules();
+	}
+);
+
+// Flush rewrite rules on deactivation.
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		flush_rewrite_rules();
 	}
 );

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Pagination;
 
+use CannyForge\Archive\Contracts\Settings\Theme;
+
 /**
  * Builds the "1 2 3 … View Archive →" replacement for the default paginated
  * tail.
@@ -46,6 +48,7 @@ final class PaginationRenderer {
 	 * @param string                $archive_url  Destination for the "View Archive" link.
 	 * @param string                $archive_label Label for the archive link.
 	 * @param callable(int): string $page_url Maps a page number to its URL.
+	 * @param Theme|null            $theme       Optional front-end theme settings.
 	 * @return string
 	 */
 	public function render(
@@ -54,7 +57,8 @@ final class PaginationRenderer {
 		int $limit,
 		string $archive_url,
 		string $archive_label,
-		callable $page_url
+		callable $page_url,
+		?Theme $theme = null
 	): string {
 		$visible = $this->visible_count( $limit, $total_pages );
 
@@ -69,7 +73,12 @@ final class PaginationRenderer {
 			return '';
 		}
 
-		return '<nav class="cannyforge-pagination">' . $links . $archive . '</nav>';
+		return sprintf(
+			'<nav class="cannyforge-pagination"%s>%s%s</nav>',
+			$this->theme_style( $theme ),
+			$links,
+			$archive
+		);
 	}
 
 	/**
@@ -108,5 +117,27 @@ final class PaginationRenderer {
 			esc_url( $url ),
 			esc_html( $label )
 		);
+	}
+
+	/**
+	 * Render inline CSS variables carrying the configured theme.
+	 *
+	 * @param Theme|null $theme The theme settings, when configured.
+	 * @return string A leading-space-prefixed style attribute, or empty.
+	 */
+	private function theme_style( ?Theme $theme ): string {
+		if ( ! $theme instanceof Theme ) {
+			return '';
+		}
+
+		$variables = sprintf(
+			'--cf-accent:%s;--cf-surface:%s;--cf-text:%s;--cf-border:%s;',
+			$theme->accent_color(),
+			$theme->surface_color(),
+			$theme->text_color(),
+			$theme->border_color()
+		);
+
+		return sprintf( ' style="%s"', esc_attr( $variables ) );
 	}
 }

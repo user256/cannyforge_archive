@@ -43,5 +43,6 @@ final class OptionsSettingsRepository implements SettingsRepositoryInterface {
 	 */
 	public function save( Settings $settings ): void {
 		update_option( self::OPTION_KEY, $settings->to_array() );
+		do_action( 'cannyforge_archive_settings_saved' );
 	}
 }

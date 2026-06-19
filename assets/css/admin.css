@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap');
+
 /* CannyForge Archive — admin settings page styling (ticket 108).
  * Applies the CannyForge design system to the plugin's settings screen without
  * fighting core admin usability. Light mode only (per ticket scope). */
@@ -13,7 +15,13 @@
 
 	max-width: 1200px;
 	color: var(--cf-ink);
-	font-family: Inter, system-ui, sans-serif;
+	font-family: 'Inter', system-ui, sans-serif;
+	animation: cfFadeIn 0.5s ease-out forwards;
+}
+
+@keyframes cfFadeIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .cannyforge-archive-settings .cannyforge-archive-brand {
@@ -36,54 +44,173 @@
 	letter-spacing: -0.03em;
 	color: var(--cf-royal);
 	margin: 0;
+	font-size: 2.2rem;
+	animation: cfFadeIn 0.6s ease-out forwards;
 }
 
 .cannyforge-archive-settings h2 {
 	color: var(--cf-royal);
-	font-size: 1.05rem;
+	font-size: 1.15rem;
 	margin-top: 1.5rem;
+	font-weight: 600;
+}
+
+.cannyforge-archive-col h2:first-child {
+	margin-top: 0;
+	margin-bottom: 1rem;
+}
+
+.cannyforge-archive-settings label {
+	display: block;
+	width: 100%;
+}
+
+.cannyforge-archive-settings label:has(input[type="checkbox"]),
+.cannyforge-archive-settings label:has(input[type="radio"]) {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: auto;
 }
 
 .cannyforge-archive-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	gap: 28px;
+	column-count: 1;
+	column-gap: 24px;
+	margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+	.cannyforge-archive-grid {
+		column-count: 2;
+	}
+}
+
+@media (min-width: 1100px) {
+	.cannyforge-archive-grid {
+		column-count: 3;
+	}
 }
 
 .cannyforge-archive-col {
-	background: rgba(255, 255, 255, 0.88);
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(14px);
 	border: 1px solid var(--cf-border);
 	border-top: 3px solid var(--cf-gold);
 	border-radius: 24px;
-	padding: 1.5rem;
+	padding: 1.75rem;
 	box-shadow: 0 14px 34px rgba(59, 37, 128, 0.08);
+	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	animation: cfFadeIn 0.7s ease-out both;
+	break-inside: avoid;
+	margin-bottom: 24px;
+	display: inline-block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.cannyforge-archive-col:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 24px 54px rgba(59, 37, 128, 0.12);
 }
 
 .cannyforge-archive-settings input[type="number"],
 .cannyforge-archive-settings input[type="url"],
+.cannyforge-archive-settings input[type="text"],
+.cannyforge-archive-settings input[type="file"],
+.cannyforge-archive-settings select,
 .cannyforge-archive-settings textarea {
 	border-radius: 16px;
 	border: 1px solid #d1d5db;
-	padding: 0.5rem 0.75rem;
+	padding: 0.6rem 0.85rem;
 	font: inherit;
+	transition: all 0.2s ease;
+	background: rgba(255, 255, 255, 0.92);
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 
 .cannyforge-archive-settings input:focus,
+.cannyforge-archive-settings select:focus,
 .cannyforge-archive-settings textarea:focus {
 	outline: none;
 	border-color: var(--cf-violet);
-	box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.12);
+	box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.14);
+	background: #fff;
+	transform: translateY(-1px);
+}
+
+.cannyforge-archive-settings dialog::backdrop {
+	background: rgba(0, 0, 0, 0.4);
+	backdrop-filter: blur(4px);
+}
+
+.cannyforge-archive-settings dialog {
+	margin: auto;
 }
 
 .cannyforge-archive-settings .button-primary {
 	background: var(--cf-violet);
 	border-color: var(--cf-violet);
 	border-radius: 999px;
-	padding: 0.35rem 1.25rem;
+	padding: 0.5rem 1.5rem;
 	font-weight: 700;
+	color: #ffffff;
+	transition: all 0.2s ease;
+	box-shadow: 0 4px 14px rgba(109, 74, 255, 0.3);
+}
+
+.cannyforge-archive-settings .button-primary:hover {
+	background: #5b3ce6;
+	border-color: #5b3ce6;
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(109, 74, 255, 0.4);
 }
 
 .cannyforge-archive-settings .description {
-	color: #9ca3af;
-	font-size: 0.85rem;
+	color: #6b7280;
+	font-size: 0.9rem;
+	line-height: 1.4;
+	margin-top: 0.4rem;
+}
+
+.cannyforge-archive-segment {
+	display: inline-flex;
+	background: var(--cf-lavender-tint);
+	border-radius: 999px;
+	padding: 4px;
+	margin-bottom: 1rem;
+}
+
+.cannyforge-archive-segment__label {
+	padding: 0.45rem 1.25rem;
+	border-radius: 999px;
+	font-weight: 600;
+	font-size: 0.9rem;
+	transition: all 0.2s ease;
+	color: var(--cf-royal);
+	cursor: pointer;
+}
+
+.cannyforge-archive-segment__label input[type="radio"] {
+	display: none;
+}
+
+.cannyforge-archive-segment__label:has(input:checked) {
+	background: var(--cf-violet);
+	color: #fff;
+	box-shadow: 0 4px 14px rgba(109,74,255,0.3);
+}
+
+.cannyforge-archive-settings:has(input[name="mode"][value="blog"]:checked) .cf-panel-news {
+	display: none;
+}
+
+.cannyforge-archive-settings:has(input[name="mode"][value="news"]:checked) .cf-panel-blog {
+	display: none;
+}
+
+.cannyforge-archive-settings:has(input[name="mode"][value="hybrid"]:checked) .cf-panel-news,
+.cannyforge-archive-settings:has(input[name="mode"][value="hybrid"]:checked) .cf-panel-blog {
+	display: block;
 }

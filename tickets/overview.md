@@ -10,6 +10,7 @@ This is the central roadmap for the plugin. The product brief lives in
 |------|--------|---------------------|
 | **Scaffold & quality gates** | Done | Layered `src/` (Contracts/Core/Admin/Frontend/Bootstrap), full `composer qa` gate. |
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
+| **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -43,3 +44,19 @@ tool. Blog mode uses manual / CSV URL entry only — analytics-driven URL sourci
 
 Use [`tickets/TICKET_TEMPLATE.md`](TICKET_TEMPLATE.md) to create new tickets.
 When done, move them to [`tickets/completed/`](completed/).
+
+## Sprint 2 — Hardening & Fit
+
+Follow-up hardening from the Sprint-1 live review, plus the packaging, front-end
+fit, and test-data work needed to make the plugin easier to ship and evaluate on
+real sites.
+
+- [x] [201 — Archive endpoint lifecycle hardening](201-archive-endpoint-lifecycle-hardening.md)
+- [x] [202 — Content selection normalisation](202-content-selection-normalisation.md)
+- [x] [203 — Distributable build helper + ZIP output](203-distributable-build-helper-zip-output.md)
+- [x] [204 — Front-end theming controls](204-front-end-theming-controls.md)
+- [x] [205 — Historic-content seeding + archive smoke data](205-historic-content-seeding-archive-smoke-data.md)
+- [x] [206 — Fragment caching via transients for HTML sitemap](completed/206-fragment-caching-html-sitemap.md)
+- [x] [207 — Extensibility hooks and filters for third-party integrations](completed/207-extensibility-hooks-filters.md)
+- [x] [208 — Refactor inline CSS to enqueued stylesheets](completed/208-refactor-inline-css.md)
+- [x] [299 — Sprint 2 review gate (GO)](completed/299-sprint-2-review.md)

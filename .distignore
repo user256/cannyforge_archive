@@ -25,7 +25,6 @@ phparkitect.php
 phpinsights.php
 infection.json5
 deptrac.yaml
-composer.json
 composer.lock
 
 # Tests + docs + project artefacts
@@ -33,6 +32,8 @@ tests
 docs
 tickets
 node_modules
+dist
+scripts
 process_tickets.py
 CannyForge-Archive-Overview.md
 README.md

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Tests\Core\Pagination;
 
+use CannyForge\Archive\Contracts\Settings\Theme;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use PHPUnit\Framework\TestCase;
 
@@ -155,5 +156,25 @@ class PaginationRendererTest extends TestCase {
 		);
 
 		$this->assertSame( '', $markup );
+	}
+
+	/**
+	 * The pagination block can carry the configured theme variables.
+	 *
+	 * @return void
+	 */
+	public function test_emits_theme_variables_when_theme_provided(): void {
+		$markup = ( new PaginationRenderer() )->render(
+			1,
+			2,
+			1,
+			'https://site.test/archive/',
+			'View Archive',
+			fn ( int $page ): string => $this->pageUrl( $page ),
+			new Theme( Theme::LAYOUT_LIST, '#112233', '#fefefe', '#222222', '#cccccc' )
+		);
+
+		$this->assertStringContainsString( '--cf-accent:#112233;', $markup );
+		$this->assertStringContainsString( '--cf-surface:#fefefe;', $markup );
 	}
 }

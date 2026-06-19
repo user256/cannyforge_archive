@@ -16,8 +16,9 @@ namespace CannyForge\Archive\Contracts\Settings;
  * published within a recent window.
  */
 enum Mode: string {
-	case Blog = 'blog';
-	case News = 'news';
+	case Blog   = 'blog';
+	case News   = 'news';
+	case Hybrid = 'hybrid';
 
 	/**
 	 * Resolve from a raw string, defaulting to Blog for anything unrecognised.

@@ -103,6 +103,13 @@ final class Settings {
 	private Seo $seo;
 
 	/**
+	 * Front-end theme settings for the archive and pagination blocks.
+	 *
+	 * @var Theme
+	 */
+	private Theme $theme;
+
+	/**
 	 * Content-selection rules applied to the entries before rendering.
 	 *
 	 * @var ContentSelection
@@ -122,6 +129,7 @@ final class Settings {
 	 * @param Targeting        $targeting         Archive-type targeting toggles.
 	 * @param string           $archive_url       "View Archive" link destination override.
 	 * @param Seo              $seo               Archive-page SEO settings.
+	 * @param Theme            $theme             Front-end theme settings.
 	 * @param ContentSelection $content_selection Content-selection rules.
 	 */
 	public function __construct(
@@ -135,6 +143,7 @@ final class Settings {
 		?Targeting $targeting = null,
 		string $archive_url = '',
 		?Seo $seo = null,
+		?Theme $theme = null,
 		?ContentSelection $content_selection = null
 	) {
 		$this->mode              = $mode;
@@ -147,6 +156,7 @@ final class Settings {
 		$this->targeting         = $targeting ?? new Targeting();
 		$this->archive_url       = trim( $archive_url );
 		$this->seo               = $seo ?? new Seo();
+		$this->theme             = $theme ?? new Theme();
 		$this->content_selection = $content_selection ?? new ContentSelection();
 	}
 
@@ -214,6 +224,15 @@ final class Settings {
 	}
 
 	/**
+	 * The front-end theme settings.
+	 *
+	 * @return Theme
+	 */
+	public function theme(): Theme {
+		return $this->theme;
+	}
+
+	/**
 	 * The content-selection rules.
 	 *
 	 * @return ContentSelection
@@ -268,6 +287,7 @@ final class Settings {
 			Targeting::from_array( self::sub_array( $data, 'targeting' ) ),
 			self::to_string( $data['archive_url'] ?? null ),
 			Seo::from_array( self::sub_array( $data, 'seo' ) ),
+			Theme::from_array( self::sub_array( $data, 'theme' ) ),
 			ContentSelection::from_array( self::sub_array( $data, 'content_selection' ) )
 		);
 	}
@@ -289,6 +309,7 @@ final class Settings {
 			'targeting'         => $this->targeting->to_array(),
 			'archive_url'       => $this->archive_url,
 			'seo'               => $this->seo->to_array(),
+			'theme'             => $this->theme->to_array(),
 			'content_selection' => $this->content_selection->to_array(),
 		);
 	}

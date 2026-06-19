@@ -63,14 +63,27 @@ final class ContentSelector {
 	}
 
 	/**
-	 * Whether two label lists share at least one value.
+	 * Whether two label lists share at least one value, ignoring case and punctuation.
 	 *
 	 * @param string[] $a First list.
 	 * @param string[] $b Second list.
 	 * @return bool
 	 */
 	private function intersects( array $a, array $b ): bool {
-		return array() !== array_intersect( $a, $b );
+		$norm_a = array_map( array( $this, 'normalize' ), $a );
+		$norm_b = array_map( array( $this, 'normalize' ), $b );
+
+		return array() !== array_intersect( $norm_a, $norm_b );
+	}
+
+	/**
+	 * Normalize a term for comparison by stripping punctuation/spacing and lowercasing.
+	 *
+	 * @param string $term The raw term or slug.
+	 * @return string
+	 */
+	private function normalize( string $term ): string {
+		return strtolower( preg_replace( '/[^a-z0-9]/i', '', $term ) ?? '' );
 	}
 
 	/**

@@ -10,8 +10,10 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Frontend;
 
 use CannyForge\Archive\Contracts\Archive\ArchiveEntryProviderInterface;
+use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
+use CannyForge\Archive\Core\Cache\ArchiveCache;
 
 /**
  * Exposes the archive at a stable URL and renders it server-side.
@@ -61,23 +63,33 @@ final class ArchivePage {
 	private string $slug;
 
 	/**
+	 * The HTML fragment cache.
+	 *
+	 * @var ArchiveCache
+	 */
+	private ArchiveCache $cache;
+
+	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface   $repository Settings persistence.
 	 * @param ArchiveEntryProviderInterface $provider   Entry source.
 	 * @param ArchiveRenderer               $renderer   HTML renderer.
 	 * @param string                        $slug       Endpoint slug.
+	 * @param ArchiveCache|null             $cache      HTML fragment cache.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		ArchiveEntryProviderInterface $provider,
 		ArchiveRenderer $renderer,
-		string $slug = self::DEFAULT_SLUG
+		string $slug = self::DEFAULT_SLUG,
+		?ArchiveCache $cache = null
 	) {
 		$this->repository = $repository;
 		$this->provider   = $provider;
 		$this->renderer   = $renderer;
 		$this->slug       = '' !== $slug ? $slug : self::DEFAULT_SLUG;
+		$this->cache      = $cache ?? new ArchiveCache();
 	}
 
 	/**
@@ -87,7 +99,7 @@ final class ArchivePage {
 	 */
 	public function register(): void {
 		add_action( 'init', array( $this, 'add_rewrite_endpoint' ) );
-		add_action( 'template_redirect', array( $this, 'maybe_render' ) );
+		add_action( 'template_redirect', array( $this, 'maybe_render' ), 1 );
 	}
 
 	/**
@@ -117,7 +129,14 @@ final class ArchivePage {
 		}
 
 		$settings = $this->repository->get();
-		$entries  = $this->provider->provide( $settings );
+
+		// Ticket 201: Canonical-tail rejection/redirect hardening.
+		if ( '' !== $wp_query->query_vars[ self::QUERY_VAR ] ) {
+			wp_safe_redirect( esc_url_raw( $settings->archive_url() ), 301 );
+			exit;
+		}
+
+		$html = $this->build_html( $settings );
 
 		if ( $wp_query instanceof \WP_Query ) {
 			$wp_query->is_404 = false;
@@ -125,8 +144,36 @@ final class ArchivePage {
 		status_header( 200 );
 
 		get_header();
-		echo $this->renderer->render( $entries, $settings ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes each value.
+		echo '<main id="main" class="site-main" role="main" style="max-width: var(--wp--custom--layout--contentSize, 1200px); margin: 0 auto; padding: 2rem 1rem;">';
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- renderer escapes each value.
+		echo '</main>';
 		get_footer();
 		exit;
+	}
+
+	/**
+	 * Build the archive HTML, using the cache when warm.
+	 *
+	 * On a cache miss, queries the provider, applies the entries filter,
+	 * fires before/after render actions, renders, and stores the result.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return string
+	 */
+	private function build_html( Settings $settings ): string {
+		$cached = $this->cache->get( $settings );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
+		$entries = $this->provider->provide( $settings );
+		$entries = apply_filters( 'cannyforge_archive_entries', $entries );
+
+		do_action( 'cannyforge_archive_before_render' );
+		$html = $this->renderer->render( $entries, $settings );
+		do_action( 'cannyforge_archive_after_render' );
+		$this->cache->set( $settings, $html );
+
+		return $html;
 	}
 }

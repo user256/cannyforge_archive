@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Tests\Frontend;
 
+use CannyForge\Archive\Contracts\Settings\Settings;
+use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
+use CannyForge\Archive\Core\Pagination\TargetingPredicate;
 use CannyForge\Archive\Frontend\ArchiveAssets;
 use CannyForge\Archive\Frontend\ArchivePage;
 use CannyForge\Archive\Tests\HookSpy;
@@ -27,7 +30,8 @@ class ArchiveAssetsTest extends TestCase {
 		parent::setUp();
 		HookSpy::reset();
 		// Seeding the query global is the whole point of the test harness.
-		$GLOBALS['wp_query'] = (object) array( 'query_vars' => array() ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_query']                    = (object) array( 'query_vars' => array() ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['cannyforge_test_is_category'] = false; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 	}
 
 	/**
@@ -36,7 +40,20 @@ class ArchiveAssetsTest extends TestCase {
 	 * @return ArchiveAssets
 	 */
 	private function assets(): ArchiveAssets {
-		return new ArchiveAssets( 'http://example.test/wp-content/plugins/cannyforge-archive/', '0.1.0' );
+		return new ArchiveAssets(
+			new class() implements SettingsRepositoryInterface {
+				public function get(): Settings {
+					return new Settings();
+				}
+
+				public function save( Settings $settings ): void {
+					unset( $settings );
+				}
+			},
+			new TargetingPredicate(),
+			'http://example.test/wp-content/plugins/cannyforge-archive/',
+			'0.1.0'
+		);
 	}
 
 	/**
@@ -73,7 +90,23 @@ class ArchiveAssetsTest extends TestCase {
 		$this->assets()->enqueue();
 
 		$this->assertTrue( HookSpy::has( 'style:' . ArchiveAssets::STYLE_HANDLE ) );
+		$this->assertTrue( HookSpy::has( 'style:inline:' . ArchiveAssets::STYLE_HANDLE ) );
 		$this->assertTrue( HookSpy::has( 'script:' . ArchiveAssets::SCRIPT_HANDLE ) );
+	}
+
+	/**
+	 * On a targeted archive listing, the stylesheet still loads for pagination.
+	 *
+	 * @return void
+	 */
+	public function test_enqueues_style_on_targeted_archive_listing(): void {
+		$GLOBALS['cannyforge_test_is_category'] = true; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		$this->assets()->enqueue();
+
+		$this->assertTrue( HookSpy::has( 'style:' . ArchiveAssets::STYLE_HANDLE ) );
+		$this->assertTrue( HookSpy::has( 'style:inline:' . ArchiveAssets::STYLE_HANDLE ) );
+		$this->assertFalse( HookSpy::has( 'script:' . ArchiveAssets::SCRIPT_HANDLE ) );
 	}
 
 	/**

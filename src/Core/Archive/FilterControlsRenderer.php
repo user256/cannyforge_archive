@@ -56,7 +56,16 @@ final class FilterControlsRenderer {
 			return '';
 		}
 
-		return '<form class="cannyforge-archive-filters" role="search">' . $controls . '</form>';
+		$controls .= $this->group_by();
+		$controls .= $this->reset_button();
+
+		return '<form class="cannyforge-archive-filters" role="search">'
+			. '<div class="cannyforge-archive-filters__intro" style="margin-bottom: 1rem; font-weight: 600;">'
+			. esc_html__( 'Find an article', 'cannyforge-archive' )
+			. '</div>'
+			. '<div class="cannyforge-archive-filters__grid">'
+			. $controls
+			. '</div></form>';
 	}
 
 	/**
@@ -66,7 +75,8 @@ final class FilterControlsRenderer {
 	 */
 	private function search_box(): string {
 		return sprintf(
-			'<input type="search" class="cannyforge-archive-filters__search" data-filter="search" placeholder="%s" aria-label="%s">',
+			'<label class="cannyforge-archive-filters__field"><span class="cannyforge-archive-filters__label">%s</span><input type="search" class="cannyforge-archive-filters__search" data-filter="search" placeholder="%s" aria-label="%s"></label>',
+			esc_html__( 'Search', 'cannyforge-archive' ),
 			esc_attr__( 'Search the archive', 'cannyforge-archive' ),
 			esc_attr__( 'Search the archive', 'cannyforge-archive' )
 		);
@@ -82,7 +92,8 @@ final class FilterControlsRenderer {
 	 */
 	private function select( string $filter, string $all, array $options ): string {
 		$markup = sprintf(
-			'<select class="cannyforge-archive-filters__select" data-filter="%s"><option value="">%s</option>',
+			'<label class="cannyforge-archive-filters__field"><span class="cannyforge-archive-filters__label">%s</span><select class="cannyforge-archive-filters__select" data-filter="%s"><option value="">%s</option>',
+			esc_html( $this->label_for( $filter ) ),
 			esc_attr( $filter ),
 			esc_html( $all )
 		);
@@ -91,7 +102,51 @@ final class FilterControlsRenderer {
 			$markup .= sprintf( '<option value="%s">%1$s</option>', esc_html( $value ) );
 		}
 
-		return $markup . '</select>';
+		return $markup . '</select></label>';
+	}
+
+	/**
+	 * Render the display-grouping selector.
+	 *
+	 * @return string
+	 */
+	private function group_by(): string {
+		return '<label class="cannyforge-archive-filters__field">'
+			. '<span class="cannyforge-archive-filters__label">' . esc_html__( 'Group by', 'cannyforge-archive' ) . '</span>'
+			. '<select class="cannyforge-archive-filters__select" data-display="group">'
+			. '<option value="">' . esc_html__( 'Newest first', 'cannyforge-archive' ) . '</option>'
+			. '<option value="category">' . esc_html__( 'Category', 'cannyforge-archive' ) . '</option>'
+			. '<option value="tag">' . esc_html__( 'Tag / topic', 'cannyforge-archive' ) . '</option>'
+			. '<option value="author">' . esc_html__( 'Author', 'cannyforge-archive' ) . '</option>'
+			. '<option value="month">' . esc_html__( 'Month', 'cannyforge-archive' ) . '</option>'
+			. '</select></label>';
+	}
+
+	/**
+	 * Render the reset button for the client-side controls.
+	 *
+	 * @return string
+	 */
+	private function reset_button(): string {
+		return '<div class="cannyforge-archive-filters__actions"><button type="reset" class="cannyforge-archive-filters__reset">'
+			. esc_html__( 'Reset', 'cannyforge-archive' )
+			. '</button></div>';
+	}
+
+	/**
+	 * Human labels for the filter dimensions.
+	 *
+	 * @param string $filter Filter key.
+	 * @return string
+	 */
+	private function label_for( string $filter ): string {
+		return match ( $filter ) {
+			'category' => __( 'Category', 'cannyforge-archive' ),
+			'tag'      => __( 'Tag', 'cannyforge-archive' ),
+			'month'    => __( 'Published', 'cannyforge-archive' ),
+			'author'   => __( 'Author', 'cannyforge-archive' ),
+			default    => __( 'Filter', 'cannyforge-archive' ),
+		};
 	}
 
 	/**

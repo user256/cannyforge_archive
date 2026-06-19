@@ -152,7 +152,8 @@ final class PaginationController {
 			$settings->pagination_limit(),
 			$this->archive_url( $settings->archive_url() ),
 			__( 'View Archive', 'cannyforge-archive' ),
-			static fn ( int $page ): string => (string) get_pagenum_link( $page )
+			static fn ( int $page ): string => (string) get_pagenum_link( $page ),
+			$settings->theme()
 		);
 	}
 

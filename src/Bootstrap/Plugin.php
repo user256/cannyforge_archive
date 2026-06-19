@@ -13,12 +13,15 @@ use CannyForge\Archive\Admin\AdminAssets;
 use CannyForge\Archive\Admin\SettingsFormParser;
 use CannyForge\Archive\Admin\SettingsPage;
 use CannyForge\Archive\Admin\SettingsView;
+use CannyForge\Archive\Core\Cache\ArchiveCache;
+use CannyForge\Archive\Core\Cache\CacheInvalidator;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\BlogEntryProvider;
 use CannyForge\Archive\Core\Archive\ContentSelector;
 use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Archive\SelectingEntryProvider;
+use CannyForge\Archive\Core\Archive\ThemeCssBuilder;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use CannyForge\Archive\Core\Pagination\TargetingPredicate;
 use CannyForge\Archive\Core\Seo\HeadTagBuilder;
@@ -55,7 +58,7 @@ class Plugin {
 		$page = new SettingsPage(
 			new OptionsSettingsRepository(),
 			new SettingsFormParser(),
-			new SettingsView( $this->base_url() )
+			new SettingsView()
 		);
 		$page->register();
 
@@ -72,6 +75,9 @@ class Plugin {
 	 * @return void
 	 */
 	private function register_frontend(): void {
+		$repository = new OptionsSettingsRepository();
+		$predicate  = new TargetingPredicate();
+
 		$provider = new SelectingEntryProvider(
 			new ModeEntryProvider(
 				new NewsEntryProvider(),
@@ -80,25 +86,38 @@ class Plugin {
 			new ContentSelector()
 		);
 
+		$cache = new ArchiveCache();
+
 		$page = new ArchivePage(
-			new OptionsSettingsRepository(),
+			$repository,
 			$provider,
-			new ArchiveRenderer()
+			new ArchiveRenderer(),
+			ArchivePage::DEFAULT_SLUG,
+			$cache
 		);
 		$page->register();
 
+		$invalidator = new CacheInvalidator( $cache );
+		$invalidator->register();
+
 		$pagination = new PaginationController(
-			new OptionsSettingsRepository(),
-			new TargetingPredicate(),
+			$repository,
+			$predicate,
 			new PaginationRenderer()
 		);
 		$pagination->register();
 
-		$assets = new ArchiveAssets( $this->base_url(), $this->version() );
+		$assets = new ArchiveAssets(
+			$repository,
+			$predicate,
+			$this->base_url(),
+			$this->version(),
+			new ThemeCssBuilder()
+		);
 		$assets->register();
 
 		$seo = new SeoHead(
-			new OptionsSettingsRepository(),
+			$repository,
 			new HeadTagBuilder()
 		);
 		$seo->register();

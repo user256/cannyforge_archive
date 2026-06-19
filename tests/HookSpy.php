@@ -52,6 +52,16 @@ final class HookSpy {
 	}
 
 	/**
+	 * All callbacks registered for a hook, or empty when none.
+	 *
+	 * @param string $hook Hook name.
+	 * @return list<callable>
+	 */
+	public static function callbacks_for( string $hook ): array {
+		return self::$hooks[ $hook ] ?? array();
+	}
+
+	/**
 	 * Clear all recorded hooks (call between tests for isolation).
 	 *
 	 * @return void

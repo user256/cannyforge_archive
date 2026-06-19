@@ -53,10 +53,35 @@ Gated out of the box:
 ## Development Workflow
 
 - Run `composer install` to pull the dev toolchain.
+- Run `composer dist` to build `dist/cannyforge-archive/` plus a WordPress-uploadable ZIP.
+- Run `composer install:local` to build, zip, and install into the local WordPress site at `/var/www/html`.
+- Run `composer seed:historic` to generate older posts on the local WordPress site for archive/pagination smoke testing.
+- Run `bash scripts/install-plugin.sh /path/to/wp-content/plugins` if you want to target a different plugins directory directly.
+- Run `bash scripts/seed-historic-content.sh --site-path /var/www/html --count 120` to seed a WordPress test site with dated archive posts for smoke testing.
 - Run `composer qa` to execute all tests and static analysis (the merge gate).
 - Run `composer cs:fix` to automatically resolve formatting issues.
 - Document planned work as markdown tickets in [`tickets/`](tickets/).
 - Keep git commit messages to a single summary line.
+
+## Archive Smoke Data
+
+The historic-content seeder creates published posts spread across multiple years,
+categories, tags, and authors so the archive has enough depth to exercise:
+
+- archive-page rendering on older content
+- search and filter behaviour in the browser
+- pagination replacement on deep taxonomy archives
+
+The archive filters are client-side JavaScript, not AJAX, so the relevant smoke
+check is browser behaviour on the rendered archive page rather than an API call.
+
+Recommended smoke checklist after `composer seed:historic`:
+
+- Open `/archive/` and confirm older seeded posts render across multiple historical months/years.
+- Type in the archive search box and confirm the visible list updates without a page reload.
+- Change the category, tag, month, and author filters and confirm each narrows the rendered list client-side.
+- Visit a targeted category/tag/date/author archive with pagination and confirm the shortened pagination block still links to `/archive/`.
+- Confirm the archive stylesheet and inline theme variables are present on the archive page and targeted archive listings.
 
 ## License
 

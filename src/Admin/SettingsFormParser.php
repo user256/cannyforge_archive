@@ -63,6 +63,13 @@ final class SettingsFormParser {
 					'follow'           => $this->checkbox( $input, 'seo_follow' ),
 					'canonical'        => $this->string( $input, 'seo_canonical' ),
 				),
+				'theme'             => array(
+					'layout'        => $this->string( $input, 'theme_layout' ),
+					'accent_color'  => $this->string( $input, 'theme_accent_color' ),
+					'surface_color' => $this->string( $input, 'theme_surface_color' ),
+					'text_color'    => $this->string( $input, 'theme_text_color' ),
+					'border_color'  => $this->string( $input, 'theme_border_color' ),
+				),
 				'content_selection' => array(
 					'include_categories' => $this->lines( $input, 'select_include_categories' ),
 					'include_tags'       => $this->lines( $input, 'select_include_tags' ),

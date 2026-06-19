@@ -9,6 +9,11 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Frontend;
 
+use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
+use CannyForge\Archive\Core\Archive\ThemeCssBuilder;
+use CannyForge\Archive\Core\Pagination\ArchiveContext;
+use CannyForge\Archive\Core\Pagination\TargetingPredicate;
+
 /**
  * Enqueues the client-side filter script and the front-end stylesheet, only on
  * the archive request.
@@ -30,6 +35,27 @@ final class ArchiveAssets {
 	public const STYLE_HANDLE = 'cannyforge-archive';
 
 	/**
+	 * Settings persistence.
+	 *
+	 * @var SettingsRepositoryInterface
+	 */
+	private SettingsRepositoryInterface $repository;
+
+	/**
+	 * Pagination-targeting decision.
+	 *
+	 * @var TargetingPredicate
+	 */
+	private TargetingPredicate $predicate;
+
+	/**
+	 * Theme CSS builder.
+	 *
+	 * @var ThemeCssBuilder
+	 */
+	private ThemeCssBuilder $theme_css;
+
+	/**
 	 * Plugin base URL (used to build asset URLs).
 	 *
 	 * @var string
@@ -46,12 +72,24 @@ final class ArchiveAssets {
 	/**
 	 * Construct with the plugin base URL and version.
 	 *
-	 * @param string $base_url Plugin base URL (trailing slash optional).
-	 * @param string $version  Plugin version string.
+	 * @param SettingsRepositoryInterface $repository Settings persistence.
+	 * @param TargetingPredicate          $predicate  Pagination-targeting decision.
+	 * @param string                      $base_url   Plugin base URL (trailing slash optional).
+	 * @param string                      $version    Plugin version string.
+	 * @param ThemeCssBuilder|null        $theme_css  Theme CSS builder.
 	 */
-	public function __construct( string $base_url, string $version ) {
-		$this->base_url = rtrim( $base_url, '/' ) . '/';
-		$this->version  = $version;
+	public function __construct(
+		SettingsRepositoryInterface $repository,
+		TargetingPredicate $predicate,
+		string $base_url,
+		string $version,
+		?ThemeCssBuilder $theme_css = null
+	) {
+		$this->repository = $repository;
+		$this->predicate  = $predicate;
+		$this->base_url   = rtrim( $base_url, '/' ) . '/';
+		$this->version    = $version;
+		$this->theme_css  = $theme_css ?? new ThemeCssBuilder();
 	}
 
 	/**
@@ -69,11 +107,11 @@ final class ArchiveAssets {
 	 * @return void
 	 */
 	public function enqueue(): void {
-		global $wp_query;
-
-		if ( ! isset( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ) ) {
+		if ( ! $this->should_enqueue() ) {
 			return;
 		}
+
+		$settings = $this->repository->get();
 
 		wp_enqueue_style(
 			self::STYLE_HANDLE,
@@ -82,12 +120,42 @@ final class ArchiveAssets {
 			$this->version
 		);
 
-		wp_enqueue_script(
-			self::SCRIPT_HANDLE,
-			$this->base_url . 'assets/js/archive-filters.js',
-			array(),
-			$this->version,
-			true
+		wp_add_inline_style(
+			self::STYLE_HANDLE,
+			$this->theme_css->build( $settings->theme() )
 		);
+
+		if ( $this->is_archive_request() ) {
+			wp_enqueue_script(
+				self::SCRIPT_HANDLE,
+				$this->base_url . 'assets/js/archive-filters.js',
+				array(),
+				$this->version,
+				true
+			);
+		}
+	}
+
+	/**
+	 * Whether the archive stylesheet should load on the current request.
+	 *
+	 * @return bool
+	 */
+	private function should_enqueue(): bool {
+		return $this->is_archive_request() || $this->predicate->applies(
+			$this->repository->get()->targeting(),
+			ArchiveContext::from_wp()
+		);
+	}
+
+	/**
+	 * Whether the current request is the archive endpoint.
+	 *
+	 * @return bool
+	 */
+	private function is_archive_request(): bool {
+		global $wp_query;
+
+		return isset( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] );
 	}
 }

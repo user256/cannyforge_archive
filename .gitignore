@@ -114,6 +114,7 @@ composer.phar
 # composer.lock IS tracked — pins the dev/CI toolchain for reproducible installs.
 # (vendor/ is dev-only; never shipped in the wp.org build.)
 .phpunit.result.cache
+dist/
 .phpcs.cache
 .php-cs-fixer.cache
 .deptrac.cache

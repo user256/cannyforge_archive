@@ -141,8 +141,11 @@ class ArchiveRendererTest extends TestCase {
 	public function test_wraps_entries_in_nav_and_list(): void {
 		$html = $this->render( array() );
 
-		$this->assertStringContainsString( '<nav class="cannyforge-archive"', $html );
-		$this->assertStringContainsString( '<ul class="cannyforge-archive__list">', $html );
+		$this->assertStringContainsString( '<nav class="cannyforge-archive ', $html );
+		$this->assertStringContainsString( 'is-layout-cards', $html );
+		$this->assertStringContainsString( 'Search the archive', $html );
+		$this->assertStringContainsString( 'data-results-summary', $html );
+		$this->assertStringContainsString( '<ul class="cannyforge-archive__list" data-archive-list>', $html );
 		$this->assertStringContainsString( '<li class="cannyforge-archive__item"', $html );
 	}
 

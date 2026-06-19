@@ -10,6 +10,19 @@
 
 declare(strict_types=1);
 
+if ( ! function_exists( 'do_action' ) ) {
+	/**
+	 * Fire an action hook (no-op in test runtime; recorded for inspection if needed).
+	 *
+	 * @param string $tag    Action name.
+	 * @param mixed  ...$args Arguments.
+	 * @return void
+	 */
+	function do_action( string $tag, ...$args ): void {
+		\CannyForge\Archive\Tests\HookSpy::record( 'do_action:' . $tag, static fn () => $args );
+	}
+}
+
 if ( ! function_exists( 'add_action' ) ) {
 	/**
 	 * Record an action registration.
@@ -43,14 +56,24 @@ if ( ! function_exists( 'add_filter' ) ) {
 
 if ( ! function_exists( 'apply_filters' ) ) {
 	/**
-	 * Pass-through filter: returns the value unchanged in the test runtime.
+	 * Apply registered filters to a value.
+	 *
+	 * Records the call and invokes any callbacks registered via add_filter()
+	 * in the test runtime so filter behaviour can be verified.
 	 *
 	 * @param string $hook  Filter name.
 	 * @param mixed  $value Value to filter.
+	 * @param mixed  ...$args Additional arguments.
 	 * @return mixed
 	 */
-	function apply_filters( string $hook, $value ) {
-		unset( $hook );
+	function apply_filters( string $hook, $value, ...$args ) {
+		\CannyForge\Archive\Tests\HookSpy::record( 'apply_filters:' . $hook, static fn () => $args );
+
+		$callbacks = \CannyForge\Archive\Tests\HookSpy::callbacks_for( 'filter:' . $hook );
+		foreach ( $callbacks as $callback ) {
+			$value = $callback( $value, ...$args );
+		}
+
 		return $value;
 	}
 }
@@ -107,6 +130,21 @@ if ( ! function_exists( 'wp_enqueue_style' ) ) {
 	function wp_enqueue_style( string $handle, string $src = '', array $deps = array(), string $version = '' ): void {
 		unset( $src, $deps, $version );
 		\CannyForge\Archive\Tests\HookSpy::record( 'style:' . $handle, static fn () => $handle );
+	}
+}
+
+if ( ! function_exists( 'wp_add_inline_style' ) ) {
+	/**
+	 * Record inline CSS attached to a stylesheet handle.
+	 *
+	 * @param string $handle Handle.
+	 * @param string $data   CSS data.
+	 * @return bool
+	 */
+	function wp_add_inline_style( string $handle, string $data ): bool {
+		unset( $data );
+		\CannyForge\Archive\Tests\HookSpy::record( 'style:inline:' . $handle, static fn () => $handle );
+		return true;
 	}
 }
 
@@ -186,6 +224,10 @@ if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
 	define( 'HOUR_IN_SECONDS', 3600 );
 }
 
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+	define( 'DAY_IN_SECONDS', 86400 );
+}
+
 if ( ! function_exists( 'add_rewrite_endpoint' ) ) {
 	/**
 	 * Record a rewrite-endpoint registration.
@@ -246,7 +288,7 @@ if ( ! function_exists( 'is_category' ) ) {
 	 * @return bool
 	 */
 	function is_category(): bool {
-		return false;
+		return (bool) ( $GLOBALS['cannyforge_test_is_category'] ?? false );
 	}
 }
 
@@ -257,7 +299,7 @@ if ( ! function_exists( 'is_tag' ) ) {
 	 * @return bool
 	 */
 	function is_tag(): bool {
-		return false;
+		return (bool) ( $GLOBALS['cannyforge_test_is_tag'] ?? false );
 	}
 }
 
@@ -268,7 +310,7 @@ if ( ! function_exists( 'is_author' ) ) {
 	 * @return bool
 	 */
 	function is_author(): bool {
-		return false;
+		return (bool) ( $GLOBALS['cannyforge_test_is_author'] ?? false );
 	}
 }
 
@@ -279,7 +321,7 @@ if ( ! function_exists( 'is_date' ) ) {
 	 * @return bool
 	 */
 	function is_date(): bool {
-		return false;
+		return (bool) ( $GLOBALS['cannyforge_test_is_date'] ?? false );
 	}
 }
 

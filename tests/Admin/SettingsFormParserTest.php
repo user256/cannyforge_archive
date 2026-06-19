@@ -45,6 +45,7 @@ class SettingsFormParserTest extends TestCase {
 		$this->assertFalse( $settings->link_types()->featured_image() );
 		$this->assertTrue( $settings->filters()->search() );
 		$this->assertTrue( $settings->filters()->author() );
+		$this->assertSame( 'cards', $settings->theme()->layout() );
 	}
 
 	/**
@@ -150,5 +151,28 @@ class SettingsFormParserTest extends TestCase {
 		);
 
 		$this->assertSame( 1, $settings->pagination_limit() );
+	}
+
+	/**
+	 * Theme controls map through to the settings model.
+	 *
+	 * @return void
+	 */
+	public function test_theme_controls_are_parsed(): void {
+		$settings = ( new SettingsFormParser() )->parse(
+			array(
+				'theme_layout'        => 'list',
+				'theme_accent_color'  => '#112233',
+				'theme_surface_color' => '#fafafa',
+				'theme_text_color'    => '#222222',
+				'theme_border_color'  => '#cccccc',
+			)
+		);
+
+		$this->assertSame( 'list', $settings->theme()->layout() );
+		$this->assertSame( '#112233', $settings->theme()->accent_color() );
+		$this->assertSame( '#fafafa', $settings->theme()->surface_color() );
+		$this->assertSame( '#222222', $settings->theme()->text_color() );
+		$this->assertSame( '#cccccc', $settings->theme()->border_color() );
 	}
 }
