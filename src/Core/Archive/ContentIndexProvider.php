@@ -144,11 +144,28 @@ final class ContentIndexProvider {
 	/**
 	 * Run the query and return the matching page of entries plus the total.
 	 *
+	 * A first lightweight query establishes the true match count, so the requested
+	 * page can be clamped to the last valid page. Without this, WordPress reports
+	 * `found_posts = 0` for any page past the end (see {@see self::count()}), which
+	 * would make an out-of-range request look like "no results" rather than the
+	 * tail of a large set.
+	 *
 	 * @param ContentQuery $query The request.
 	 * @return ContentPage
 	 */
 	public function provide( ContentQuery $query ): ContentPage {
-		$args     = $this->build_query_args( $query );
+		$total    = $this->count( $query );
+		$per_page = $query->per_page();
+		$pages    = (int) max( 1, (int) ceil( $total / $per_page ) );
+		$page     = min( $query->page(), $pages );
+
+		if ( 0 === $total ) {
+			return new ContentPage( array(), 0, $query->page(), $per_page );
+		}
+
+		$args          = $this->build_query_args( $query );
+		$args['paged'] = $page;
+
 		$wp_query = new \WP_Query( $args );
 		$entries  = array();
 
@@ -158,12 +175,25 @@ final class ContentIndexProvider {
 			}
 		}
 
-		return new ContentPage(
-			$entries,
-			(int) $wp_query->found_posts,
-			$query->page(),
-			$query->per_page()
-		);
+		return new ContentPage( $entries, $total, $page, $per_page );
+	}
+
+	/**
+	 * Count the posts matching a query, cheaply (IDs only, no found-rows pass).
+	 *
+	 * @param ContentQuery $query The request.
+	 * @return int
+	 */
+	private function count( ContentQuery $query ): int {
+		$args                   = $this->build_query_args( $query );
+		$args['fields']         = 'ids';
+		$args['posts_per_page'] = -1;
+		$args['no_found_rows']  = true;
+		unset( $args['paged'] );
+
+		$wp_query = new \WP_Query( $args );
+
+		return count( $wp_query->posts );
 	}
 
 	/**
