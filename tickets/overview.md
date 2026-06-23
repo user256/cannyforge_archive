@@ -94,5 +94,5 @@ popularity data from Google (GA4 / Search Console) by lifting the OAuth
 infrastructure already proven in `cannyforge-lead-capture`.
 
 - [x] [401 — News empty-state fallback (latest N)](completed/401-news-empty-state-fallback.md)
-- [ ] [402 — Top/Blog empty-state popularity fallback (comments → Jetpack → newest)](402-top-empty-state-popularity-fallback.md)
+- [x] [402 — Top/Blog empty-state popularity fallback (comments → Jetpack → newest)](completed/402-top-empty-state-popularity-fallback.md)
 - [ ] [403 — Google GA4 / Search Console "top content" sourcing (exploratory)](403-google-analytics-search-console-top-content.md)

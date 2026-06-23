@@ -11,27 +11,66 @@ namespace CannyForge\Archive\Core\Archive;
 
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Archive\ArchiveEntryProviderInterface;
+use CannyForge\Archive\Contracts\Archive\PopularPostsSource;
 use CannyForge\Archive\Contracts\Settings\Settings;
 
 /**
  * Turns the administrator's curated URL list into archive entries (Blog mode).
  *
- * The list comes from manual text entry or CSV import; sourcing it from
- * analytics (Snowflake / Adobe / popularity scoring) is explicitly out of scope
- * (see ticket 105). Selection — parse, trim, validate, de-duplicate, cap — is a
- * pure method ({@see self::select_urls()}) unit-tested without WordPress; turning
- * each URL into a displayable entry touches WordPress and is isolated in
- * {@see self::resolve()}.
+ * The list comes from manual text entry or CSV import. Selection — parse, trim,
+ * validate, de-duplicate, cap — is a pure method ({@see self::select_urls()})
+ * unit-tested without WordPress; turning each URL into a displayable entry
+ * touches WordPress and is isolated in {@see self::resolve()}.
+ *
+ * When the curated list is empty (ticket 402), the provider falls back to a
+ * best-effort "top content" set rather than render nothing, via a strict-
+ * precedence tier chain: most-commented (only if any post actually has comments)
+ * → Jetpack Stats views (if that source is present) → newest. The precedence
+ * decision is the pure {@see self::select_fallback_ids()}; the WordPress queries
+ * feeding it live in {@see self::fallback_post_ids()}.
+ *
+ * Note (ticket 105 revisited): ticket 105 put *automatic popularity sourcing*
+ * out of scope. Ticket 402 deliberately narrows that to allow a zero-dependency
+ * core signal (comment_count) plus an optional in-process Jetpack Stats read —
+ * but no external analytics integration. GA4/GSC sourcing remains separate
+ * (ticket 403).
  */
 final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 	/**
+	 * Optional popularity source for the empty-list fallback (Jetpack Stats, or a
+	 * no-op when none is wired).
+	 *
+	 * @var PopularPostsSource
+	 */
+	private PopularPostsSource $popular;
+
+	/**
+	 * Construct the provider.
+	 *
+	 * @param PopularPostsSource|null $popular Popularity source for the fallback
+	 *                                         (defaults to a no-op).
+	 */
+	public function __construct( ?PopularPostsSource $popular = null ) {
+		$this->popular = $popular ?? new NullPopularPostsSource();
+	}
+
+	/**
 	 * Provide entries for the curated URL list, capped at the configured maximum.
+	 *
+	 * When the curated list is empty, falls back to a best-effort top-content set
+	 * so the promoted surface is never blank (ticket 402).
 	 *
 	 * @param Settings $settings Current settings.
 	 * @return ArchiveEntry[]
 	 */
 	public function provide( Settings $settings ): array {
-		return $this->resolve( $this->select_urls( $settings ) );
+		$urls = $this->select_urls( $settings );
+
+		if ( array() !== $urls ) {
+			return $this->resolve( $urls );
+		}
+
+		return $this->resolve_ids( $this->fallback_post_ids( $settings ) );
 	}
 
 	/**
@@ -56,6 +95,160 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 		}
 
 		return array_slice( array_keys( $valid ), 0, $settings->blog_max_urls() );
+	}
+
+	/**
+	 * Choose the fallback post IDs from the available tier signals (ticket 402).
+	 *
+	 * Pure and deterministic: strict precedence, no WordPress.
+	 *  1. Most-commented — used only when `$has_comments` is true, so a site with
+	 *     no comments does not present an arbitrary order as "popular".
+	 *  2. Jetpack views — used when tier 1 is empty and Jetpack returned IDs.
+	 *  3. Newest — the final floor.
+	 * The chosen list is de-duplicated and capped at $limit.
+	 *
+	 * @param int[] $commented_ids Post IDs ordered by comment count, desc.
+	 * @param bool  $has_comments  Whether the top commented post has > 0 comments.
+	 * @param int[] $jetpack_ids   Post IDs ordered by Jetpack views, desc.
+	 * @param int[] $newest_ids    Post IDs ordered by date, desc.
+	 * @param int   $limit         Maximum number of IDs to return.
+	 * @return int[]
+	 */
+	public function select_fallback_ids(
+		array $commented_ids,
+		bool $has_comments,
+		array $jetpack_ids,
+		array $newest_ids,
+		int $limit
+	): array {
+		if ( $has_comments && array() !== $commented_ids ) {
+			$chosen = $commented_ids;
+		} elseif ( array() !== $jetpack_ids ) {
+			$chosen = $jetpack_ids;
+		} else {
+			$chosen = $newest_ids;
+		}
+
+		$unique = array_values( array_unique( array_filter( $chosen, static fn ( $id ) => $id > 0 ) ) );
+
+		return array_slice( $unique, 0, max( 0, $limit ) );
+	}
+
+	/**
+	 * Gather the tier signals from WordPress and pick the fallback post IDs.
+	 *
+	 * Isolates the WordPress queries (comment-ordered posts, Jetpack source,
+	 * newest posts) and delegates the precedence decision to the pure
+	 * {@see self::select_fallback_ids()}.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return int[]
+	 */
+	private function fallback_post_ids( Settings $settings ): array {
+		$limit = $settings->blog_max_urls();
+
+		$commented = $this->query_ids(
+			array(
+				'orderby' => 'comment_count',
+				'order'   => 'DESC',
+			),
+			$limit
+		);
+
+		$jetpack = $this->popular->is_available() ? $this->popular->top_post_ids( $limit ) : array();
+
+		$newest = $this->query_ids(
+			array(
+				'orderby' => 'date',
+				'order'   => 'DESC',
+			),
+			$limit
+		);
+
+		return $this->select_fallback_ids(
+			$commented,
+			$this->has_commented_post(),
+			array_map( 'intval', $jetpack ),
+			$newest,
+			$limit
+		);
+	}
+
+	/**
+	 * Whether at least one published post has a comment.
+	 *
+	 * Gates tier 1: ordering by `comment_count` is only meaningful when some post
+	 * actually has comments.
+	 *
+	 * @return bool
+	 */
+	private function has_commented_post(): bool {
+		$ids = $this->query_ids(
+			array(
+				'orderby'       => 'comment_count',
+				'order'         => 'DESC',
+				'comment_count' => array(
+					'value'   => 0,
+					'compare' => '>',
+				),
+			),
+			1
+		);
+
+		return array() !== $ids;
+	}
+
+	/**
+	 * Run a published-posts query and return the post IDs only.
+	 *
+	 * @param array<string, mixed> $args  Query args merged over the base set.
+	 * @param int                  $limit Maximum number of IDs.
+	 * @return int[]
+	 */
+	private function query_ids( array $args, int $limit ): array {
+		$query = new \WP_Query(
+			array_merge(
+				array(
+					'post_status'         => 'publish',
+					'post_type'           => 'post',
+					'posts_per_page'      => $limit,
+					'fields'              => 'ids',
+					'no_found_rows'       => true,
+					'ignore_sticky_posts' => true,
+				),
+				$args
+			)
+		);
+
+		$ids = array();
+		foreach ( $query->posts as $post ) {
+			$ids[] = $post instanceof \WP_Post ? $post->ID : (int) $post;
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Resolve a list of post IDs into enriched archive entries.
+	 *
+	 * Reuses the same enrichment as the curated path by deriving each post's
+	 * permalink and mapping it through {@see self::map_post()}.
+	 *
+	 * @param int[] $ids Post IDs.
+	 * @return ArchiveEntry[]
+	 */
+	private function resolve_ids( array $ids ): array {
+		$entries = array();
+
+		foreach ( $ids as $id ) {
+			$url = get_permalink( $id );
+
+			if ( is_string( $url ) && '' !== $url ) {
+				$entries[] = $this->map_post( $url, (int) $id );
+			}
+		}
+
+		return $entries;
 	}
 
 	/**

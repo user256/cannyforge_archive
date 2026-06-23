@@ -110,4 +110,73 @@ class BlogEntryProviderTest extends TestCase {
 	public function test_empty_when_nothing_valid(): void {
 		$this->assertSame( array(), $this->select( array( 'nope', '', '   ' ) ) );
 	}
+
+	/**
+	 * Tier 1 wins: when posts have comments, the comment-ordered IDs are chosen.
+	 *
+	 * @return void
+	 */
+	public function test_fallback_prefers_comments_when_present(): void {
+		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array( 7, 3, 9 ),
+			true,
+			array( 100, 200 ),
+			array( 1, 2, 3 ),
+			100
+		);
+
+		$this->assertSame( array( 7, 3, 9 ), $ids );
+	}
+
+	/**
+	 * The comment tier is gated: with no commented post, comment order is ignored
+	 * even though IDs exist, and Jetpack (tier 2) is used instead.
+	 *
+	 * @return void
+	 */
+	public function test_fallback_skips_comments_when_none_commented(): void {
+		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array( 7, 3, 9 ),
+			false,
+			array( 100, 200 ),
+			array( 1, 2, 3 ),
+			100
+		);
+
+		$this->assertSame( array( 100, 200 ), $ids );
+	}
+
+	/**
+	 * Tier 3: with no comments and no Jetpack data, newest is the floor.
+	 *
+	 * @return void
+	 */
+	public function test_fallback_uses_newest_as_floor(): void {
+		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array(),
+			false,
+			array(),
+			array( 1, 2, 3 ),
+			100
+		);
+
+		$this->assertSame( array( 1, 2, 3 ), $ids );
+	}
+
+	/**
+	 * The chosen tier is de-duplicated, stripped of non-positive IDs, and capped.
+	 *
+	 * @return void
+	 */
+	public function test_fallback_dedupes_and_caps(): void {
+		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array( 5, 5, 0, 8, 8, 11 ),
+			true,
+			array(),
+			array(),
+			2
+		);
+
+		$this->assertSame( array( 5, 8 ), $ids );
+	}
 }

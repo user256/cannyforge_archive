@@ -20,6 +20,7 @@ use CannyForge\Archive\Core\Archive\BlogEntryProvider;
 use CannyForge\Archive\Core\Archive\ContentIndexProvider;
 use CannyForge\Archive\Core\Archive\ContentSelector;
 use CannyForge\Archive\Core\Archive\FilterOptionsProvider;
+use CannyForge\Archive\Core\Archive\JetpackStatsSource;
 use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Archive\SelectingEntryProvider;
@@ -84,7 +85,7 @@ class Plugin {
 		$provider = new SelectingEntryProvider(
 			new ModeEntryProvider(
 				new NewsEntryProvider(),
-				new BlogEntryProvider()
+				new BlogEntryProvider( new JetpackStatsSource() )
 			),
 			new ContentSelector()
 		);

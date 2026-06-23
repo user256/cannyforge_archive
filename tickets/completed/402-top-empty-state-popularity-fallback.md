@@ -1,7 +1,7 @@
 # Ticket 402: Top/Blog empty-state popularity fallback
 
 **Sprint:** 4 — Resilience & empty-state fallbacks
-**Status:** Not started
+**Status:** Done
 **Owner:** unassigned
 **Estimate:** M
 
@@ -33,37 +33,37 @@ content exists.
 
 ## Acceptance criteria
 
-- [ ] `BlogEntryProvider::provide()` returns the resolved curated set when
+- [x] `BlogEntryProvider::provide()` returns the resolved curated set when
       `select_urls()` yields ≥1 URL (unchanged behaviour).
-- [ ] When `select_urls()` yields 0 URLs, a tiered fallback runs and resolves to
+- [x] When `select_urls()` yields 0 URLs, a tiered fallback runs and resolves to
       published post IDs, capped at `blog_max_urls` (default 100), then reuses the
       existing `map_post()` enrichment so output is indistinguishable in shape
       from curated entries:
-  - [ ] **Tier 1 — comments:** posts ordered by `comment_count` DESC, used only
-        if the top result has `comment_count > 0` (so an all-zero-comments site
-        does not produce an arbitrary order masquerading as "popular").
-  - [ ] **Tier 2 — Jetpack Stats:** if Tier 1 is empty/unavailable **and** Jetpack
-        Stats is detectably present (capability-checked, e.g.
-        `function_exists('stats_get_csv')` or the Jetpack Stats package), pull top
-        post views and map to post IDs. Entirely skipped — no fatal, no notice —
-        when Jetpack is absent.
-  - [ ] **Tier 3 — newest:** final fallback, latest N published posts newest-first.
-- [ ] The tier-selection decision (which tier wins given the available signals) is
-      expressed as a **pure**, WordPress-free method covered by PHPUnit — at
-      minimum the "comment_count > 0 gate" and the tier-precedence logic.
-- [ ] Jetpack access is isolated behind a thin, capability-checked adapter so the
-      provider stays unit-testable and the Jetpack call is a no-op when the plugin
-      is missing.
-- [ ] No new credentials, settings, or external HTTP calls are introduced (Jetpack
+  - [x] **Tier 1 — comments:** posts ordered by `comment_count` DESC, used only
+        if some published post has `comment_count > 0` (`has_commented_post()`
+        gate) so an all-zero-comments site does not present an arbitrary order as
+        "popular".
+  - [x] **Tier 2 — Jetpack Stats:** if Tier 1 is gated off **and** `JetpackStatsSource`
+        is available (capability-checked `function_exists('stats_get_csv')`), pull
+        top post views and map to post IDs. Entirely skipped — no fatal, no notice
+        — when Jetpack is absent.
+  - [x] **Tier 3 — newest:** final fallback, latest N published posts newest-first.
+- [x] The tier-selection decision is the **pure** `BlogEntryProvider::select_fallback_ids()`,
+      covered by PHPUnit (comment gate, each tier's precedence, dedupe + cap).
+- [x] Jetpack access is isolated behind the `PopularPostsSource` contract;
+      `JetpackStatsSource` is capability-checked with an injected fetcher (unit-
+      tested via `map_rows()`), and `NullPopularPostsSource` is the default no-op.
+- [x] No new credentials, settings, or external HTTP calls are introduced (Jetpack
       Stats is read in-process via Jetpack's own API).
-- [ ] Documented in `docs/PLAN.md` (and this ticket) that this deliberately
-      narrows ticket 105's "no automatic popularity" decision to: core
-      `comment_count` + optional in-process Jetpack Stats only.
-- [ ] `composer qa` passes.
-- [ ] Verified live at `http://127.0.0.1/archive/` in Blog mode with an empty URL
-      list: the archive lists a non-empty fallback set (newest, on this install,
-      since the seed data has no comments and no Jetpack), after flushing the
-      `cannyforge_archive_html_blog` transient.
+- [x] Documented in `docs/PLAN.md` (amendment under decision 2) and this ticket
+      that this narrows ticket 105 to: core `comment_count` + optional in-process
+      Jetpack Stats only.
+- [x] `composer qa` passes — 154 tests, 364 assertions, exit 0.
+- [x] Verified live at `http://127.0.0.1/archive/` in Blog mode with an empty URL
+      list: the archive lists 100 fallback entries instead of 0. The seed data has
+      a commented post ("Hello world!", 1 comment) and no Jetpack, so **tier 1
+      fired** — the rendered order led with "Hello world!" (most-commented), not
+      the newest post, exactly matching the `comment_count DESC` query.
 
 ## Out of scope
 
@@ -107,6 +107,23 @@ content exists.
 - 2026-06-23 — Deliberately revisits ticket 105's "no automatic popularity"
   decision, bounded to core `comment_count` + optional in-process Jetpack Stats.
   External analytics (GA4/GSC) remains out of scope here and is filed as 403.
+- 2026-06-23 — **Architecture:** popularity is a new `PopularPostsSource` contract
+  (Contracts/Archive seam) so Core depends only on the interface — deptrac/
+  phparkitect clean. `JetpackStatsSource` (Core) is the real impl, capability-
+  gated and injection-testable; `NullPopularPostsSource` (Core) is the default so
+  `BlogEntryProvider` stays constructible without args. Bootstrap wires the real
+  Jetpack source.
+- 2026-06-23 — **Static-analysis notes:** PHPStan can't see Jetpack's optional
+  `stats_get_csv` global → `@phpstan-ignore-next-line function.notFound` on the
+  guarded call (the only ignore in the codebase, justified by the runtime
+  `function_exists` gate). Rector flagged a redundant `(int)` cast on the already-
+  int `$id`; removed.
+- 2026-06-23 — **Live-verified** stronger than expected: the install's seed data
+  includes WordPress's default commented "Hello world!" post, so **tier 1 (most-
+  commented) fired** rather than tier 3. The rendered list led with "Hello world!"
+  (comments=1), matching the `comment_count DESC` query — proving the comment tier
+  and gate, not just the newest floor. Jetpack absent (`stats_get_csv=no`), so
+  tier 2 was correctly skipped.
 
 ---
 

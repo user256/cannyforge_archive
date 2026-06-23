@@ -124,6 +124,16 @@ Sprint 1.
    of scope: Snowflake, Adobe Analytics, automatic popularity scoring, and
    traffic-based selection. The admin chooses which URLs appear. (Ticket 105.)
 
+   > **Amendment (ticket 402).** Ticket 105's "no automatic popularity" decision
+   > is narrowed for the **empty-list fallback only**: when the curated list is
+   > empty, Blog mode falls back to a best-effort top-content set so the archive
+   > is never blank. The fallback uses, in strict precedence, the core
+   > `comment_count` signal (only when some post has comments) → an *optional*
+   > in-process Jetpack Stats read (skipped entirely when Jetpack is absent) →
+   > newest. This adds **no external analytics integration and no credentials** —
+   > Snowflake/Adobe remain out of scope. Sourcing genuine GA4 / Search Console
+   > data is tracked separately as the exploratory ticket 403.
+
 3. **News mode** — the archive automatically includes content published within a
    configurable recent window (hours; default 72), updating dynamically by
    publish date. (Ticket 104.)
