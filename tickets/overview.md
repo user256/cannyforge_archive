@@ -13,7 +13,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
-| **Sprint 4 — Resilience & empty-state fallbacks** | In progress | 401–406 all implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), and optional GA4 source (406). Remaining: 499 review gate. |
+| **Sprint 4 — Resilience & empty-state fallbacks** | Done | 401–406 implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), optional GA4 source (406). 499 = GO (qa green, 192 tests); live Google smoke deferred (needs real credentials). |
 
 ## Sprint 1 — Settings & MVP
 
@@ -100,3 +100,4 @@ infrastructure already proven in `cannyforge-lead-capture`.
 - [x] [404 — Google OAuth foundation + secure settings for top-content sourcing](completed/404-google-oauth-foundation-secure-settings.md)
 - [x] [405 — Search Console cached top-content source for Blog fallback](completed/405-search-console-cached-top-content-source.md)
 - [x] [406 — GA4 top-content source (optional second Google signal)](completed/406-ga4-top-content-source.md)
+- [x] [499 — Sprint 4 review gate (GO; qa green, live Google smoke deferred)](completed/499-sprint-4-review.md)
