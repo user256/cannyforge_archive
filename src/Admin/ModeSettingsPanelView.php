@@ -42,7 +42,6 @@ final class ModeSettingsPanelView {
 	 * @param bool           $google_secret_saved   Whether a client secret is already stored.
 	 * @param string         $google_connect_url    Connect action URL.
 	 * @param string         $google_disconnect_url Disconnect action URL.
-	 * @param string         $google_refresh_url    Refresh action URL.
 	 * @param string         $google_notice         One-shot Google notice text.
 	 * @param string         $google_notice_type    One-shot Google notice type.
 	 * @return void
@@ -54,7 +53,6 @@ final class ModeSettingsPanelView {
 		bool $google_secret_saved,
 		string $google_connect_url,
 		string $google_disconnect_url,
-		string $google_refresh_url,
 		string $google_notice,
 		string $google_notice_type
 	): void {
@@ -66,7 +64,6 @@ final class ModeSettingsPanelView {
 			$google_secret_saved,
 			$google_connect_url,
 			$google_disconnect_url,
-			$google_refresh_url,
 			$google_notice,
 			$google_notice_type
 		);
@@ -109,7 +106,6 @@ final class ModeSettingsPanelView {
 	 * @param bool           $google_secret_saved   Whether a client secret is already stored.
 	 * @param string         $google_connect_url    Connect action URL.
 	 * @param string         $google_disconnect_url Disconnect action URL.
-	 * @param string         $google_refresh_url    Refresh action URL.
 	 * @param string         $google_notice         One-shot Google notice text.
 	 * @param string         $google_notice_type    One-shot Google notice type.
 	 * @return void
@@ -121,7 +117,6 @@ final class ModeSettingsPanelView {
 		bool $google_secret_saved,
 		string $google_connect_url,
 		string $google_disconnect_url,
-		string $google_refresh_url,
 		string $google_notice,
 		string $google_notice_type
 	): void {
@@ -155,7 +150,6 @@ final class ModeSettingsPanelView {
 			$google_secret_saved,
 			$google_connect_url,
 			$google_disconnect_url,
-			$google_refresh_url,
 			$google_notice,
 			$google_notice_type
 		);
@@ -170,7 +164,6 @@ final class ModeSettingsPanelView {
 	 * @param bool           $secret_saved   Whether a client secret is already stored.
 	 * @param string         $connect_url    Connect action URL.
 	 * @param string         $disconnect_url Disconnect action URL.
-	 * @param string         $refresh_url    Refresh action URL.
 	 * @param string         $notice         One-shot notice text.
 	 * @param string         $notice_type    Notice type.
 	 * @return void
@@ -181,18 +174,17 @@ final class ModeSettingsPanelView {
 		bool $secret_saved,
 		string $connect_url,
 		string $disconnect_url,
-		string $refresh_url,
 		string $notice,
 		string $notice_type
 	): void {
 		echo '<div style="margin-top:1.5rem;padding:1rem;border:1px solid var(--cf-border);border-radius:16px;background:rgba(247,245,255,0.6);">';
-		echo '<h3 style="margin-top:0;">' . esc_html__( 'Google Top Content (Search Console)', 'cannyforge-archive' ) . '</h3>';
+		echo '<h3 style="margin-top:0;">' . esc_html__( 'Google Top Content (Search Console + GA4)', 'cannyforge-archive' ) . '</h3>';
 		echo '<p class="description">';
-		echo esc_html__( 'Ticket 404 foundation: save the OAuth client details here, then connect a Google account for read-only Search Console access. Page renders never call Google directly.', 'cannyforge-archive' );
+		echo esc_html__( 'Save the OAuth client details here, then connect a Google account for read-only access. Search Console is the primary signal; an optional GA4 property adds a second one and is only used when Search Console returns nothing. Page renders never call Google directly — use the per-source Refresh buttons to update the cache.', 'cannyforge-archive' );
 		echo '</p>';
 		$this->render_google_notice( $notice, $notice_type );
 		$this->render_google_fields( $settings, $secret_saved, $status );
-		$this->render_google_actions( $connect_url, $disconnect_url, $refresh_url );
+		$this->render_google_actions( $connect_url, $disconnect_url );
 		echo '</div>';
 	}
 
@@ -251,6 +243,12 @@ final class ModeSettingsPanelView {
 			absint( $settings->report_window_days() )
 		);
 		printf(
+			'<p><label>%s <input type="text" name="google_ga4_property_id" value="%s" placeholder="%s" style="width:100%%;"></label></p>',
+			esc_html__( 'GA4 Property ID (optional)', 'cannyforge-archive' ),
+			esc_attr( $settings->ga4_property_id() ),
+			esc_attr__( 'e.g. 123456789 — leave blank to use Search Console only', 'cannyforge-archive' )
+		);
+		printf(
 			'<p><strong>%s</strong> <span style="display:inline-block;padding:0.2rem 0.55rem;border-radius:999px;background:%s;color:%s;">%s</span></p>',
 			esc_html__( 'Connection status:', 'cannyforge-archive' ),
 			esc_attr( $this->google_status_background( $status ) ),
@@ -269,15 +267,20 @@ final class ModeSettingsPanelView {
 	/**
 	 * Render the Google connect/disconnect actions.
 	 *
+	 * The Connect/Disconnect URLs are passed in by the page controller; the
+	 * per-source refresh URLs are derived here from the admin-post action
+	 * constants so the panel can offer one refresh button per Google signal
+	 * without expanding the render call chain.
+	 *
 	 * @param string $connect_url    Connect action URL.
 	 * @param string $disconnect_url Disconnect action URL.
-	 * @param string $refresh_url    Refresh action URL.
 	 * @return void
 	 */
-	private function render_google_actions( string $connect_url, string $disconnect_url, string $refresh_url ): void {
+	private function render_google_actions( string $connect_url, string $disconnect_url ): void {
 		wp_nonce_field( GoogleConnectionController::CONNECT_NONCE_ACTION, GoogleConnectionController::CONNECT_NONCE_FIELD );
 		wp_nonce_field( GoogleConnectionController::DISCONNECT_NONCE_ACTION, GoogleConnectionController::DISCONNECT_NONCE_FIELD );
 		wp_nonce_field( SearchConsoleRefreshController::REFRESH_NONCE_ACTION, SearchConsoleRefreshController::REFRESH_NONCE_FIELD );
+		wp_nonce_field( Ga4RefreshController::REFRESH_NONCE_ACTION, Ga4RefreshController::REFRESH_NONCE_FIELD );
 		echo '<p style="display:flex;gap:0.75rem;flex-wrap:wrap;">';
 		printf(
 			'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
@@ -291,10 +294,25 @@ final class ModeSettingsPanelView {
 		);
 		printf(
 			'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
-			esc_url( $refresh_url ),
-			esc_html__( 'Refresh now', 'cannyforge-archive' )
+			esc_url( $this->refresh_action_url( SearchConsoleRefreshController::ACTION_REFRESH ) ),
+			esc_html__( 'Refresh Search Console', 'cannyforge-archive' )
+		);
+		printf(
+			'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
+			esc_url( $this->refresh_action_url( Ga4RefreshController::ACTION_REFRESH ) ),
+			esc_html__( 'Refresh GA4', 'cannyforge-archive' )
 		);
 		echo '</p>';
+	}
+
+	/**
+	 * Build an admin-post URL for a refresh action.
+	 *
+	 * @param string $action Admin-post action name.
+	 * @return string
+	 */
+	private function refresh_action_url( string $action ): string {
+		return admin_url( 'admin-post.php?action=' . $action );
 	}
 
 	/**

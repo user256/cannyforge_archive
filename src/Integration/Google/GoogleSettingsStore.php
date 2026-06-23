@@ -81,6 +81,7 @@ final class GoogleSettingsStore {
 				'client_secret'           => $this->decrypt_secret( $data['client_secret'] ?? '' ),
 				'search_console_site_url' => $data['search_console_site_url'] ?? '',
 				'report_window_days'      => $data['report_window_days'] ?? 30,
+				'ga4_property_id'         => $data['ga4_property_id'] ?? '',
 			)
 		);
 	}
@@ -106,6 +107,7 @@ final class GoogleSettingsStore {
 			'client_secret'           => $encrypted,
 			'search_console_site_url' => $settings->search_console_site_url(),
 			'report_window_days'      => $settings->report_window_days(),
+			'ga4_property_id'         => $settings->ga4_property_id(),
 		);
 
 		( $this->set_option )( self::OPTION_KEY, $stored_settings );

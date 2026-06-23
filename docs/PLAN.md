@@ -135,7 +135,9 @@ Sprint 1.
    > tracked separately from the core brief: ticket 403 completed the design
    > spike and chose Search Console as the first implementation slice, with the
    > build split into 404 (OAuth foundation), 405 (Search Console), and 406
-   > (optional GA4 follow-on).
+   > (optional GA4 follow-on) — all now shipped. The Google signals are read-only
+   > and cache-only: page renders never call Google. Setup is documented in
+   > [`docs/GOOGLE.md`](GOOGLE.md).
 
 3. **News mode** — the archive automatically includes content published within a
    configurable recent window (hours; default 72), updating dynamically by

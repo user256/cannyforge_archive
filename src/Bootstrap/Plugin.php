@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Bootstrap;
 
 use CannyForge\Archive\Admin\AdminAssets;
+use CannyForge\Archive\Admin\Ga4RefreshController;
 use CannyForge\Archive\Admin\GoogleConnectionController;
 use CannyForge\Archive\Admin\SearchConsoleRefreshController;
 use CannyForge\Archive\Admin\SettingsFormParser;
@@ -20,6 +21,7 @@ use CannyForge\Archive\Core\Cache\CacheInvalidator;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\BlogEntryProvider;
 use CannyForge\Archive\Core\Archive\ContentIndexProvider;
+use CannyForge\Archive\Core\Archive\CompositePopularPostsSource;
 use CannyForge\Archive\Core\Archive\ContentSelector;
 use CannyForge\Archive\Core\Archive\FilterOptionsProvider;
 use CannyForge\Archive\Core\Archive\JetpackStatsSource;
@@ -36,6 +38,11 @@ use CannyForge\Archive\Frontend\ArchivePage;
 use CannyForge\Archive\Frontend\ArchiveSearchEndpoint;
 use CannyForge\Archive\Frontend\PaginationController;
 use CannyForge\Archive\Frontend\SeoHead;
+use CannyForge\Archive\Integration\Google\Ga4CacheStore;
+use CannyForge\Archive\Integration\Google\Ga4CachedPopularPostsSource;
+use CannyForge\Archive\Integration\Google\Ga4Client;
+use CannyForge\Archive\Integration\Google\Ga4TopContentRefresher;
+use CannyForge\Archive\Integration\Google\GoogleOauthClient;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
@@ -71,17 +78,6 @@ class Plugin {
 		$google_settings = new GoogleSettingsStore();
 		$google_tokens   = new GoogleTokenStore();
 		$search_cache    = new SearchConsoleCacheStore();
-		$search_refresh  = new SearchConsoleTopContentRefresher(
-			new SearchConsoleClient(
-				new \CannyForge\Archive\Integration\Google\GoogleOauthClient(
-					$google_tokens,
-					$google_settings->get()->client_id(),
-					$google_settings->get()->client_secret()
-				)
-			),
-			$search_cache,
-			$google_settings
-		);
 
 		$page = new SettingsPage(
 			$repository,
@@ -101,12 +97,46 @@ class Plugin {
 			$repository,
 			$google_settings,
 			$google_tokens,
-			$search_refresh
+			new SearchConsoleTopContentRefresher(
+				new SearchConsoleClient( $this->google_oauth( $google_settings, $google_tokens ) ),
+				$search_cache,
+				$google_settings
+			)
 		);
 		$refresh->register();
 
+		$ga4_refresh = new Ga4RefreshController(
+			$repository,
+			$google_settings,
+			$google_tokens,
+			new Ga4TopContentRefresher(
+				new Ga4Client( $this->google_oauth( $google_settings, $google_tokens ) ),
+				new Ga4CacheStore(),
+				$google_settings
+			)
+		);
+		$ga4_refresh->register();
+
 		$assets = new AdminAssets( $this->base_url(), $this->version() );
 		$assets->register();
+	}
+
+	/**
+	 * Build a Google OAuth client from the stored configuration.
+	 *
+	 * Shared by the Search Console and GA4 report clients so both consume the
+	 * same refresh-token connection.
+	 *
+	 * @param GoogleSettingsStore $settings Google settings store.
+	 * @param GoogleTokenStore    $tokens   Google token store.
+	 * @return GoogleOauthClient
+	 */
+	private function google_oauth( GoogleSettingsStore $settings, GoogleTokenStore $tokens ): GoogleOauthClient {
+		return new GoogleOauthClient(
+			$tokens,
+			$settings->get()->client_id(),
+			$settings->get()->client_secret()
+		);
 	}
 
 	/**
@@ -180,13 +210,19 @@ class Plugin {
 	private function build_entry_provider(): SelectingEntryProvider {
 		$google_settings = new GoogleSettingsStore();
 		$google_tokens   = new GoogleTokenStore();
-		$search_cache    = new SearchConsoleCacheStore();
+
+		// Google signal precedence: Search Console first, GA4 second. GA4 is
+		// additive — it only contributes when Search Console yields nothing.
+		$google = new CompositePopularPostsSource(
+			new SearchConsoleCachedPopularPostsSource( new SearchConsoleCacheStore(), $google_settings, $google_tokens ),
+			new Ga4CachedPopularPostsSource( new Ga4CacheStore(), $google_settings, $google_tokens )
+		);
 
 		return new SelectingEntryProvider(
 			new ModeEntryProvider(
 				new NewsEntryProvider(),
 				new BlogEntryProvider(
-					new SearchConsoleCachedPopularPostsSource( $search_cache, $google_settings, $google_tokens ),
+					$google,
 					new JetpackStatsSource()
 				)
 			),

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+use CannyForge\Archive\Integration\Google\Ga4CacheStore;
 use CannyForge\Archive\Integration\Google\GoogleOauthClient;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
@@ -113,16 +114,30 @@ final class GoogleConnectionController {
 	private SearchConsoleCacheStore $search_cache;
 
 	/**
+	 * Cached GA4 top-content IDs.
+	 *
+	 * @var Ga4CacheStore
+	 */
+	private Ga4CacheStore $ga4_cache;
+
+	/**
 	 * Construct the controller.
 	 *
 	 * @param GoogleSettingsStore     $settings     Google settings store.
 	 * @param GoogleTokenStore        $tokens       Google token store.
 	 * @param SearchConsoleCacheStore $search_cache Search Console cache store.
+	 * @param Ga4CacheStore|null      $ga4_cache    GA4 cache store.
 	 */
-	public function __construct( GoogleSettingsStore $settings, GoogleTokenStore $tokens, SearchConsoleCacheStore $search_cache ) {
+	public function __construct(
+		GoogleSettingsStore $settings,
+		GoogleTokenStore $tokens,
+		SearchConsoleCacheStore $search_cache,
+		?Ga4CacheStore $ga4_cache = null
+	) {
 		$this->settings     = $settings;
 		$this->tokens       = $tokens;
 		$this->search_cache = $search_cache;
+		$this->ga4_cache    = $ga4_cache ?? new Ga4CacheStore();
 	}
 
 	/**
@@ -160,7 +175,7 @@ final class GoogleConnectionController {
 			'client_id'              => $settings->client_id(),
 			'redirect_uri'           => $this->callback_url(),
 			'response_type'          => 'code',
-			'scope'                  => 'https://www.googleapis.com/auth/webmasters.readonly',
+			'scope'                  => 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly',
 			'access_type'            => 'offline',
 			'prompt'                 => 'consent',
 			'state'                  => $state,
@@ -214,6 +229,7 @@ final class GoogleConnectionController {
 
 		$this->tokens->clear();
 		$this->search_cache->clear();
+		$this->ga4_cache->clear();
 		$this->redirect_to_settings(
 			__( 'Google disconnected.', 'cannyforge-archive' ),
 			self::NOTICE_SUCCESS

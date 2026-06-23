@@ -11,6 +11,7 @@ namespace CannyForge\Archive\Admin;
 
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Settings\CsvUrlExtractor;
+use CannyForge\Archive\Integration\Google\Ga4CacheStore;
 use CannyForge\Archive\Integration\Google\GoogleSettings;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
@@ -90,6 +91,13 @@ final class SettingsPage {
 	private SearchConsoleCacheStore $search_cache;
 
 	/**
+	 * Cached GA4 top-content IDs.
+	 *
+	 * @var Ga4CacheStore
+	 */
+	private Ga4CacheStore $ga4_cache;
+
+	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface  $repository Settings persistence.
@@ -99,6 +107,7 @@ final class SettingsPage {
 	 * @param GoogleSettingsStore|null     $google_settings Google settings store.
 	 * @param GoogleTokenStore|null        $google_tokens   Google token store.
 	 * @param SearchConsoleCacheStore|null $search_cache   Search Console cache store.
+	 * @param Ga4CacheStore|null           $ga4_cache      GA4 cache store.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -107,7 +116,8 @@ final class SettingsPage {
 		?CsvUrlExtractor $csv = null,
 		?GoogleSettingsStore $google_settings = null,
 		?GoogleTokenStore $google_tokens = null,
-		?SearchConsoleCacheStore $search_cache = null
+		?SearchConsoleCacheStore $search_cache = null,
+		?Ga4CacheStore $ga4_cache = null
 	) {
 		$this->repository      = $repository;
 		$this->parser          = $parser;
@@ -116,6 +126,7 @@ final class SettingsPage {
 		$this->google_settings = $google_settings ?? new GoogleSettingsStore();
 		$this->google_tokens   = $google_tokens ?? new GoogleTokenStore();
 		$this->search_cache    = $search_cache ?? new SearchConsoleCacheStore();
+		$this->ga4_cache       = $ga4_cache ?? new Ga4CacheStore();
 	}
 
 	/**
@@ -170,7 +181,6 @@ final class SettingsPage {
 			$this->google_settings->has_client_secret(),
 			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_CONNECT ) ),
 			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_DISCONNECT ) ),
-			esc_url_raw( admin_url( 'admin-post.php?action=' . SearchConsoleRefreshController::ACTION_REFRESH ) ),
 			$this->google_notice(),
 			$this->google_notice_type()
 		);
@@ -217,6 +227,7 @@ final class SettingsPage {
 		);
 		$this->google_settings->save( GoogleSettings::from_array( is_array( $input ) ? $input : array() ) );
 		$this->search_cache->clear();
+		$this->ga4_cache->clear();
 
 		return true;
 	}

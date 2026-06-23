@@ -56,18 +56,28 @@ final class GoogleSettings {
 	private int $report_window_days;
 
 	/**
+	 * GA4 property ID (numeric Analytics property identifier, without the
+	 * `properties/` prefix). Empty when GA4 sourcing is not configured.
+	 *
+	 * @var string
+	 */
+	private string $ga4_property_id;
+
+	/**
 	 * Construct a settings snapshot.
 	 *
 	 * @param string $client_id               OAuth client ID.
 	 * @param string $client_secret           OAuth client secret.
 	 * @param string $search_console_site_url Search Console site URL.
 	 * @param int    $report_window_days      Report window in days.
+	 * @param string $ga4_property_id         GA4 property ID.
 	 */
 	public function __construct(
 		string $client_id = '',
 		string $client_secret = '',
 		string $search_console_site_url = '',
-		int $report_window_days = 30
+		int $report_window_days = 30,
+		string $ga4_property_id = ''
 	) {
 		$this->client_id               = trim( $client_id );
 		$this->client_secret           = trim( $client_secret );
@@ -76,6 +86,7 @@ final class GoogleSettings {
 			self::MAX_REPORT_WINDOW_DAYS,
 			max( self::MIN_REPORT_WINDOW_DAYS, $report_window_days )
 		);
+		$this->ga4_property_id         = $this->clean_property_id( $ga4_property_id );
 	}
 
 	/**
@@ -124,6 +135,15 @@ final class GoogleSettings {
 	}
 
 	/**
+	 * The GA4 property ID (digits only), or '' when not configured.
+	 *
+	 * @return string
+	 */
+	public function ga4_property_id(): string {
+		return $this->ga4_property_id;
+	}
+
+	/**
 	 * Build from a raw associative array, coercing every value safely.
 	 *
 	 * @param array<string, mixed> $data Raw data.
@@ -134,7 +154,8 @@ final class GoogleSettings {
 			self::to_string( $data['google_client_id'] ?? $data['client_id'] ?? null ),
 			self::to_string( $data['google_client_secret'] ?? $data['client_secret'] ?? null ),
 			self::to_string( $data['google_search_console_site_url'] ?? $data['search_console_site_url'] ?? null ),
-			self::to_int( $data['google_report_window_days'] ?? $data['report_window_days'] ?? null, 30 )
+			self::to_int( $data['google_report_window_days'] ?? $data['report_window_days'] ?? null, 30 ),
+			self::to_string( $data['google_ga4_property_id'] ?? $data['ga4_property_id'] ?? null )
 		);
 	}
 
@@ -149,6 +170,7 @@ final class GoogleSettings {
 			'client_secret'           => $this->client_secret,
 			'search_console_site_url' => $this->search_console_site_url,
 			'report_window_days'      => $this->report_window_days,
+			'ga4_property_id'         => $this->ga4_property_id,
 		);
 	}
 
@@ -171,5 +193,20 @@ final class GoogleSettings {
 	 */
 	private static function to_int( mixed $value, int $fallback ): int {
 		return is_numeric( $value ) ? (int) $value : $fallback;
+	}
+
+	/**
+	 * Normalise a GA4 property ID to digits only.
+	 *
+	 * Accepts a bare numeric ID or a `properties/123456` form and keeps only the
+	 * numeric portion; anything else becomes ''.
+	 *
+	 * @param string $value Raw property ID.
+	 * @return string
+	 */
+	private function clean_property_id( string $value ): string {
+		$digits = preg_replace( '/\D+/', '', trim( $value ) );
+
+		return is_string( $digits ) ? $digits : '';
 	}
 }

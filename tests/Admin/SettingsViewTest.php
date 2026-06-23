@@ -33,14 +33,16 @@ class SettingsViewTest extends TestCase {
 
 		$this->assertStringContainsString( 'Top Articles', $html );
 		$this->assertStringContainsString( 'name="blog_urls"', $html );
-		$this->assertStringContainsString( 'Google Top Content (Search Console)', $html );
+		$this->assertStringContainsString( 'Google Top Content (Search Console + GA4)', $html );
 		$this->assertStringContainsString( 'name="google_client_id"', $html );
 		$this->assertStringContainsString( 'name="google_client_secret"', $html );
 		$this->assertStringContainsString( 'name="google_search_console_site_url"', $html );
 		$this->assertStringContainsString( 'name="google_report_window_days"', $html );
+		$this->assertStringContainsString( 'name="google_ga4_property_id"', $html );
 		$this->assertStringContainsString( 'Connect Google', $html );
 		$this->assertStringContainsString( 'Disconnect', $html );
-		$this->assertStringContainsString( 'Refresh now', $html );
+		$this->assertStringContainsString( 'Refresh Search Console', $html );
+		$this->assertStringContainsString( 'Refresh GA4', $html );
 	}
 
 	/**

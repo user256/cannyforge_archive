@@ -1,7 +1,7 @@
 # Ticket 406: GA4 top-content source (optional second Google signal)
 
 **Sprint:** 4 — Resilience & empty-state fallbacks
-**Status:** Not started
+**Status:** Done
 **Owner:** unassigned
 **Estimate:** M
 
@@ -21,18 +21,23 @@ foundation, without weakening the Search Console-first v1 path.
 
 ## Acceptance criteria
 
-- [ ] A GA4 Data API client exists behind injected HTTP, querying a configured
-      property via `runReport`.
-- [ ] GA4 rows are mapped to clean post-ID candidates with pure PHPUnit-covered
-      shaping logic.
-- [ ] The plugin exposes a clear policy for how GA4 is used relative to Search
+- [x] A GA4 Data API client exists behind injected HTTP, querying a configured
+      property via `runReport`. (`Ga4Client`.)
+- [x] GA4 rows are mapped to clean post-ID candidates with pure PHPUnit-covered
+      shaping logic. (`Ga4TopContentRefresher::map_rows_to_post_ids`.)
+- [x] The plugin exposes a clear policy for how GA4 is used relative to Search
       Console: explicit source selection or a documented precedence/merge rule.
-- [ ] GA4 data uses the same no-page-render HTTP rule as Search Console: cached
-      refresh only.
-- [ ] Misconfigured or empty GA4 data degrades cleanly to the existing Search
-      Console / 402 fallback chain.
-- [ ] Docs explain the additional Google Cloud configuration for GA4.
-- [ ] `composer qa` passes.
+      (`CompositePopularPostsSource`: strict Search Console → GA4 precedence,
+      documented in `docs/GOOGLE.md`.)
+- [x] GA4 data uses the same no-page-render HTTP rule as Search Console: cached
+      refresh only. (`Ga4CacheStore` + `Ga4RefreshController`; page render reads
+      `Ga4CachedPopularPostsSource`, which only reads the cache.)
+- [x] Misconfigured or empty GA4 data degrades cleanly to the existing Search
+      Console / 402 fallback chain. (Composite falls through unavailable/empty
+      members; `is_available()` gates on property ID + connected status.)
+- [x] Docs explain the additional Google Cloud configuration for GA4.
+      (`docs/GOOGLE.md`.)
+- [x] `composer qa` passes.
 
 ## Out of scope
 

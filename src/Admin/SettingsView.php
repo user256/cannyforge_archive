@@ -69,7 +69,6 @@ final class SettingsView {
 	 * @param bool                $google_secret_saved   Whether a client secret is already stored.
 	 * @param string              $google_connect_url    Connect action URL.
 	 * @param string              $google_disconnect_url Disconnect action URL.
-	 * @param string              $google_refresh_url    Refresh action URL.
 	 * @param string              $google_notice         One-shot Google notice text.
 	 * @param string              $google_notice_type    One-shot Google notice type.
 	 * @return void
@@ -83,7 +82,6 @@ final class SettingsView {
 		bool $google_secret_saved = false,
 		string $google_connect_url = '',
 		string $google_disconnect_url = '',
-		string $google_refresh_url = '',
 		string $google_notice = '',
 		string $google_notice_type = GoogleConnectionController::NOTICE_ERROR
 	): void {
@@ -102,7 +100,6 @@ final class SettingsView {
 			$google_secret_saved,
 			$google_connect_url,
 			$google_disconnect_url,
-			$google_refresh_url,
 			$google_notice,
 			$google_notice_type
 		);
@@ -146,7 +143,6 @@ final class SettingsView {
 	 * @param bool           $google_secret_saved   Whether a client secret is already stored.
 	 * @param string         $google_connect_url    Connect action URL.
 	 * @param string         $google_disconnect_url Disconnect action URL.
-	 * @param string         $google_refresh_url    Refresh action URL.
 	 * @param string         $google_notice         One-shot Google notice text.
 	 * @param string         $google_notice_type    One-shot Google notice type.
 	 * @return void
@@ -158,7 +154,6 @@ final class SettingsView {
 		bool $google_secret_saved,
 		string $google_connect_url,
 		string $google_disconnect_url,
-		string $google_refresh_url,
 		string $google_notice,
 		string $google_notice_type
 	): void {
@@ -172,7 +167,6 @@ final class SettingsView {
 			$google_secret_saved,
 			$google_connect_url,
 			$google_disconnect_url,
-			$google_refresh_url,
 			$google_notice,
 			$google_notice_type
 		);
