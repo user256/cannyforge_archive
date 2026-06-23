@@ -14,8 +14,14 @@ use CannyForge\Archive\Contracts\Settings\Settings;
 /**
  * Caches the rendered archive HTML using the WordPress Transients API.
  *
- * The cache key is derived from the settings so that any configuration change
- * automatically produces a new cache slot (old slots are left to expire).
+ * The cache key is the archive mode (Blog / News), so the two modes cache
+ * independently. The cache is not keyed by the full settings; instead it is
+ * invalidated by event — {@see CacheInvalidator} clears it on every post
+ * save/delete and whenever the plugin settings are saved
+ * (`cannyforge_archive_settings_saved`). A configuration change made through the
+ * admin UI therefore takes effect immediately; changes written directly to the
+ * option (bypassing that action) only take effect on the next post change or
+ * after the TTL expires.
  */
 final class ArchiveCache {
 	/**

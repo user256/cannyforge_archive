@@ -13,6 +13,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
+| **Sprint 4 — Resilience & empty-state fallbacks** | In progress | Promoted surface must never be empty when content exists. 401 (News→latest N), 402 (Top→popularity proxy), 403 (GA4/GSC sourcing — exploratory). |
 
 ## Sprint 1 — Settings & MVP
 
@@ -81,3 +82,17 @@ just filter the promoted subset. Sprint 3 separates these two concerns.
 
 - [x] [301 — Whole-database search & filter navigation](completed/301-whole-database-search-filter-navigation.md)
 - [x] [399 — Sprint 3 review gate (GO)](completed/399-sprint-3-review.md)
+
+## Sprint 4 — Resilience & empty-state fallbacks
+
+The promoted archive surface (the HTML sitemap) renders nothing when its
+selection query comes up empty: News mode with no post inside the recent window,
+or Blog/Top mode with no curated URLs. An archive that can show zero entries
+while real content exists defeats its purpose. Sprint 4 makes the promoted set
+degrade gracefully to a sensible fallback, and explores sourcing genuine
+popularity data from Google (GA4 / Search Console) by lifting the OAuth
+infrastructure already proven in `cannyforge-lead-capture`.
+
+- [x] [401 — News empty-state fallback (latest N)](completed/401-news-empty-state-fallback.md)
+- [ ] [402 — Top/Blog empty-state popularity fallback (comments → Jetpack → newest)](402-top-empty-state-popularity-fallback.md)
+- [ ] [403 — Google GA4 / Search Console "top content" sourcing (exploratory)](403-google-analytics-search-console-top-content.md)

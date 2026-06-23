@@ -313,6 +313,14 @@ final class SettingsView {
 			'<input type="number" min="1" step="1" name="news_window_hours" value="%d"></label></p>',
 			absint( $settings->news_window_hours() )
 		);
+		echo '<p><label>' . esc_html__( 'When that window is empty, show the latest (posts)', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<input type="number" min="1" max="500" step="1" name="news_fallback_count" value="%d"></label></p>',
+			absint( $settings->news_fallback_count() )
+		);
+		echo '<p class="description">';
+		echo esc_html__( 'Fallback so the archive is never blank when no post falls inside the recent window.', 'cannyforge-archive' );
+		echo '</p>';
 		echo '</div>';
 
 		echo '<div class="cf-panel-blog" style="margin-top: 1rem; border-top: 1px solid var(--cf-border); padding-top: 1rem;">';

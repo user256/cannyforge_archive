@@ -20,6 +20,12 @@ use CannyForge\Archive\Contracts\Settings\Settings;
  * method unit-tested against fixture timestamps. Running the query and mapping
  * WordPress posts to entries is isolated in {@see self::run_query()} so the
  * selection logic needs no WordPress runtime to test.
+ *
+ * When the recent window contains no posts (a quiet news period, or content that
+ * has aged past the window), {@see self::provide()} falls back to the latest
+ * `news_fallback_count` published posts via {@see self::build_fallback_query_args()}
+ * so the promoted surface is never empty when publishable content exists
+ * (ticket 401).
  */
 final class NewsEntryProvider implements ArchiveEntryProviderInterface {
 	/**
@@ -28,15 +34,20 @@ final class NewsEntryProvider implements ArchiveEntryProviderInterface {
 	public const MAX_ENTRIES = 500;
 
 	/**
-	 * Provide the entries published within the recent window.
+	 * Provide the entries published within the recent window, falling back to the
+	 * latest N posts when the window is empty.
 	 *
 	 * @param Settings $settings Current settings.
 	 * @return ArchiveEntry[]
 	 */
 	public function provide( Settings $settings ): array {
-		$args = $this->build_query_args( $settings, time() );
+		$entries = $this->run_query( $this->build_query_args( $settings, time() ) );
 
-		return $this->run_query( $args );
+		if ( array() !== $entries ) {
+			return $entries;
+		}
+
+		return $this->run_query( $this->build_fallback_query_args( $settings ) );
 	}
 
 	/**
@@ -67,6 +78,30 @@ final class NewsEntryProvider implements ArchiveEntryProviderInterface {
 					'column'    => 'post_date_gmt',
 				),
 			),
+		);
+	}
+
+	/**
+	 * Build the WP_Query args for the empty-window fallback: the latest published
+	 * posts, newest first, with no date constraint (ticket 401).
+	 *
+	 * Pure and deterministic given $settings. Identical to the windowed args minus
+	 * the `date_query`, and bounded by `news_fallback_count` rather than
+	 * {@see self::MAX_ENTRIES}, so the fallback can never select more than the
+	 * administrator allows.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return array<string, mixed>
+	 */
+	public function build_fallback_query_args( Settings $settings ): array {
+		return array(
+			'post_status'         => 'publish',
+			'post_type'           => 'post',
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'posts_per_page'      => $settings->news_fallback_count(),
+			'no_found_rows'       => true,
+			'ignore_sticky_posts' => true,
 		);
 	}
 

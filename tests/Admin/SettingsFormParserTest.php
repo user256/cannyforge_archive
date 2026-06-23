@@ -25,21 +25,23 @@ class SettingsFormParserTest extends TestCase {
 	public function test_parses_a_full_payload(): void {
 		$settings = ( new SettingsFormParser() )->parse(
 			array(
-				'mode'              => 'news',
-				'pagination_limit'  => '4',
-				'news_window_hours' => '36',
-				'blog_max_urls'     => '50',
-				'link_title'        => '1',
-				'link_description'  => '1',
-				'filter_search'     => '1',
-				'filter_author'     => '1',
-				'blog_urls'         => "https://example.com/a\nhttps://example.com/b",
+				'mode'                => 'news',
+				'pagination_limit'    => '4',
+				'news_window_hours'   => '36',
+				'news_fallback_count' => '20',
+				'blog_max_urls'       => '50',
+				'link_title'          => '1',
+				'link_description'    => '1',
+				'filter_search'       => '1',
+				'filter_author'       => '1',
+				'blog_urls'           => "https://example.com/a\nhttps://example.com/b",
 			)
 		);
 
 		$this->assertSame( Mode::News, $settings->mode() );
 		$this->assertSame( 4, $settings->pagination_limit() );
 		$this->assertSame( 36, $settings->news_window_hours() );
+		$this->assertSame( 20, $settings->news_fallback_count() );
 		$this->assertTrue( $settings->link_types()->title() );
 		$this->assertTrue( $settings->link_types()->description() );
 		$this->assertFalse( $settings->link_types()->featured_image() );

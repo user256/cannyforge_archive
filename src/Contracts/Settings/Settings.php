@@ -33,6 +33,19 @@ final class Settings {
 	private const MIN_BLOG_MAX_URLS = 1;
 
 	/**
+	 * Smallest permitted News empty-window fallback count.
+	 */
+	private const MIN_NEWS_FALLBACK_COUNT = 1;
+
+	/**
+	 * Largest permitted News empty-window fallback count.
+	 *
+	 * Matches {@see \CannyForge\Archive\Core\Archive\NewsEntryProvider::MAX_ENTRIES}
+	 * so the fallback can never select more posts than the windowed path.
+	 */
+	private const MAX_NEWS_FALLBACK_COUNT = 500;
+
+	/**
 	 * The archive generation mode.
 	 *
 	 * @var Mode
@@ -80,6 +93,14 @@ final class Settings {
 	 * @var int
 	 */
 	private int $blog_max_urls;
+
+	/**
+	 * News mode: how many latest posts to show when the recent window is empty
+	 * (default 50). See ticket 401 — keeps the promoted surface non-empty.
+	 *
+	 * @var int
+	 */
+	private int $news_fallback_count;
 
 	/**
 	 * Blog mode: the curated list of URLs.
@@ -131,6 +152,7 @@ final class Settings {
 	 * @param Seo              $seo               Archive-page SEO settings.
 	 * @param Theme            $theme             Front-end theme settings.
 	 * @param ContentSelection $content_selection Content-selection rules.
+	 * @param int              $news_fallback_count Latest-N count when the News window is empty.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -144,20 +166,25 @@ final class Settings {
 		string $archive_url = '',
 		?Seo $seo = null,
 		?Theme $theme = null,
-		?ContentSelection $content_selection = null
+		?ContentSelection $content_selection = null,
+		int $news_fallback_count = 50
 	) {
-		$this->mode              = $mode;
-		$this->pagination_limit  = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
-		$this->link_types        = $link_types ?? new LinkTypes();
-		$this->filters           = $filters ?? new Filters();
-		$this->news_window_hours = max( self::MIN_NEWS_WINDOW_HOURS, $news_window_hours );
-		$this->blog_max_urls     = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
-		$this->blog_urls         = array_values( $blog_urls );
-		$this->targeting         = $targeting ?? new Targeting();
-		$this->archive_url       = trim( $archive_url );
-		$this->seo               = $seo ?? new Seo();
-		$this->theme             = $theme ?? new Theme();
-		$this->content_selection = $content_selection ?? new ContentSelection();
+		$this->mode                = $mode;
+		$this->pagination_limit    = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
+		$this->link_types          = $link_types ?? new LinkTypes();
+		$this->filters             = $filters ?? new Filters();
+		$this->news_window_hours   = max( self::MIN_NEWS_WINDOW_HOURS, $news_window_hours );
+		$this->blog_max_urls       = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
+		$this->blog_urls           = array_values( $blog_urls );
+		$this->news_fallback_count = min(
+			self::MAX_NEWS_FALLBACK_COUNT,
+			max( self::MIN_NEWS_FALLBACK_COUNT, $news_fallback_count )
+		);
+		$this->targeting           = $targeting ?? new Targeting();
+		$this->archive_url         = trim( $archive_url );
+		$this->seo                 = $seo ?? new Seo();
+		$this->theme               = $theme ?? new Theme();
+		$this->content_selection   = $content_selection ?? new ContentSelection();
 	}
 
 	/**
@@ -260,6 +287,15 @@ final class Settings {
 	}
 
 	/**
+	 * Latest-N count used when the News recent window is empty (ticket 401).
+	 *
+	 * @return int
+	 */
+	public function news_fallback_count(): int {
+		return $this->news_fallback_count;
+	}
+
+	/**
 	 * The Blog URL list, capped at the configured maximum.
 	 *
 	 * @return string[]
@@ -288,7 +324,8 @@ final class Settings {
 			self::to_string( $data['archive_url'] ?? null ),
 			Seo::from_array( self::sub_array( $data, 'seo' ) ),
 			Theme::from_array( self::sub_array( $data, 'theme' ) ),
-			ContentSelection::from_array( self::sub_array( $data, 'content_selection' ) )
+			ContentSelection::from_array( self::sub_array( $data, 'content_selection' ) ),
+			self::to_int( $data['news_fallback_count'] ?? null, 50 )
 		);
 	}
 
@@ -299,18 +336,19 @@ final class Settings {
 	 */
 	public function to_array(): array {
 		return array(
-			'mode'              => $this->mode->value,
-			'pagination_limit'  => $this->pagination_limit,
-			'link_types'        => $this->link_types->to_array(),
-			'filters'           => $this->filters->to_array(),
-			'news_window_hours' => $this->news_window_hours,
-			'blog_max_urls'     => $this->blog_max_urls,
-			'blog_urls'         => $this->blog_urls,
-			'targeting'         => $this->targeting->to_array(),
-			'archive_url'       => $this->archive_url,
-			'seo'               => $this->seo->to_array(),
-			'theme'             => $this->theme->to_array(),
-			'content_selection' => $this->content_selection->to_array(),
+			'mode'                => $this->mode->value,
+			'pagination_limit'    => $this->pagination_limit,
+			'link_types'          => $this->link_types->to_array(),
+			'filters'             => $this->filters->to_array(),
+			'news_window_hours'   => $this->news_window_hours,
+			'blog_max_urls'       => $this->blog_max_urls,
+			'news_fallback_count' => $this->news_fallback_count,
+			'blog_urls'           => $this->blog_urls,
+			'targeting'           => $this->targeting->to_array(),
+			'archive_url'         => $this->archive_url,
+			'seo'                 => $this->seo->to_array(),
+			'theme'               => $this->theme->to_array(),
+			'content_selection'   => $this->content_selection->to_array(),
 		);
 	}
 

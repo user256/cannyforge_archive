@@ -45,6 +45,7 @@ class SettingsViewTest extends TestCase {
 
 		$this->assertStringContainsString( 'News Cycle Settings', $html );
 		$this->assertStringContainsString( 'name="news_window_hours"', $html );
+		$this->assertStringContainsString( 'name="news_fallback_count"', $html );
 	}
 
 	/**
