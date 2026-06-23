@@ -24,10 +24,11 @@ use CannyForge\Archive\Contracts\Settings\Settings;
  *
  * When the curated list is empty (ticket 402), the provider falls back to a
  * best-effort "top content" set rather than render nothing, via a strict-
- * precedence tier chain: most-commented (only if any post actually has comments)
- * → Jetpack Stats views (if that source is present) → newest. The precedence
- * decision is the pure {@see self::select_fallback_ids()}; the WordPress queries
- * feeding it live in {@see self::fallback_post_ids()}.
+ * precedence tier chain: Google/Search Console cached IDs (ticket 405) →
+ * most-commented (only if any post actually has comments) → Jetpack Stats views
+ * (if that source is present) → newest. The precedence decision is the pure
+ * {@see self::select_fallback_ids()}; the WordPress queries feeding it live in
+ * {@see self::fallback_post_ids()}.
  *
  * Note (ticket 105 revisited): ticket 105 put *automatic popularity sourcing*
  * out of scope. Ticket 402 deliberately narrows that to allow a zero-dependency
@@ -36,6 +37,14 @@ use CannyForge\Archive\Contracts\Settings\Settings;
  * (ticket 403).
  */
 final class BlogEntryProvider implements ArchiveEntryProviderInterface {
+	/**
+	 * Optional top-tier popularity source for the empty-list fallback (Search
+	 * Console cache, or a no-op when none is wired).
+	 *
+	 * @var PopularPostsSource
+	 */
+	private PopularPostsSource $google;
+
 	/**
 	 * Optional popularity source for the empty-list fallback (Jetpack Stats, or a
 	 * no-op when none is wired).
@@ -47,10 +56,13 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 	/**
 	 * Construct the provider.
 	 *
-	 * @param PopularPostsSource|null $popular Popularity source for the fallback
-	 *                                         (defaults to a no-op).
+	 * @param PopularPostsSource|null $google  Top-tier popularity source for the
+	 *                                         fallback (defaults to a no-op).
+	 * @param PopularPostsSource|null $popular Secondary popularity source for the
+	 *                                         fallback (defaults to a no-op).
 	 */
-	public function __construct( ?PopularPostsSource $popular = null ) {
+	public function __construct( ?PopularPostsSource $google = null, ?PopularPostsSource $popular = null ) {
+		$this->google  = $google ?? new NullPopularPostsSource();
 		$this->popular = $popular ?? new NullPopularPostsSource();
 	}
 
@@ -101,12 +113,14 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 	 * Choose the fallback post IDs from the available tier signals (ticket 402).
 	 *
 	 * Pure and deterministic: strict precedence, no WordPress.
-	 *  1. Most-commented — used only when `$has_comments` is true, so a site with
+	 *  1. Google/Search Console — used when cached IDs are available.
+	 *  2. Most-commented — used only when `$has_comments` is true, so a site with
 	 *     no comments does not present an arbitrary order as "popular".
-	 *  2. Jetpack views — used when tier 1 is empty and Jetpack returned IDs.
-	 *  3. Newest — the final floor.
+	 *  3. Jetpack views — used when tiers 1–2 are empty and Jetpack returned IDs.
+	 *  4. Newest — the final floor.
 	 * The chosen list is de-duplicated and capped at $limit.
 	 *
+	 * @param int[] $google_ids    Post IDs ordered by Google/Search Console clicks, desc.
 	 * @param int[] $commented_ids Post IDs ordered by comment count, desc.
 	 * @param bool  $has_comments  Whether the top commented post has > 0 comments.
 	 * @param int[] $jetpack_ids   Post IDs ordered by Jetpack views, desc.
@@ -115,13 +129,16 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 	 * @return int[]
 	 */
 	public function select_fallback_ids(
+		array $google_ids,
 		array $commented_ids,
 		bool $has_comments,
 		array $jetpack_ids,
 		array $newest_ids,
 		int $limit
 	): array {
-		if ( $has_comments && array() !== $commented_ids ) {
+		if ( array() !== $google_ids ) {
+			$chosen = $google_ids;
+		} elseif ( $has_comments && array() !== $commented_ids ) {
 			$chosen = $commented_ids;
 		} elseif ( array() !== $jetpack_ids ) {
 			$chosen = $jetpack_ids;
@@ -145,7 +162,8 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 	 * @return int[]
 	 */
 	private function fallback_post_ids( Settings $settings ): array {
-		$limit = $settings->blog_max_urls();
+		$limit  = $settings->blog_max_urls();
+		$google = $this->google->is_available() ? $this->google->top_post_ids( $limit ) : array();
 
 		$commented = $this->query_ids(
 			array(
@@ -166,6 +184,7 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 		);
 
 		return $this->select_fallback_ids(
+			array_map( 'intval', $google ),
 			$commented,
 			$this->has_commented_post(),
 			array_map( 'intval', $jetpack ),

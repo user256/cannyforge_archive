@@ -127,3 +127,6 @@ private.md
 # Infection mutation-testing output
 infection.log
 .infection-cache/
+
+# Local VS Code multi-root workspace (references sibling repos)
+*.code-workspace

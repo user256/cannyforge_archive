@@ -118,6 +118,7 @@ class BlogEntryProviderTest extends TestCase {
 	 */
 	public function test_fallback_prefers_comments_when_present(): void {
 		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array(),
 			array( 7, 3, 9 ),
 			true,
 			array( 100, 200 ),
@@ -136,6 +137,7 @@ class BlogEntryProviderTest extends TestCase {
 	 */
 	public function test_fallback_skips_comments_when_none_commented(): void {
 		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array(),
 			array( 7, 3, 9 ),
 			false,
 			array( 100, 200 ),
@@ -154,6 +156,7 @@ class BlogEntryProviderTest extends TestCase {
 	public function test_fallback_uses_newest_as_floor(): void {
 		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
 			array(),
+			array(),
 			false,
 			array(),
 			array( 1, 2, 3 ),
@@ -170,6 +173,7 @@ class BlogEntryProviderTest extends TestCase {
 	 */
 	public function test_fallback_dedupes_and_caps(): void {
 		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array(),
 			array( 5, 5, 0, 8, 8, 11 ),
 			true,
 			array(),
@@ -178,5 +182,23 @@ class BlogEntryProviderTest extends TestCase {
 		);
 
 		$this->assertSame( array( 5, 8 ), $ids );
+	}
+
+	/**
+	 * Google/Search Console cached IDs outrank the comment/Jetpack/newest tiers.
+	 *
+	 * @return void
+	 */
+	public function test_fallback_prefers_google_when_available(): void {
+		$ids = ( new BlogEntryProvider() )->select_fallback_ids(
+			array( 42, 7 ),
+			array( 7, 3, 9 ),
+			true,
+			array( 100, 200 ),
+			array( 1, 2, 3 ),
+			100
+		);
+
+		$this->assertSame( array( 42, 7 ), $ids );
 	}
 }

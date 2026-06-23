@@ -33,6 +33,14 @@ class SettingsViewTest extends TestCase {
 
 		$this->assertStringContainsString( 'Top Articles', $html );
 		$this->assertStringContainsString( 'name="blog_urls"', $html );
+		$this->assertStringContainsString( 'Google Top Content (Search Console)', $html );
+		$this->assertStringContainsString( 'name="google_client_id"', $html );
+		$this->assertStringContainsString( 'name="google_client_secret"', $html );
+		$this->assertStringContainsString( 'name="google_search_console_site_url"', $html );
+		$this->assertStringContainsString( 'name="google_report_window_days"', $html );
+		$this->assertStringContainsString( 'Connect Google', $html );
+		$this->assertStringContainsString( 'Disconnect', $html );
+		$this->assertStringContainsString( 'Refresh now', $html );
 	}
 
 	/**
@@ -73,6 +81,10 @@ class SettingsViewTest extends TestCase {
 				'name="target_author"',
 				'name="target_date"',
 				'name="archive_url"',
+				'name="google_client_id"',
+				'name="google_client_secret"',
+				'name="google_search_console_site_url"',
+				'name="google_report_window_days"',
 				'name="seo_title"',
 				'name="seo_meta_description"',
 				'name="seo_index"',

@@ -47,4 +47,18 @@ class PluginTest extends TestCase {
 		( new Plugin() )->init();
 		$this->assertTrue( HookSpy::has( 'admin_menu' ) );
 	}
+
+	/**
+	 * Booting registers the Google OAuth admin-post hooks.
+	 *
+	 * @return void
+	 */
+	public function test_init_registers_google_admin_post_hooks(): void {
+		( new Plugin() )->init();
+
+		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_connect' ) );
+		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_callback' ) );
+		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_disconnect' ) );
+		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_refresh' ) );
+	}
 }

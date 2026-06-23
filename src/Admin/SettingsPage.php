@@ -11,6 +11,10 @@ namespace CannyForge\Archive\Admin;
 
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Settings\CsvUrlExtractor;
+use CannyForge\Archive\Integration\Google\GoogleSettings;
+use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
+use CannyForge\Archive\Integration\Google\GoogleTokenStore;
+use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
 
 /**
  * Registers and renders the CannyForge Archive settings page.
@@ -65,23 +69,53 @@ final class SettingsPage {
 	private CsvUrlExtractor $csv;
 
 	/**
+	 * Dedicated Google settings store.
+	 *
+	 * @var GoogleSettingsStore
+	 */
+	private GoogleSettingsStore $google_settings;
+
+	/**
+	 * Dedicated Google token store.
+	 *
+	 * @var GoogleTokenStore
+	 */
+	private GoogleTokenStore $google_tokens;
+
+	/**
+	 * Cached Search Console top-content IDs.
+	 *
+	 * @var SearchConsoleCacheStore
+	 */
+	private SearchConsoleCacheStore $search_cache;
+
+	/**
 	 * Construct the page.
 	 *
-	 * @param SettingsRepositoryInterface $repository Settings persistence.
-	 * @param SettingsFormParser          $parser     Form mapper.
-	 * @param SettingsView                $view       Form renderer.
-	 * @param CsvUrlExtractor|null        $csv        CSV URL extractor.
+	 * @param SettingsRepositoryInterface  $repository Settings persistence.
+	 * @param SettingsFormParser           $parser     Form mapper.
+	 * @param SettingsView                 $view       Form renderer.
+	 * @param CsvUrlExtractor|null         $csv        CSV URL extractor.
+	 * @param GoogleSettingsStore|null     $google_settings Google settings store.
+	 * @param GoogleTokenStore|null        $google_tokens   Google token store.
+	 * @param SearchConsoleCacheStore|null $search_cache   Search Console cache store.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		SettingsFormParser $parser,
 		SettingsView $view,
-		?CsvUrlExtractor $csv = null
+		?CsvUrlExtractor $csv = null,
+		?GoogleSettingsStore $google_settings = null,
+		?GoogleTokenStore $google_tokens = null,
+		?SearchConsoleCacheStore $search_cache = null
 	) {
-		$this->repository = $repository;
-		$this->parser     = $parser;
-		$this->view       = $view;
-		$this->csv        = $csv ?? new CsvUrlExtractor();
+		$this->repository      = $repository;
+		$this->parser          = $parser;
+		$this->view            = $view;
+		$this->csv             = $csv ?? new CsvUrlExtractor();
+		$this->google_settings = $google_settings ?? new GoogleSettingsStore();
+		$this->google_tokens   = $google_tokens ?? new GoogleTokenStore();
+		$this->search_cache    = $search_cache ?? new SearchConsoleCacheStore();
 	}
 
 	/**
@@ -127,7 +161,19 @@ final class SettingsPage {
 		}
 
 		$action_url = esc_url_raw( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
-		$this->view->render( $this->repository->get(), $action_url, $this->preview_url() );
+		$this->view->render(
+			$this->repository->get(),
+			$action_url,
+			$this->preview_url(),
+			$this->google_settings->get(),
+			$this->google_tokens->status(),
+			$this->google_settings->has_client_secret(),
+			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_CONNECT ) ),
+			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_DISCONNECT ) ),
+			esc_url_raw( admin_url( 'admin-post.php?action=' . SearchConsoleRefreshController::ACTION_REFRESH ) ),
+			$this->google_notice(),
+			$this->google_notice_type()
+		);
 	}
 
 	/**
@@ -169,8 +215,37 @@ final class SettingsPage {
 		$this->repository->save(
 			$this->parser->parse( is_array( $input ) ? $input : array(), $csv_urls )
 		);
+		$this->google_settings->save( GoogleSettings::from_array( is_array( $input ) ? $input : array() ) );
+		$this->search_cache->clear();
 
 		return true;
+	}
+
+	/**
+	 * One-shot Google notice passed back from the connect/disconnect handlers.
+	 *
+	 * @return string
+	 */
+	private function google_notice(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display of a handler-generated notice.
+		$raw = isset( $_GET[ GoogleConnectionController::NOTICE_KEY ] ) ? wp_unslash( $_GET[ GoogleConnectionController::NOTICE_KEY ] ) : '';
+
+		return is_scalar( $raw ) ? sanitize_text_field( rawurldecode( (string) $raw ) ) : '';
+	}
+
+	/**
+	 * One-shot Google notice type passed back from the connect/disconnect handlers.
+	 *
+	 * @return string
+	 */
+	private function google_notice_type(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display of a handler-generated notice.
+		$raw  = isset( $_GET[ GoogleConnectionController::NOTICE_TYPE_KEY ] ) ? wp_unslash( $_GET[ GoogleConnectionController::NOTICE_TYPE_KEY ] ) : '';
+		$type = is_scalar( $raw ) ? sanitize_text_field( (string) $raw ) : '';
+
+		return GoogleConnectionController::NOTICE_SUCCESS === $type
+			? GoogleConnectionController::NOTICE_SUCCESS
+			: GoogleConnectionController::NOTICE_ERROR;
 	}
 
 	/**

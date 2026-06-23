@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Bootstrap;
 
 use CannyForge\Archive\Admin\AdminAssets;
+use CannyForge\Archive\Admin\GoogleConnectionController;
+use CannyForge\Archive\Admin\SearchConsoleRefreshController;
 use CannyForge\Archive\Admin\SettingsFormParser;
 use CannyForge\Archive\Admin\SettingsPage;
 use CannyForge\Archive\Admin\SettingsView;
@@ -34,6 +36,12 @@ use CannyForge\Archive\Frontend\ArchivePage;
 use CannyForge\Archive\Frontend\ArchiveSearchEndpoint;
 use CannyForge\Archive\Frontend\PaginationController;
 use CannyForge\Archive\Frontend\SeoHead;
+use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
+use CannyForge\Archive\Integration\Google\GoogleTokenStore;
+use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
+use CannyForge\Archive\Integration\Google\SearchConsoleCachedPopularPostsSource;
+use CannyForge\Archive\Integration\Google\SearchConsoleClient;
+use CannyForge\Archive\Integration\Google\SearchConsoleTopContentRefresher;
 
 /**
  * Composition root for CannyForge Archive.
@@ -59,12 +67,43 @@ class Plugin {
 	 * @return void
 	 */
 	private function register_admin(): void {
+		$repository      = new OptionsSettingsRepository();
+		$google_settings = new GoogleSettingsStore();
+		$google_tokens   = new GoogleTokenStore();
+		$search_cache    = new SearchConsoleCacheStore();
+		$search_refresh  = new SearchConsoleTopContentRefresher(
+			new SearchConsoleClient(
+				new \CannyForge\Archive\Integration\Google\GoogleOauthClient(
+					$google_tokens,
+					$google_settings->get()->client_id(),
+					$google_settings->get()->client_secret()
+				)
+			),
+			$search_cache,
+			$google_settings
+		);
+
 		$page = new SettingsPage(
-			new OptionsSettingsRepository(),
+			$repository,
 			new SettingsFormParser(),
-			new SettingsView()
+			new SettingsView(),
+			null,
+			$google_settings,
+			$google_tokens,
+			$search_cache
 		);
 		$page->register();
+
+		$google = new GoogleConnectionController( $google_settings, $google_tokens, $search_cache );
+		$google->register();
+
+		$refresh = new SearchConsoleRefreshController(
+			$repository,
+			$google_settings,
+			$google_tokens,
+			$search_refresh
+		);
+		$refresh->register();
 
 		$assets = new AdminAssets( $this->base_url(), $this->version() );
 		$assets->register();
@@ -82,13 +121,7 @@ class Plugin {
 		$repository = new OptionsSettingsRepository();
 		$predicate  = new TargetingPredicate();
 
-		$provider = new SelectingEntryProvider(
-			new ModeEntryProvider(
-				new NewsEntryProvider(),
-				new BlogEntryProvider( new JetpackStatsSource() )
-			),
-			new ContentSelector()
-		);
+		$provider = $this->build_entry_provider();
 
 		$cache    = new ArchiveCache();
 		$renderer = new ArchiveRenderer();
@@ -134,6 +167,31 @@ class Plugin {
 			new HeadTagBuilder()
 		);
 		$seo->register();
+	}
+
+	/**
+	 * Build the mode-aware archive entry provider.
+	 *
+	 * News mode uses the recent-window query; Blog mode uses the curated URL
+	 * list with a Search Console / Jetpack popularity fallback.
+	 *
+	 * @return SelectingEntryProvider
+	 */
+	private function build_entry_provider(): SelectingEntryProvider {
+		$google_settings = new GoogleSettingsStore();
+		$google_tokens   = new GoogleTokenStore();
+		$search_cache    = new SearchConsoleCacheStore();
+
+		return new SelectingEntryProvider(
+			new ModeEntryProvider(
+				new NewsEntryProvider(),
+				new BlogEntryProvider(
+					new SearchConsoleCachedPopularPostsSource( $search_cache, $google_settings, $google_tokens ),
+					new JetpackStatsSource()
+				)
+			),
+			new ContentSelector()
+		);
 	}
 
 	/**

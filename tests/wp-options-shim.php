@@ -44,11 +44,13 @@ if ( ! function_exists( 'update_option' ) ) {
 	/**
 	 * In-memory update_option.
 	 *
-	 * @param string $option Option name.
-	 * @param mixed  $value  Value to store.
+	 * @param string $option   Option name.
+	 * @param mixed  $value    Value to store.
+	 * @param mixed  $autoload Autoload flag (ignored in the shim).
 	 * @return bool
 	 */
-	function update_option( string $option, $value ): bool {
+	function update_option( string $option, $value, $autoload = null ): bool {
+		unset( $autoload );
 		\CannyForge\Archive\Tests\OptionStore::set( $option, $value );
 		return true;
 	}

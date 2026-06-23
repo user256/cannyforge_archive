@@ -16,6 +16,13 @@ deptrac:
         - type: directory
           value: src/Core/.*
 
+    # External-service integrations and secure stores. May depend on Contracts
+    # and, when needed, Core utilities; Core must not know about it.
+    - name: Integration
+      collectors:
+        - type: directory
+          value: src/Integration/.*
+
     # WordPress-admin surface: settings page, form rendering and parsing. Reads
     # and writes the settings via Contracts + Core; never the other way round.
     - name: Admin
@@ -46,11 +53,17 @@ deptrac:
     Core:
       - Contracts
 
+    # Integrations sit beside Core, never underneath it.
+    Integration:
+      - Contracts
+      - Core
+
     # Admin builds the settings UI on the contracts (settings types) and the
     # engine (the repository). It never reaches into Bootstrap.
     Admin:
       - Contracts
       - Core
+      - Integration
 
     # Frontend exposes the archive page, building on the contracts and engine.
     # It never reaches into Admin or Bootstrap.
@@ -62,5 +75,6 @@ deptrac:
     Bootstrap:
       - Contracts
       - Core
+      - Integration
       - Admin
       - Frontend

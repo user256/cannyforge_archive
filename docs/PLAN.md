@@ -131,8 +131,11 @@ Sprint 1.
    > `comment_count` signal (only when some post has comments) → an *optional*
    > in-process Jetpack Stats read (skipped entirely when Jetpack is absent) →
    > newest. This adds **no external analytics integration and no credentials** —
-   > Snowflake/Adobe remain out of scope. Sourcing genuine GA4 / Search Console
-   > data is tracked separately as the exploratory ticket 403.
+   > Snowflake/Adobe remain out of scope. Sourcing genuine Google data is
+   > tracked separately from the core brief: ticket 403 completed the design
+   > spike and chose Search Console as the first implementation slice, with the
+   > build split into 404 (OAuth foundation), 405 (Search Console), and 406
+   > (optional GA4 follow-on).
 
 3. **News mode** — the archive automatically includes content published within a
    configurable recent window (hours; default 72), updating dynamically by

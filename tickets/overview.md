@@ -13,7 +13,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 1 — Settings & MVP** | Verified on live WP | 101–111 + 120 (packaging) + 121 (admin UX) done; live smoke passed; 2 defects found & fixed. 199 = GO. |
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
-| **Sprint 4 — Resilience & empty-state fallbacks** | In progress | Promoted surface must never be empty when content exists. 401 (News→latest N), 402 (Top→popularity proxy), 403 (GA4/GSC sourcing — exploratory). |
+| **Sprint 4 — Resilience & empty-state fallbacks** | In progress | 401, 402 shipped; 403 spike completed and split; 404 (Google OAuth foundation) and 405 (Search Console source) implemented and tested. Remaining: 406 (GA4 follow-on), then 499 review gate. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -95,4 +95,7 @@ infrastructure already proven in `cannyforge-lead-capture`.
 
 - [x] [401 — News empty-state fallback (latest N)](completed/401-news-empty-state-fallback.md)
 - [x] [402 — Top/Blog empty-state popularity fallback (comments → Jetpack → newest)](completed/402-top-empty-state-popularity-fallback.md)
-- [ ] [403 — Google GA4 / Search Console "top content" sourcing (exploratory)](403-google-analytics-search-console-top-content.md)
+- [x] [403 — Google GA4 / Search Console "top content" sourcing (exploratory spike)](completed/403-google-analytics-search-console-top-content.md)
+- [x] [404 — Google OAuth foundation + secure settings for top-content sourcing](completed/404-google-oauth-foundation-secure-settings.md)
+- [x] [405 — Search Console cached top-content source for Blog fallback](completed/405-search-console-cached-top-content-source.md)
+- [ ] [406 — GA4 top-content source (optional second Google signal)](406-ga4-top-content-source.md)
