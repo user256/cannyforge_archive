@@ -230,6 +230,10 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) {
 	 */
 	function wp_safe_redirect( string $location, int $status = 302 ): bool {
 		\CannyForge\Archive\Tests\HookSpy::record( 'wp_safe_redirect', static fn () => array( $location, $status ) );
+		if ( array_key_exists( 'cannyforge_test_safe_redirect_result', $GLOBALS ) ) {
+			return (bool) $GLOBALS['cannyforge_test_safe_redirect_result'];
+		}
+
 		return '' !== $location;
 	}
 }

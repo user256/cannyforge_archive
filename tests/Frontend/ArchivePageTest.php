@@ -37,6 +37,7 @@ class ArchivePageTest extends TestCase {
 		OptionStore::reset();
 		TransientStore::reset();
 		unset( $GLOBALS['wp_query'] );
+		unset( $GLOBALS['cannyforge_test_safe_redirect_result'] );
 	}
 
 	/**
@@ -220,5 +221,34 @@ class ArchivePageTest extends TestCase {
 
 		$this->assertTrue( HookSpy::has( 'status_header:404' ) );
 		$this->assertFalse( HookSpy::has( 'wp_safe_redirect' ) );
+	}
+
+	/**
+	 * A rejected configured destination falls back to the local endpoint and
+	 * then returns a 404 if WordPress rejects that redirect too.
+	 *
+	 * @return void
+	 */
+	public function test_rejected_tail_redirect_uses_local_fallback_before_404(): void {
+		$page = $this->page();
+		$GLOBALS['cannyforge_test_safe_redirect_result'] = false;
+
+		$ref = new \ReflectionMethod( $page, 'redirect_tail' );
+		$ref->setAccessible( true );
+		$ref->invoke( $page, new Settings( archive_url: 'https://external.example/archive/' ) );
+
+		$redirects = array_map(
+			static fn ( callable $callback ): array => $callback(),
+			HookSpy::callbacks_for( 'wp_safe_redirect' )
+		);
+
+		$this->assertSame(
+			array(
+				array( 'https://external.example/archive/', 301 ),
+				array( 'http://example.test/archive/', 301 ),
+			),
+			$redirects
+		);
+		$this->assertTrue( HookSpy::has( 'status_header:404' ) );
 	}
 }

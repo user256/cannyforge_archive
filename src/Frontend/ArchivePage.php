@@ -196,8 +196,16 @@ final class ArchivePage {
 		$target = $this->url_resolver->destination_url( $settings );
 
 		if ( '' !== $target ) {
-			wp_safe_redirect( esc_url_raw( $target ), 301 );
-			exit;
+			if ( wp_safe_redirect( esc_url_raw( $target ), 301 ) ) {
+				exit;
+			}
+
+			// A configured archive_url may be external and rejected by WordPress.
+			// Fall back to the endpoint that this plugin owns before failing closed.
+			$fallback = $this->url_resolver->endpoint_url();
+			if ( '' !== $fallback && $fallback !== $target && wp_safe_redirect( esc_url_raw( $fallback ), 301 ) ) {
+				exit;
+			}
 		}
 
 		global $wp_query;
