@@ -28,8 +28,14 @@ use CannyForge\Archive\Contracts\Archive\ContentQuery;
  * in a pure method ({@see self::build_query_args()}) unit-tested without
  * WordPress; executing the query and option sourcing are isolated so the
  * selection logic needs no WordPress runtime to test.
+ *
+ * Not `final`: {@see \CannyForge\Archive\Tests\FakeContentIndexProvider} extends
+ * it to stand in for `provide()` in the endpoint's unit tests (ticket 601) —
+ * `provide()` instantiates `\WP_Query` directly, which does not exist in the
+ * shim-only unit-test runtime, so the test double overrides it instead of
+ * calling through.
  */
-final class ContentIndexProvider {
+class ContentIndexProvider {
 	/**
 	 * Build the `WP_Query` args for a content query.
 	 *

@@ -22,3 +22,4 @@ require __DIR__ . '/wp-view-shim.php';
 require __DIR__ . '/wp-hooks-shim.php';
 require __DIR__ . '/wp-admin-post-shim.php';
 require __DIR__ . '/wp-admin-redirect-shim.php';
+require __DIR__ . '/wp-ajax-shim.php';
