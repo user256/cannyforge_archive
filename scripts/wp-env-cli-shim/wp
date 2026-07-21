@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# A `wp` binary shim for scripts that expect direct filesystem access to a
+# WordPress install (e.g. scripts/seed-historic-content.sh, written for the
+# `composer seed:historic` workflow against a real local site at
+# /var/www/html).
+#
+# wp-env isolates WordPress inside Docker containers reachable only via
+# `wp-env run cli wp ...`, so this shim sits earlier on PATH, strips any
+# `--path=...` (the cli container is already rooted at the site), and
+# forwards everything else into the container's real wp-cli. This lets
+# ticket 603's integration suite reuse scripts/seed-historic-content.sh
+# UNMODIFIED against the disposable wp-env instance.
+#
+# Requires WP_ENV_CWD to point at the repo root containing .wp-env.json.
+set -euo pipefail
+
+args=()
+for arg in "$@"; do
+	case "$arg" in
+		--path=*) ;;
+		*) args+=( "$arg" ) ;;
+	esac
+done
+
+cd "${WP_ENV_CWD:?WP_ENV_CWD must point at the repo containing .wp-env.json}"
+exec npx wp-env run cli wp "${args[@]}" 2>/dev/null

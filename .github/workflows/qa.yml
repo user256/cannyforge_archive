@@ -75,3 +75,36 @@ jobs:
 
       - name: Jest (assets/js/admin.js)
         run: npm test
+
+  integration:
+    name: Real-WordPress integration suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: sodium, mbstring
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # wp-env (ticket 603) is docker-compose based; Docker is preinstalled on
+      # GitHub-hosted ubuntu-latest runners, so no extra setup step is needed.
+      - name: Install JS dependencies (wp-env)
+        run: npm ci
+
+      # Builds dist/, boots a disposable WordPress via wp-env, activates the
+      # plugin, seeds historic content, and runs tests/WpIntegration against
+      # real WordPress. A red run here blocks merge — no continue-on-error.
+      - name: Real-WordPress integration suite (ticket 603)
+        run: composer test:integration

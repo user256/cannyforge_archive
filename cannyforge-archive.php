@@ -38,19 +38,55 @@ add_action(
 );
 
 // Flush rewrite rules on activation.
+//
+// By the time an activation hook runs, WordPress's own `init` action has
+// already fired for this request (activation happens deep inside a normal
+// wp-admin/WP-CLI request, well after bootstrap) — so the `add_action( 'init',
+// ... )` registration inside `$plugin->init()` never executes this request.
+// Register the endpoint directly, synchronously, so the flush below actually
+// captures it (ticket 201/603: verified against real WordPress by the
+// integration suite, which caught this exact gap).
 register_activation_hook(
 	__FILE__,
 	function () {
 		$plugin = new \CannyForge\Archive\Bootstrap\Plugin();
 		$plugin->init();
+
+		add_rewrite_endpoint(
+			\CannyForge\Archive\Frontend\ArchivePage::DEFAULT_SLUG,
+			EP_ROOT,
+			\CannyForge\Archive\Frontend\ArchivePage::QUERY_VAR
+		);
+
 		flush_rewrite_rules();
 	}
 );
 
 // Flush rewrite rules on deactivation.
+//
+// The archive endpoint is still registered on `$wp_rewrite` for this request
+// (it was added when `init` fired earlier, while the plugin was still
+// active), so a naive flush here would regenerate the rules with the
+// endpoint still present — a residue that survives deactivation. Strip it
+// from the in-memory endpoint list before flushing so deactivation actually
+// removes the rule (ticket 201/603).
 register_deactivation_hook(
 	__FILE__,
 	function () {
+		global $wp_rewrite;
+
+		if ( $wp_rewrite instanceof WP_Rewrite ) {
+			$wp_rewrite->endpoints = array_values(
+				array_filter(
+					(array) $wp_rewrite->endpoints,
+					static function ( $endpoint ) {
+						return ! is_array( $endpoint )
+							|| ( $endpoint[2] ?? '' ) !== \CannyForge\Archive\Frontend\ArchivePage::QUERY_VAR;
+					}
+				)
+			);
+		}
+
 		flush_rewrite_rules();
 	}
 );

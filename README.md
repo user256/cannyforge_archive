@@ -61,6 +61,10 @@ Gated out of the box:
 - Run `bash scripts/install-plugin.sh /path/to/wp-content/plugins` if you want to target a different plugins directory directly.
 - Run `bash scripts/seed-historic-content.sh --site-path /var/www/html --count 120` to seed a WordPress test site with dated archive posts for smoke testing.
 - Run `composer qa` to execute all tests and static analysis (the merge gate).
+- Run `composer test:integration` to boot a disposable, real WordPress instance
+  (via [wp-env](https://www.npmjs.com/package/@wordpress/env)), activate the
+  built plugin, seed historic content, and run the real-WordPress integration
+  suite (needs Docker + Node; runs in CI as the `integration` job).
 - Run `composer cs:fix` to automatically resolve formatting issues.
 - Document planned work as markdown tickets in [`tickets/`](tickets/).
 - Keep git commit messages to a single summary line.
@@ -71,23 +75,44 @@ The historic-content seeder creates published posts spread across multiple years
 categories, tags, and authors so the archive has enough depth to exercise:
 
 - archive-page rendering on older content
-- search and filter behaviour in the browser
+- search and filter behaviour — both the default view's client-side JavaScript
+  filtering and the whole-database admin-ajax search endpoint (ticket 301)
+  that JavaScript falls through to
 - pagination replacement on deep taxonomy archives
 
-The archive filters are client-side JavaScript, not AJAX, so the relevant smoke
-check is browser behaviour on the rendered archive page rather than an API call.
+### Automated: `composer test:integration`
 
-Recommended smoke checklist after `composer seed:historic`:
+Ticket 603 replaced most of this checklist with a real-WordPress integration
+suite. `composer test:integration` boots a disposable WordPress instance
+(via [wp-env](https://www.npmjs.com/package/@wordpress/env)), builds and
+activates the plugin from `dist/`, seeds historic content with this same
+seeder, and automatically verifies:
 
-- Open `/archive/` and confirm older seeded posts render across multiple historical months/years.
+- `/archive/` renders the seeded historic posts.
+- The admin-ajax whole-database search endpoint returns correct JSON for a
+  search term and for each filter (category, tag, author, month).
+- A deep category archive shows the shortened pagination block with its
+  "View Archive" link.
+- Plugin activate → deactivate → reactivate leaves no rewrite-rule residue
+  (ticket 201's guarantee).
+
+This runs on every push/PR as the `integration` job in CI — a red run blocks
+merge. See [tickets/603-real-wordpress-integration-rig.md](tickets/603-real-wordpress-integration-rig.md)
+for the wp-env-vs-wp-browser decision and a real compatibility gap the suite
+surfaced (the pagination replacement only fires on classic
+`the_posts_pagination()` themes, not block themes' Query Loop pagination).
+
+### Still manual: visual/theming judgement calls
+
+These remain manual browser checks after `composer seed:historic` — they're
+judgement calls about rendered appearance and client-side JS behaviour that a
+script can't usefully assert on:
+
 - Type in the archive search box and confirm the visible list updates without a page reload.
 - Change the category, tag, month, and author filters and confirm each narrows the rendered list client-side.
-- Visit a targeted category/tag/date/author archive with pagination and confirm the shortened pagination block still links to `/archive/`.
-- Confirm the archive stylesheet and inline theme variables are present on the archive page and targeted archive listings.
+- Confirm the archive stylesheet and inline theme variables are present — and look right — on the archive page and targeted archive listings in your active theme.
 - Visit `/archive/unwanted-tail/` (any non-empty tail after the endpoint) and confirm a 301 to the configured `archive_url` when WordPress accepts it, otherwise the local `/archive/` endpoint, never a blank page (tickets 612/617).
 - Switch the mode to Hybrid, save settings, publish a post, and confirm `/archive/` reflects the change immediately rather than after the 24-hour cache TTL (ticket 612 — `ArchiveCache::clear()` now clears every `Mode` case, including Hybrid).
-
-These two are flagged for automation in ticket 603 (real-WordPress integration rig); until that lands they remain manual checks.
 
 ## License
 

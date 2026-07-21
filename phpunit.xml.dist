@@ -9,6 +9,11 @@
     <testsuites>
         <testsuite name="unit">
             <directory>tests</directory>
+            <!-- The real-WordPress integration suite (ticket 603) lives here but
+                 runs separately via `composer test:integration` /
+                 phpunit.integration.xml.dist — it needs a booted wp-env instance
+                 and must not run (or fail) as part of the shim-backed unit suite. -->
+            <exclude>tests/WpIntegration</exclude>
         </testsuite>
     </testsuites>
     <coverage>
