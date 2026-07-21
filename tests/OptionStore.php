@@ -41,6 +41,16 @@ final class OptionStore {
 	}
 
 	/**
+	 * Delete an option.
+	 *
+	 * @param string $option Option name.
+	 * @return void
+	 */
+	public static function delete( string $option ): void {
+		unset( self::$options[ $option ] );
+	}
+
+	/**
 	 * Clear all stored options (call between tests for isolation).
 	 *
 	 * @return void

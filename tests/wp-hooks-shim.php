@@ -78,6 +78,60 @@ if ( ! function_exists( 'apply_filters' ) ) {
 	}
 }
 
+if ( ! function_exists( 'register_activation_hook' ) ) {
+	/**
+	 * Record an activation-hook registration (ticket 606 regression test:
+	 * lets a test capture and invoke the closure registered in
+	 * cannyforge-archive.php without a real WordPress runtime).
+	 *
+	 * @param string   $file     Plugin main file.
+	 * @param callable $callback Callback.
+	 * @return void
+	 */
+	function register_activation_hook( string $file, callable $callback ): void {
+		\CannyForge\Archive\Tests\HookSpy::record( 'activation:' . $file, $callback );
+	}
+}
+
+if ( ! function_exists( 'register_deactivation_hook' ) ) {
+	/**
+	 * Record a deactivation-hook registration (ticket 606 regression test).
+	 *
+	 * @param string   $file     Plugin main file.
+	 * @param callable $callback Callback.
+	 * @return void
+	 */
+	function register_deactivation_hook( string $file, callable $callback ): void {
+		\CannyForge\Archive\Tests\HookSpy::record( 'deactivation:' . $file, $callback );
+	}
+}
+
+if ( ! function_exists( 'flush_rewrite_rules' ) ) {
+	/**
+	 * Record a rewrite-rules flush instead of performing one.
+	 *
+	 * @param bool $hard Whether to write .htaccess (ignored in the shim).
+	 * @return void
+	 */
+	function flush_rewrite_rules( bool $hard = true ): void {
+		unset( $hard );
+		\CannyForge\Archive\Tests\HookSpy::record( 'flush_rewrite_rules', static fn () => true );
+	}
+}
+
+if ( ! function_exists( 'plugin_basename' ) ) {
+	/**
+	 * Build a plugin-relative basename, mirroring WordPress's
+	 * `plugin_basename()` closely enough for hook-name computation.
+	 *
+	 * @param string $file Absolute plugin file path.
+	 * @return string
+	 */
+	function plugin_basename( string $file ): string {
+		return basename( dirname( $file ) ) . '/' . basename( $file );
+	}
+}
+
 if ( ! function_exists( 'add_shortcode' ) ) {
 	/**
 	 * Record a shortcode registration.

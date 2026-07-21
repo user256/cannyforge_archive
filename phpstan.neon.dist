@@ -3,6 +3,7 @@ parameters:
     paths:
         - src
         - cannyforge-archive.php
+        - uninstall.php
     treatPhpDocTypesAsCertain: false
     # Dead-code / redundancy detection — start clean (ticket 101).
     reportUnmatchedIgnoredErrors: true

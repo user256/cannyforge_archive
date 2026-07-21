@@ -55,3 +55,16 @@ if ( ! function_exists( 'update_option' ) ) {
 		return true;
 	}
 }
+
+if ( ! function_exists( 'delete_option' ) ) {
+	/**
+	 * In-memory delete_option.
+	 *
+	 * @param string $option Option name.
+	 * @return bool
+	 */
+	function delete_option( string $option ): bool {
+		\CannyForge\Archive\Tests\OptionStore::delete( $option );
+		return true;
+	}
+}
