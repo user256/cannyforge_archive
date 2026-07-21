@@ -1,8 +1,8 @@
 # Ticket 612: Fix archive-tail redirects and Hybrid cache invalidation
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
-**Owner:** background-agent
+**Status:** Completed — follow-up 617 tracks rejected redirects
+**Owner:** unassigned
 **Estimate:** M
 **Priority:** P0 — correctness
 
@@ -114,6 +114,9 @@ cached HTML is invalidated when its inputs change.
     (clean) and repo-wide (error counts match the ticket's stated baseline,
     none in touched files). Full `composer qa` remains red repo-wide pending
     ticket 611.
+- 2026-07-21 — Merged in PR #2. Review found that `wp_safe_redirect()` can
+  reject an external configured destination; ticket 617 covers its unchecked
+  false return before `exit`.
 
 ---
 

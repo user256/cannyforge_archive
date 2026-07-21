@@ -27,11 +27,11 @@ gaps need tickets before the Sprint 6 review gate.
 
 ## New tickets
 
-- [611 — Restore the release gate and package only runtime files](611-release-branch-stabilisation.md)
-- [612 — Fix archive-tail redirects and Hybrid cache invalidation](612-archive-route-cache-correctness.md)
-- [613 — Make the redesigned admin settings UI truthful, complete, and accessible](613-admin-settings-ui-integrity.md)
-- [614 — Enforce least-privilege Google OAuth and revoke credentials on disconnect](614-google-oauth-least-privilege-lifecycle.md)
-- [615 — Prevent duplicate SEO tags and define canonical ownership](615-seo-plugin-interoperability.md)
+- [611 — Restore the release gate and package only runtime files](completed/611-release-branch-stabilisation.md)
+- [612 — Fix archive-tail redirects and Hybrid cache invalidation](completed/612-archive-route-cache-correctness.md)
+- [613 — Make the redesigned admin settings UI truthful, complete, and accessible](completed/613-admin-settings-ui-integrity.md)
+- [614 — Enforce least-privilege Google OAuth and revoke credentials on disconnect](completed/614-google-oauth-least-privilege-lifecycle.md)
+- [615 — Prevent duplicate SEO tags and define canonical ownership](completed/615-seo-plugin-interoperability.md)
 
 These complement rather than replace tickets 601–610. In particular, 601/602
 create the missing test harnesses, 603 provides real WordPress coverage, 605

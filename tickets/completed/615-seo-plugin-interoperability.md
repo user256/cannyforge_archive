@@ -1,8 +1,8 @@
 # Ticket 615: Prevent duplicate SEO tags and define canonical ownership
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
-**Owner:** background-agent
+**Status:** Completed
+**Owner:** unassigned
 **Estimate:** M
 **Priority:** P1 — SEO correctness
 
@@ -76,6 +76,9 @@ predictably with established WordPress SEO providers.
   in that case so the provider's own title pipeline is the only one running.
   Filter names are best-effort from each plugin's public docs, not verified
   against a live install (603 gap).
+- 2026-07-21 — Merged in PR #1 after 612. `SeoHead` receives its endpoint
+  fallback from `ArchiveUrlResolver`; live provider fixtures remain ticket
+  603 work and PHP 8.1 CI remediation is ticket 616.
 
 ---
 

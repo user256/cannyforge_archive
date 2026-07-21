@@ -1,8 +1,8 @@
 # Ticket 611: Restore the release gate and package only runtime files
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
-**Owner:** background-agent
+**Status:** Completed — follow-up 616 remains a release blocker
+**Owner:** unassigned
 **Estimate:** M
 **Priority:** P0 — release blocker
 
@@ -113,6 +113,8 @@ WordPress plugin ZIP.
   was introduced by this change (no `readonly` classes, enums-in-traits,
   etc.); everything added follows the existing PHP 8.1-era patterns already
   used throughout `src/` (enums, `match`, arrow functions, `mixed`).
+- 2026-07-21 — Merged in PR #4. GitHub Actions revealed that the refreshed
+  lock cannot install on PHP 8.1; ticket 616 now owns that release blocker.
 
 ---
 

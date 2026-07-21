@@ -1,8 +1,8 @@
 # Ticket 614: Enforce least-privilege Google OAuth and revoke credentials on disconnect
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
-**Owner:** background-agent
+**Status:** Completed
+**Owner:** unassigned
 **Estimate:** M
 **Priority:** P0 — security/privacy
 
@@ -114,6 +114,9 @@ remote grant as well as local state.
   particular confirms no *new* class/method-length violations were introduced
   (`ModeSettingsPanelView`'s existing over-budget class length grew by the ~26
   lines this ticket added, but was already over budget before this change).
+- 2026-07-21 — Merged in PR #3. The consent copy renders the scope set from
+  `GoogleOauthScopePolicy`; ticket 606 remains responsible for invoking the
+  shared revocation service at uninstall, and ticket 616 owns PHP 8.1 CI.
 
 ---
 

@@ -1,8 +1,8 @@
 # Ticket 613: Make the redesigned admin settings UI truthful, complete, and accessible
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
-**Owner:** background-agent
+**Status:** Completed
+**Owner:** unassigned
 **Estimate:** M
 **Priority:** P1 — pre-release UX
 
@@ -137,6 +137,9 @@ accurate, and the settings workflow is keyboard- and screen-reader-usable.
     `current_user_can`/`wp_verify_nonce` exists yet in this suite, matching
     the pre-existing gap around the CSV-upload path — the validation logic
     itself is fully covered by `GoogleClientConfigImporterTest`).
+- 2026-07-21 — Merged in PR #5 after rebasing on tickets 611, 612, and 614.
+  Full local `composer qa` and all 25 Jest tests passed; ticket 616 tracks
+  the PHP 8.1 Actions install failure.
 
 ---
 
