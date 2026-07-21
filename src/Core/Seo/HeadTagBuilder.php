@@ -22,13 +22,34 @@ use CannyForge\Archive\Contracts\Settings\Seo;
  * are unit-testable without WordPress. Emits a robots directive always, a title
  * and description only when set, and a canonical that falls back to the
  * archive's own URL when no override is configured. All values are escaped.
+ *
+ * Canonical resolution is delegated to {@see CanonicalUrlResolver}, shared by
+ * this fragment and the third-party SEO plugin bridge. Its fallback endpoint
+ * URL comes from ticket 612's ArchiveUrlResolver.
  */
 final class HeadTagBuilder {
+	/**
+	 * The shared canonical URL resolver.
+	 *
+	 * @var CanonicalUrlResolver
+	 */
+	private CanonicalUrlResolver $canonical;
+
+	/**
+	 * Construct the builder.
+	 *
+	 * @param CanonicalUrlResolver|null $canonical The shared canonical URL resolver.
+	 */
+	public function __construct( ?CanonicalUrlResolver $canonical = null ) {
+		$this->canonical = $canonical ?? new CanonicalUrlResolver();
+	}
+
 	/**
 	 * Build the head-tag fragment for the archive page.
 	 *
 	 * @param Seo    $seo           The SEO settings.
-	 * @param string $fallback_url  The archive's own URL (canonical fallback).
+	 * @param string $fallback_url  The archive's own URL (canonical fallback;
+	 *                              never {@see \CannyForge\Archive\Contracts\Settings\Settings::archive_url()}).
 	 * @param bool   $include_title Whether to emit a `<title>` tag (false when the
 	 *                              theme owns the document title via a filter).
 	 * @return string
@@ -47,7 +68,7 @@ final class HeadTagBuilder {
 			);
 		}
 
-		$canonical = '' !== $seo->canonical() ? $seo->canonical() : $fallback_url;
+		$canonical = $this->canonical->resolve( $seo, $fallback_url );
 		if ( '' !== $canonical ) {
 			$tags .= sprintf( '<link rel="canonical" href="%s">', esc_url( $canonical ) );
 		}

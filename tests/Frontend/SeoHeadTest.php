@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Tests\Frontend;
 
 use CannyForge\Archive\Core\Seo\HeadTagBuilder;
+use CannyForge\Archive\Core\Seo\SeoProviderDetector;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchivePage;
 use CannyForge\Archive\Frontend\SeoHead;
@@ -18,7 +19,9 @@ use CannyForge\Archive\Tests\OptionStore;
 use PHPUnit\Framework\TestCase;
 
 /**
- * SEO tags emit only on the archive request, never elsewhere.
+ * SEO tags emit only on the archive request, never elsewhere, with no
+ * third-party SEO plugin active. See {@see SeoHeadProviderInteropTest} for
+ * the Yoast SEO / Rank Math interop coverage (ticket 615).
  */
 class SeoHeadTest extends TestCase {
 	/**
@@ -35,12 +38,19 @@ class SeoHeadTest extends TestCase {
 	}
 
 	/**
-	 * Build a SEO head controller with the real repository.
+	 * Build a SEO head controller with the real repository and no SEO plugin
+	 * active.
 	 *
 	 * @return SeoHead
 	 */
 	private function head(): SeoHead {
-		return new SeoHead( new OptionsSettingsRepository(), new HeadTagBuilder() );
+		return new SeoHead(
+			new OptionsSettingsRepository(),
+			new HeadTagBuilder(),
+			ArchivePage::DEFAULT_SLUG,
+			null,
+			new SeoProviderDetector( static fn (): bool => false, static fn (): bool => false )
+		);
 	}
 
 	/**
@@ -121,6 +131,28 @@ class SeoHeadTest extends TestCase {
 		$this->assertStringNotContainsString( '<title>', $out );
 		$this->assertStringContainsString( 'content="noindex,follow"', $out );
 		$this->assertStringContainsString( 'href="https://site.test/all/"', $out );
+	}
+
+	/**
+	 * The pagination-link destination (`archive_url`) is never used as the
+	 * canonical — only the archive's own endpoint URL or the explicit SEO
+	 * canonical override are candidates (ticket 615/612 canonical contract).
+	 *
+	 * @return void
+	 */
+	public function test_pagination_destination_never_becomes_canonical(): void {
+		$this->onArchive();
+		OptionStore::set(
+			OptionsSettingsRepository::OPTION_KEY,
+			array( 'archive_url' => 'https://site.test/view-everything/' )
+		);
+
+		ob_start();
+		$this->head()->maybe_render();
+		$out = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'href="http://example.test/archive/"', $out );
+		$this->assertStringNotContainsString( 'view-everything', $out );
 	}
 
 	/**
