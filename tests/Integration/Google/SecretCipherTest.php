@@ -151,15 +151,16 @@ class SecretCipherTest extends TestCase {
 	public function test_wrong_key_fails_to_decrypt_legacy_format(): void {
 		// Legacy `enc:` is unauthenticated AES-256-CBC: decrypting with the
 		// wrong key produces random bytes, and OpenSSL's PKCS7 unpad happens
-		// to validate roughly 1 in 256 times purely by chance, which would
-		// make a single trial flaky. Independent IVs make each trial's
-		// coincidental-validation chance independent, so asserting across
-		// many trials keeps this deterministic in practice.
-		for ( $i = 0; $i < 25; $i++ ) {
-			$legacy = $this->legacy_v1_value( 'salt-a', 'legacy-secret' );
+		// to validate purely by chance roughly 1 in 256 times — there is no
+		// MAC to reject that case, so asserting the result is always exactly
+		// `''` is itself flaky (and running more trials makes a spurious
+		// failure *more* likely to turn up across the run, not less). The
+		// property that actually matters — and that a wrong key can
+		// genuinely never satisfy, coincidental padding or not — is that the
+		// real secret is never disclosed.
+		$legacy = $this->legacy_v1_value( 'salt-a', 'legacy-secret' );
 
-			$this->assertSame( '', ( new SecretCipher( 'salt-b' ) )->decrypt( $legacy ) );
-		}
+		$this->assertNotSame( 'legacy-secret', ( new SecretCipher( 'salt-b' ) )->decrypt( $legacy ) );
 	}
 
 	/**

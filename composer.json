@@ -59,6 +59,10 @@
         "insights": "phpinsights analyse --no-interaction",
         "infection": "infection --threads=max --no-progress --no-interaction",
         "test": "phpunit",
+        "test:integration": [
+            "@dist",
+            "bash scripts/run-integration-tests.sh"
+        ],
         "qa": [
             "@cs",
             "@stan",
@@ -89,6 +93,7 @@
         "mess": "PHPMD — the REAL god-class budget: per-method cyclomatic/length + class size, HARD-FAILS",
         "insights": "PHP Insights — advisory architecture/quality scores only (NOT a gate; PHPMD owns complexity, PHPCS owns style)",
         "infection": "Mutation testing (needs a coverage driver, e.g. pcov — runs in CI; skips locally without one)",
+        "test:integration": "Real-WordPress integration suite (ticket 603): builds dist/, boots a disposable wp-env WordPress, and runs tests/WpIntegration against it. Needs Docker + Node.",
         "qa": "Full quality suite — the merge gate (infection runs separately in CI, needs coverage)",
         "review:sim": "wp.org pre-package review simulation"
     }
