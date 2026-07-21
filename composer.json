@@ -8,7 +8,7 @@
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-        "infection/infection": "^0.29",
+        "infection/infection": "^0.28",
         "nunomaduro/phpinsights": "^2.11",
         "phparkitect/phparkitect": "^0.4",
         "phpcompatibility/phpcompatibility-wp": "^2.1",
@@ -35,6 +35,9 @@
     "config": {
         "optimize-autoloader": true,
         "sort-packages": true,
+        "platform": {
+            "php": "8.1"
+        },
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "infection/extension-installer": true
