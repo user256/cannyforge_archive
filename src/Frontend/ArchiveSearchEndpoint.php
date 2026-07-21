@@ -17,6 +17,8 @@ use CannyForge\Archive\Contracts\Archive\ContentQuery;
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\ContentIndexProvider;
+use CannyForge\Archive\Core\Cache\SearchResultCache;
+use CannyForge\Archive\Core\RateLimit\SearchThrottle;
 
 /**
  * Serves paginated, whole-database search/filter results for the archive
@@ -29,6 +31,13 @@ use CannyForge\Archive\Core\Archive\ContentIndexProvider;
  * already-public published posts, verifies a nonce to bind requests to the
  * archive page, and sanitises every input. Thin controller — the query and
  * rendering live in Core.
+ *
+ * Ticket 608 (performance at scale) adds two more layers, in request order:
+ * a per-IP {@see SearchThrottle} basic abuse ceiling (checked immediately
+ * after the nonce, before any query runs), and a {@see SearchResultCache}
+ * response cache keyed on the normalised request, so a hot query is served
+ * without ever reaching {@see ContentIndexProvider} again until content or
+ * settings change invalidate it.
  */
 final class ArchiveSearchEndpoint {
 	/**
@@ -63,20 +72,40 @@ final class ArchiveSearchEndpoint {
 	private ArchiveRenderer $renderer;
 
 	/**
+	 * Response cache, keyed on the normalised request.
+	 *
+	 * @var SearchResultCache
+	 */
+	private SearchResultCache $cache;
+
+	/**
+	 * Per-IP abuse-ceiling throttle.
+	 *
+	 * @var SearchThrottle
+	 */
+	private SearchThrottle $throttle;
+
+	/**
 	 * Construct the endpoint.
 	 *
 	 * @param SettingsRepositoryInterface $repository Settings persistence.
 	 * @param ContentIndexProvider        $index      Whole-database content query.
 	 * @param ArchiveRenderer             $renderer   Entry renderer.
+	 * @param SearchResultCache|null      $cache      Response cache.
+	 * @param SearchThrottle|null         $throttle   Per-IP abuse-ceiling throttle.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		ContentIndexProvider $index,
-		ArchiveRenderer $renderer
+		ArchiveRenderer $renderer,
+		?SearchResultCache $cache = null,
+		?SearchThrottle $throttle = null
 	) {
 		$this->repository = $repository;
 		$this->index      = $index;
 		$this->renderer   = $renderer;
+		$this->cache      = $cache ?? new SearchResultCache();
+		$this->throttle   = $throttle ?? new SearchThrottle();
 	}
 
 	/**
@@ -90,19 +119,50 @@ final class ArchiveSearchEndpoint {
 	}
 
 	/**
-	 * Handle a search request: verify, build the query, run it, return JSON.
+	 * Handle a search request: verify, throttle, serve from cache when warm,
+	 * otherwise build the query, run it, cache the response, and return JSON.
+	 *
+	 * Branches with if/else rather than early `return`s after a
+	 * `wp_send_json_*()` call: those are stub-typed `@phpstan-return never`
+	 * (true in production, where `wp_die()` terminates the request), but the
+	 * unit-test shim intentionally does not terminate so multiple calls in
+	 * one test can be observed — an if/else keeps the later branches from
+	 * running without relying on that production-only termination.
 	 *
 	 * @return void
 	 */
 	public function handle(): void {
 		check_ajax_referer( self::NONCE, 'nonce' );
 
-		$query    = $this->query_from_request();
-		$settings = $this->repository->get();
-		$page     = $this->index->provide( $query );
+		if ( $this->throttle->is_exceeded( $this->client_ip() ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Too many search requests. Please wait a moment and try again.', 'cannyforge-archive' ),
+				),
+				429
+			);
+		} else {
+			$this->respond( $this->query_from_request() );
+		}
+	}
 
-		wp_send_json_success(
-			array(
+	/**
+	 * Serve a query from cache when warm, otherwise build, cache, and serve a
+	 * fresh response.
+	 *
+	 * @param ContentQuery $query The request.
+	 * @return void
+	 */
+	private function respond( ContentQuery $query ): void {
+		$cached = $this->cache->get( $query );
+
+		if ( false !== $cached ) {
+			wp_send_json_success( $cached );
+		} else {
+			$settings = $this->repository->get();
+			$page     = $this->index->provide( $query );
+
+			$payload = array(
 				'html'        => $this->renderer->render_entries( $page->entries(), $settings ),
 				'total'       => $page->total(),
 				'page'        => $page->page(),
@@ -111,8 +171,28 @@ final class ArchiveSearchEndpoint {
 				'has_next'    => $page->has_next(),
 				'has_prev'    => $page->has_prev(),
 				'is_active'   => $query->is_active(),
-			)
-		);
+			);
+
+			$this->cache->set( $query, $payload );
+
+			wp_send_json_success( $payload );
+		}
+	}
+
+	/**
+	 * Resolve the requesting client's IP address for throttling purposes.
+	 *
+	 * `REMOTE_ADDR` only — see {@see SearchThrottle} for why proxy headers are
+	 * intentionally not trusted here.
+	 *
+	 * @return string
+	 */
+	private function client_ip(): string {
+		if ( ! isset( $_SERVER['REMOTE_ADDR'] ) ) {
+			return '';
+		}
+
+		return sanitize_text_field( wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) );
 	}
 
 	/**

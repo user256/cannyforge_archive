@@ -9,11 +9,14 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Tests\Core\Cache;
 
+use CannyForge\Archive\Contracts\Archive\ContentQuery;
 use CannyForge\Archive\Contracts\Settings\Mode;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Core\Cache\ArchiveCache;
 use CannyForge\Archive\Core\Cache\CacheInvalidator;
+use CannyForge\Archive\Core\Cache\SearchResultCache;
 use CannyForge\Archive\Tests\HookSpy;
+use CannyForge\Archive\Tests\OptionStore;
 use CannyForge\Archive\Tests\TransientStore;
 use PHPUnit\Framework\TestCase;
 
@@ -27,6 +30,7 @@ class CacheInvalidatorTest extends TestCase {
 		parent::setUp();
 		HookSpy::reset();
 		TransientStore::reset();
+		OptionStore::reset();
 	}
 
 	public function test_register_wires_hooks(): void {
@@ -54,6 +58,50 @@ class CacheInvalidatorTest extends TestCase {
 		$invalidator->invalidate();
 
 		$this->assertFalse( $cache->get( $settings ) );
+	}
+
+	/**
+	 * Ticket 608: invalidate() also clears the whole-database search response
+	 * cache — a stale search result would otherwise keep serving the same
+	 * HTML fragment (with the same category/tag/author labels) that
+	 * {@see test_invalidate_clears_cache()} already proves gets cleared for
+	 * the archive page's own cache.
+	 *
+	 * @return void
+	 */
+	public function test_invalidate_clears_search_cache(): void {
+		$search_cache = new SearchResultCache();
+		$invalidator  = new CacheInvalidator( new ArchiveCache(), $search_cache );
+
+		$query = new ContentQuery( 'crawl budget' );
+		$search_cache->set( $query, array( 'html' => '<nav>cached search</nav>' ) );
+		$this->assertSame( array( 'html' => '<nav>cached search</nav>' ), $search_cache->get( $query ) );
+
+		$invalidator->invalidate();
+
+		$this->assertFalse( $search_cache->get( $query ) );
+	}
+
+	/**
+	 * A `save_post` event — the same hook already proven to clear the HTML
+	 * cache — clears the search cache too, since both are invalidated by the
+	 * same `invalidate()` call.
+	 *
+	 * @return void
+	 */
+	public function test_save_post_hook_callback_clears_search_cache_too(): void {
+		$search_cache = new SearchResultCache();
+		$invalidator  = new CacheInvalidator( new ArchiveCache(), $search_cache );
+		$invalidator->register();
+
+		$query = new ContentQuery( 'crawl budget' );
+		$search_cache->set( $query, array( 'html' => '<nav>cached search</nav>' ) );
+
+		$callback = HookSpy::first( 'save_post' );
+		$this->assertNotNull( $callback );
+		$callback();
+
+		$this->assertFalse( $search_cache->get( $query ) );
 	}
 
 	public function test_save_post_hook_callback_clears_cache(): void {

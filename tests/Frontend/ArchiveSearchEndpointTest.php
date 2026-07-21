@@ -12,16 +12,12 @@ namespace CannyForge\Archive\Tests\Frontend;
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Archive\ContentPage;
 use CannyForge\Archive\Contracts\Archive\ContentQuery;
-use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\ContentIndexProvider;
-use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchiveSearchEndpoint;
 use CannyForge\Archive\Tests\AjaxResponseSpy;
 use CannyForge\Archive\Tests\FakeContentIndexProvider;
 use CannyForge\Archive\Tests\HookSpy;
-use CannyForge\Archive\Tests\OptionStore;
 use CannyForge\Archive\Tests\WpDieException;
-use PHPUnit\Framework\TestCase;
 
 /**
  * `ArchiveSearchEndpoint` is the plugin's only public `nopriv` AJAX endpoint
@@ -33,47 +29,13 @@ use PHPUnit\Framework\TestCase;
  * FakeContentIndexProvider} for the one collaborator that would otherwise
  * reach into `WP_Query` — so assertions land on the `ContentQuery` the
  * endpoint actually builds, not on `WP_Query` internals.
+ *
+ * Response caching and the per-IP throttle (both ticket 608) are covered
+ * separately in {@see ArchiveSearchEndpointCachingTest} and {@see
+ * ArchiveSearchEndpointThrottleTest}; shared fixture/helpers live in {@see
+ * ArchiveSearchEndpointTestCase}.
  */
-class ArchiveSearchEndpointTest extends TestCase {
-	/**
-	 * Reset shared in-memory WordPress state before each test.
-	 *
-	 * @return void
-	 */
-	protected function setUp(): void {
-		parent::setUp();
-		HookSpy::reset();
-		OptionStore::reset();
-		AjaxResponseSpy::reset();
-		unset( $GLOBALS['cannyforge_test_ajax_referer_valid'] );
-		$_REQUEST = array();
-	}
-
-	/**
-	 * Clean up superglobals so tests never leak into each other.
-	 *
-	 * @return void
-	 */
-	protected function tearDown(): void {
-		$_REQUEST = array();
-		unset( $GLOBALS['cannyforge_test_ajax_referer_valid'] );
-		parent::tearDown();
-	}
-
-	/**
-	 * Build an endpoint wired to the given fake index provider.
-	 *
-	 * @param FakeContentIndexProvider $index The fake whole-database query provider.
-	 * @return ArchiveSearchEndpoint
-	 */
-	private function endpoint( FakeContentIndexProvider $index ): ArchiveSearchEndpoint {
-		return new ArchiveSearchEndpoint(
-			new OptionsSettingsRepository(),
-			$index,
-			new ArchiveRenderer()
-		);
-	}
-
+class ArchiveSearchEndpointTest extends ArchiveSearchEndpointTestCase {
 	// -- Registration ------------------------------------------------------
 
 	/**
@@ -283,25 +245,5 @@ class ArchiveSearchEndpointTest extends TestCase {
 		$args = ( new ContentIndexProvider() )->build_query_args( $query );
 
 		$this->assertSame( 'publish', $args['post_status'] );
-	}
-
-	/**
-	 * Run the endpoint with the given request fields (plus a valid nonce) and
-	 * return the `ContentQuery` the fake provider recorded.
-	 *
-	 * @param array<string, string> $request Request fields beyond the nonce.
-	 * @return ContentQuery
-	 */
-	private function run_and_capture_query( array $request ): ContentQuery {
-		$GLOBALS['cannyforge_test_ajax_referer_valid'] = true;
-		$_REQUEST                                      = array_merge( array( 'nonce' => 'valid-nonce' ), $request );
-
-		$index = new FakeContentIndexProvider();
-		$this->endpoint( $index )->handle();
-
-		$query = $index->last_query();
-		$this->assertNotNull( $query, 'The provider was never called.' );
-
-		return $query;
 	}
 }

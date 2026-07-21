@@ -33,8 +33,10 @@ use CannyForge\Archive\Core\Archive\ModeEntryProvider;
 use CannyForge\Archive\Core\Archive\NewsEntryProvider;
 use CannyForge\Archive\Core\Archive\SelectingEntryProvider;
 use CannyForge\Archive\Core\Archive\ThemeCssBuilder;
+use CannyForge\Archive\Core\Cache\SearchResultCache;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use CannyForge\Archive\Core\Pagination\TargetingPredicate;
+use CannyForge\Archive\Core\RateLimit\SearchThrottle;
 use CannyForge\Archive\Core\Seo\HeadTagBuilder;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchiveAssets;
@@ -157,8 +159,9 @@ class Plugin {
 
 		$provider = $this->build_entry_provider();
 
-		$cache    = new ArchiveCache();
-		$renderer = new ArchiveRenderer();
+		$cache        = new ArchiveCache();
+		$search_cache = new SearchResultCache();
+		$renderer     = new ArchiveRenderer();
 
 		$page = new ArchivePage(
 			$repository,
@@ -173,11 +176,13 @@ class Plugin {
 		$search = new ArchiveSearchEndpoint(
 			$repository,
 			new ContentIndexProvider(),
-			$renderer
+			$renderer,
+			$search_cache,
+			new SearchThrottle()
 		);
 		$search->register();
 
-		$invalidator = new CacheInvalidator( $cache );
+		$invalidator = new CacheInvalidator( $cache, $search_cache );
 		$invalidator->register();
 
 		$pagination = new PaginationController(
