@@ -48,7 +48,7 @@ final class PaginationRenderer {
 			array_unique(
 				array_filter(
 					$pages,
-					static fn ( int $page ): bool => $page >= 1 && $page <= $total_pages
+					static fn ( int $page ): bool => $page <= $total_pages
 				)
 			)
 		);

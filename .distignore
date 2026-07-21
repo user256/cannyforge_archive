@@ -38,10 +38,15 @@ tickets
 node_modules
 dist
 scripts
-process_tickets.py
 CannyForge-Archive-Overview.md
 README.md
 WordPressAudit.md
+
+# Any dev/one-off script at the repo root (e.g. process_tickets.py,
+# rebuild_ui.py) — ticket 611: a Python helper leaked into the 0.1.1 ZIP
+# because it wasn't covered by name. Excluding the whole extension is more
+# robust than chasing individual filenames.
+*.py
 
 # This file itself
 .distignore

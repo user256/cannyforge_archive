@@ -18,7 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Construction never throws on bad input: {@see self::from_array()} coerces and
  * clamps values to safe ranges so the engine always has a usable configuration.
- * Defaults follow the product brief (see docs/PLAN.md).
+ * Defaults follow the product brief (see docs/PLAN.md). The raw-value coercion
+ * helpers live in {@see SettingsValueCoercion} (split out in ticket 611 to
+ * keep this class under the PHPMD length budget).
  */
 final class Settings {
 	/**
@@ -337,18 +339,18 @@ final class Settings {
 	public static function from_array( array $data ): self {
 		return new self(
 			Mode::from_value( $data['mode'] ?? null ),
-			self::to_int( $data['pagination_limit'] ?? null, 1 ),
-			LinkTypes::from_array( self::sub_array( $data, 'link_types' ) ),
-			Filters::from_array( self::sub_array( $data, 'filters' ) ),
-			self::to_int( $data['news_window_hours'] ?? null, 72 ),
-			self::to_int( $data['blog_max_urls'] ?? null, 100 ),
-			self::string_list( $data['blog_urls'] ?? array() ),
-			Targeting::from_array( self::sub_array( $data, 'targeting' ) ),
-			self::to_string( $data['archive_url'] ?? null ),
-			Seo::from_array( self::sub_array( $data, 'seo' ) ),
-			Theme::from_array( self::sub_array( $data, 'theme' ) ),
-			ContentSelection::from_array( self::sub_array( $data, 'content_selection' ) ),
-			self::to_int( $data['news_fallback_count'] ?? null, 50 ),
+			SettingsValueCoercion::to_int( $data['pagination_limit'] ?? null, 1 ),
+			LinkTypes::from_array( SettingsValueCoercion::sub_array( $data, 'link_types' ) ),
+			Filters::from_array( SettingsValueCoercion::sub_array( $data, 'filters' ) ),
+			SettingsValueCoercion::to_int( $data['news_window_hours'] ?? null, 72 ),
+			SettingsValueCoercion::to_int( $data['blog_max_urls'] ?? null, 100 ),
+			SettingsValueCoercion::string_list( $data['blog_urls'] ?? array() ),
+			Targeting::from_array( SettingsValueCoercion::sub_array( $data, 'targeting' ) ),
+			SettingsValueCoercion::to_string( $data['archive_url'] ?? null ),
+			Seo::from_array( SettingsValueCoercion::sub_array( $data, 'seo' ) ),
+			Theme::from_array( SettingsValueCoercion::sub_array( $data, 'theme' ) ),
+			ContentSelection::from_array( SettingsValueCoercion::sub_array( $data, 'content_selection' ) ),
+			SettingsValueCoercion::to_int( $data['news_fallback_count'] ?? null, 50 ),
 			PaginationStyle::from_value( $data['pagination_style'] ?? null )
 		);
 	}
@@ -375,59 +377,5 @@ final class Settings {
 			'theme'               => $this->theme->to_array(),
 			'content_selection'   => $this->content_selection->to_array(),
 		);
-	}
-
-	/**
-	 * Read a nested associative array by key, tolerating non-array values.
-	 *
-	 * @param array<string, mixed> $data Parent data.
-	 * @param string               $key  Key to read.
-	 * @return array<string, mixed>
-	 */
-	private static function sub_array( array $data, string $key ): array {
-		$value = $data[ $key ] ?? array();
-		return is_array( $value ) ? $value : array();
-	}
-
-	/**
-	 * Coerce a raw scalar into an int, using the fallback for non-numeric input.
-	 *
-	 * @param mixed $value    Raw value.
-	 * @param int   $fallback Value used when $value is not numeric.
-	 * @return int
-	 */
-	private static function to_int( mixed $value, int $fallback ): int {
-		return is_numeric( $value ) ? (int) $value : $fallback;
-	}
-
-	/**
-	 * Coerce a raw scalar into a trimmed string, defaulting to empty.
-	 *
-	 * @param mixed $value Raw value.
-	 * @return string
-	 */
-	private static function to_string( mixed $value ): string {
-		return is_scalar( $value ) ? trim( (string) $value ) : '';
-	}
-
-	/**
-	 * Coerce a raw value into a clean list of non-empty strings.
-	 *
-	 * @param mixed $value Raw value (expected to be an array of strings).
-	 * @return string[]
-	 */
-	private static function string_list( mixed $value ): array {
-		if ( ! is_array( $value ) ) {
-			return array();
-		}
-
-		$strings = array();
-		foreach ( $value as $item ) {
-			if ( is_string( $item ) && '' !== trim( $item ) ) {
-				$strings[] = trim( $item );
-			}
-		}
-
-		return array_values( array_unique( $strings ) );
 	}
 }
