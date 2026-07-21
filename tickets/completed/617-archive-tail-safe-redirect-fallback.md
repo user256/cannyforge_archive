@@ -1,7 +1,7 @@
 # Ticket 617: Handle rejected archive-tail safe redirects
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
+**Status:** Completed
 **Owner:** background-agent
 **Estimate:** S
 **Priority:** P0 — correctness

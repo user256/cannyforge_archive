@@ -1,7 +1,7 @@
 # Ticket 616: Restore PHP 8.1 Composer-lock compatibility
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
+**Status:** Completed
 **Owner:** background-agent
 **Estimate:** S
 **Priority:** P0 — release blocker

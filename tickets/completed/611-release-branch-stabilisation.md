@@ -1,7 +1,7 @@
 # Ticket 611: Restore the release gate and package only runtime files
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Completed — follow-up 616 remains a release blocker
+**Status:** Completed — follow-up 616 resolved
 **Owner:** unassigned
 **Estimate:** M
 **Priority:** P0 — release blocker

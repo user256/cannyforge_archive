@@ -53,7 +53,7 @@ WordPress install, including the live Google flow deferred at 499.
 ## Dependencies
 
 - **Blocks:** Sprint 7
-- **Blocked by:** 601–615
+- **Blocked by:** 601–617
 - **External:** Real Google Cloud OAuth credentials for the live smoke
 
 ## Notes / decisions log

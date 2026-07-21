@@ -15,7 +15,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
 | **Sprint 4 — Resilience & empty-state fallbacks** | Done | 401–406 implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), optional GA4 source (406). 499 = GO (qa green, 192 tests); live Google smoke deferred (needs real credentials). |
 | **Sprint 5 — wp.org submission compliance** | Done | 501 completed: runtime-only packaging, direct-file guards, branded naming, and external-services readme disclosure. |
-| **Sprint 6 — Trust & Scale** | In progress | 611–615 merged; 616 (PHP 8.1 lock compatibility) and 617 (rejected tail redirect) are P0 release blockers. |
+| **Sprint 6 — Trust & Scale** | In progress | 611–617 merged; 601–610 still outstanding before the 699 review gate. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -138,6 +138,6 @@ priority.
 - [x] [613 — Admin settings UI integrity + accessibility](completed/613-admin-settings-ui-integrity.md)
 - [x] [614 — Google OAuth least privilege + revocation](completed/614-google-oauth-least-privilege-lifecycle.md)
 - [x] [615 — SEO plugin interoperability + canonical ownership](completed/615-seo-plugin-interoperability.md)
-- [ ] [616 — Restore PHP 8.1 Composer-lock compatibility](616-php81-composer-lock-compatibility.md)
-- [ ] [617 — Handle rejected archive-tail safe redirects](617-archive-tail-safe-redirect-fallback.md)
+- [x] [616 — Restore PHP 8.1 Composer-lock compatibility](completed/616-php81-composer-lock-compatibility.md)
+- [x] [617 — Handle rejected archive-tail safe redirects](completed/617-archive-tail-safe-redirect-fallback.md)
 - [ ] [699 — Sprint 6 review gate (including deferred live Google smoke)](699-sprint-6-review.md)
