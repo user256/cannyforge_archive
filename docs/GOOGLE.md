@@ -97,10 +97,36 @@ paths and full URLs.
 ## Token storage and disconnect (ticket 614)
 
 - The client secret, the OAuth refresh token, and the cached access token are
-  all encrypted at rest via the same `SecretCipher` (AES-256-CBC, keyed from
-  the WordPress auth salt). A site upgrading from an older version that stored
-  the access token in plaintext keeps working without a manual migration step:
-  an untagged (plaintext) stored value decrypts to itself.
+  all encrypted at rest via the same `SecretCipher`. Values are authenticated
+  encryption (AEAD) — `sodium_crypto_secretbox` when the PHP `sodium`
+  extension is available (the default on any supported PHP 8.1+ build),
+  falling back to AES-256-GCM via OpenSSL — keyed from the WordPress auth
+  salt (ticket 605). Unlike the original unauthenticated AES-256-CBC scheme,
+  a tampered ciphertext or a key that no longer matches is detected and
+  rejected instead of silently producing garbage.
+- A site upgrading from an older version that stored the access token in
+  plaintext, or under the original unauthenticated `enc:` scheme, keeps
+  working without a manual migration step: both a legacy plaintext value and
+  a legacy `enc:` value still decrypt correctly, and the first successful
+  read of either opportunistically re-encrypts and re-stores it under the
+  new AEAD scheme. If no AEAD backend (`sodium` or OpenSSL AES-256-GCM) is
+  available at all, the plugin refuses to store new secrets in plaintext —
+  it shows a persistent admin notice on the settings page instead, and
+  existing legacy values are left as-is (still readable) until a backend
+  becomes available.
+- **Key-rotation caveat:** the encryption key is derived from
+  `wp_salt('auth')`. Rotating the WordPress security salts/keys (a normal,
+  recommended incident-response step, and something some hosts/security
+  plugins do automatically) changes that derived key, so every previously
+  stored Google secret becomes undecryptable — the ciphertext fails
+  authentication rather than silently returning corrupted data. The Google
+  settings panel surfaces this as a distinct **"Needs re-authorising"**
+  connection status (instead of a blank field or a misleading
+  "Disconnected"), with a note that the site's security keys may have
+  changed. **Recovery path:** re-enter the Google Client Secret (from the
+  Google Cloud Console — it isn't recoverable from the old ciphertext) and
+  click **Connect Google** again; nothing else needs to change, and no data
+  beyond the Google connection itself is affected by a salt rotation.
 - Clicking **Disconnect** makes a best-effort call to Google's token
   revocation endpoint (`https://oauth2.googleapis.com/revoke`) before clearing
   local state, so the grant is invalidated on Google's side, not just locally.

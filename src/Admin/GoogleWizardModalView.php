@@ -279,8 +279,14 @@ final class GoogleWizardModalView {
 			esc_html__( 'Connection status:', 'cannyforge-archive' ),
 			esc_attr( $this->google_status_background( $status ) ),
 			esc_attr( $this->google_status_color( $status ) ),
-			esc_html( ucfirst( $status ) )
+			esc_html( GoogleTokenStore::status_label( $status ) )
 		);
+
+		if ( GoogleTokenStore::STATUS_NEEDS_REAUTH === $status ) {
+			echo '<p class="description">';
+			echo esc_html__( "Connection needs re-authorising — the site's security keys may have changed, so the stored connection can no longer be read. Click Connect Google again to restore it; nothing else needs to change.", 'cannyforge-archive' );
+			echo '</p>';
+		}
 
 		echo '<p class="description">';
 		echo esc_html__( 'The client secret is never rendered back into the form. Leave it blank on save to keep the stored secret unchanged.', 'cannyforge-archive' );
@@ -361,6 +367,7 @@ final class GoogleWizardModalView {
 			GoogleTokenStore::STATUS_CONNECTED => '#e8fff4',
 			GoogleTokenStore::STATUS_EXPIRED => '#fff4e5',
 			GoogleTokenStore::STATUS_ERROR => '#ffeaea',
+			GoogleTokenStore::STATUS_NEEDS_REAUTH => '#fff4e5',
 			default => '#f0f2f5',
 		};
 	}
@@ -376,6 +383,7 @@ final class GoogleWizardModalView {
 			GoogleTokenStore::STATUS_CONNECTED => '#0f7a43',
 			GoogleTokenStore::STATUS_EXPIRED => '#a05a00',
 			GoogleTokenStore::STATUS_ERROR => '#b42318',
+			GoogleTokenStore::STATUS_NEEDS_REAUTH => '#a05a00',
 			default => '#475467',
 		};
 	}

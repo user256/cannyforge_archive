@@ -82,7 +82,7 @@ final class GoogleSettingsStore {
 		return GoogleSettings::from_array(
 			array(
 				'client_id'               => $data['client_id'] ?? '',
-				'client_secret'           => $this->decrypt_secret( $data['client_secret'] ?? '' ),
+				'client_secret'           => $this->decrypt_secret( $data['client_secret'] ?? '', $data ),
 				'search_console_site_url' => $data['search_console_site_url'] ?? '',
 				'report_window_days'      => $data['report_window_days'] ?? 30,
 				'ga4_property_id'         => $data['ga4_property_id'] ?? '',
@@ -101,11 +101,18 @@ final class GoogleSettingsStore {
 	 * @return void
 	 */
 	public function save( GoogleSettings $settings ): void {
-		$current         = ( $this->get_option )( self::OPTION_KEY, array() );
-		$current         = is_array( $current ) ? $current : array();
-		$encrypted       = '' !== $settings->client_secret()
-			? $this->cipher->encrypt( $settings->client_secret() )
-			: $this->stored_secret( $current );
+		$current   = ( $this->get_option )( self::OPTION_KEY, array() );
+		$current   = is_array( $current ) ? $current : array();
+		$encrypted = $this->stored_secret( $current );
+
+		if ( '' !== $settings->client_secret() ) {
+			// When encrypt() refuses (no AEAD backend, ticket 605), keep whatever
+			// secret was already safely stored rather than ever falling back to
+			// plaintext; the admin sees a persistent notice explaining why the
+			// new secret was not saved.
+			$encrypted = $this->cipher->encrypt( $settings->client_secret() ) ?? $encrypted;
+		}
+
 		$stored_settings = array(
 			'client_id'               => $settings->client_id(),
 			'client_secret'           => $encrypted,
@@ -141,10 +148,31 @@ final class GoogleSettingsStore {
 	/**
 	 * Decrypt a stored client secret value, tolerating bad shapes safely.
 	 *
-	 * @param mixed $stored Stored raw value.
+	 * Opportunistically re-encrypts and re-stores a legacy `enc:` or
+	 * plaintext secret under `enc2:` on first successful read (ticket 605).
+	 *
+	 * @param mixed                $stored  Stored raw value.
+	 * @param array<string, mixed> $current Raw stored option payload, used to
+	 *                                      preserve the other fields when
+	 *                                      re-storing a migrated secret.
 	 * @return string
 	 */
-	private function decrypt_secret( mixed $stored ): string {
-		return is_scalar( $stored ) ? $this->cipher->decrypt( (string) $stored ) : '';
+	private function decrypt_secret( mixed $stored, array $current ): string {
+		if ( ! is_scalar( $stored ) ) {
+			return '';
+		}
+
+		$stored = (string) $stored;
+		if ( '' === $stored ) {
+			return '';
+		}
+
+		return $this->cipher->decrypt(
+			$stored,
+			function ( string $migrated ) use ( $current ): void {
+				$current['client_secret'] = $migrated;
+				( $this->set_option )( self::OPTION_KEY, $current );
+			}
+		);
 	}
 }

@@ -44,6 +44,15 @@ final class GoogleTokenStore {
 	public const STATUS_ERROR = 'error';
 
 	/**
+	 * Connection status: a stored token exists but fails to authenticate/
+	 * decrypt (ticket 605) — most likely the WordPress security keys (salts)
+	 * changed since it was encrypted. Never persisted via {@see self::set_status()};
+	 * computed on read by {@see self::connection_needs_reauthorising()} so the
+	 * admin sees an actionable state instead of a silent blank/disconnected field.
+	 */
+	public const STATUS_NEEDS_REAUTH = 'needs_reauth';
+
+	/**
 	 * Refresh-token option key.
 	 */
 	private const REFRESH_TOKEN_KEY = 'cannyforge_archive_google_refresh_token';
@@ -114,18 +123,35 @@ final class GoogleTokenStore {
 	 */
 	public function refresh_token(): string {
 		$stored = (string) ( $this->get_option )( self::REFRESH_TOKEN_KEY, '' );
+		if ( '' === $stored ) {
+			return '';
+		}
 
-		return '' === $stored ? '' : $this->cipher->decrypt( $stored );
+		return $this->cipher->decrypt(
+			$stored,
+			function ( string $migrated ): void {
+				( $this->set_option )( self::REFRESH_TOKEN_KEY, $migrated );
+			}
+		);
 	}
 
 	/**
 	 * Persist a refresh token, encrypted at rest.
 	 *
+	 * Refuses to store the token at all when no AEAD backend is available
+	 * (ticket 605) rather than ever writing it in plaintext; the admin sees a
+	 * persistent notice via {@see SecretCipher::backend_available()}.
+	 *
 	 * @param string $token Refresh token.
 	 * @return void
 	 */
 	public function save_refresh_token( string $token ): void {
-		( $this->set_option )( self::REFRESH_TOKEN_KEY, $this->cipher->encrypt( $token ) );
+		$encrypted = $this->cipher->encrypt( $token );
+		if ( null === $encrypted ) {
+			return;
+		}
+
+		( $this->set_option )( self::REFRESH_TOKEN_KEY, $encrypted );
 	}
 
 	/**
@@ -138,18 +164,35 @@ final class GoogleTokenStore {
 		$access  = (string) ( $this->get_option )( self::ACCESS_TOKEN_KEY, '' );
 		$expires = (int) ( $this->get_option )( self::ACCESS_TOKEN_EXPIRES_AT_KEY, 0 );
 
-		return ( '' !== $access && $expires > ( $now + 90 ) ) ? $this->cipher->decrypt( $access ) : '';
+		if ( '' === $access || $expires <= ( $now + 90 ) ) {
+			return '';
+		}
+
+		return $this->cipher->decrypt(
+			$access,
+			function ( string $migrated ): void {
+				( $this->set_option )( self::ACCESS_TOKEN_KEY, $migrated );
+			}
+		);
 	}
 
 	/**
 	 * Cache an access token, encrypted at rest, with its absolute expiry.
+	 *
+	 * Refuses to store the token (and its expiry) at all when no AEAD backend
+	 * is available (ticket 605) rather than ever writing it in plaintext.
 	 *
 	 * @param string $access     Access token.
 	 * @param int    $expires_at Absolute Unix expiry.
 	 * @return void
 	 */
 	public function save_access_token( string $access, int $expires_at ): void {
-		( $this->set_option )( self::ACCESS_TOKEN_KEY, $this->cipher->encrypt( $access ) );
+		$encrypted = $this->cipher->encrypt( $access );
+		if ( null === $encrypted ) {
+			return;
+		}
+
+		( $this->set_option )( self::ACCESS_TOKEN_KEY, $encrypted );
 		( $this->set_option )( self::ACCESS_TOKEN_EXPIRES_AT_KEY, $expires_at );
 	}
 
@@ -170,6 +213,38 @@ final class GoogleTokenStore {
 	 */
 	public function status(): string {
 		return (string) ( $this->get_option )( self::STATUS_KEY, self::STATUS_DISCONNECTED );
+	}
+
+	/**
+	 * Whether a refresh token is stored but fails to authenticate/decrypt —
+	 * the distinct "needs re-authorising" state (ticket 605). This most often
+	 * means the WordPress security keys (salts) changed since the token was
+	 * encrypted; the fix is to reconnect Google, not to treat the field as
+	 * blank/never-connected.
+	 *
+	 * @return bool
+	 */
+	public function connection_needs_reauthorising(): bool {
+		$stored = (string) ( $this->get_option )( self::REFRESH_TOKEN_KEY, '' );
+
+		return '' !== $stored && '' === $this->cipher->decrypt( $stored );
+	}
+
+	/**
+	 * Human-readable label for a connection status, including the ticket-605
+	 * {@see self::STATUS_NEEDS_REAUTH} pseudo-status.
+	 *
+	 * @param string $status Connection status.
+	 * @return string
+	 */
+	public static function status_label( string $status ): string {
+		return match ( $status ) {
+			self::STATUS_CONNECTED    => __( 'Connected', 'cannyforge-archive' ),
+			self::STATUS_EXPIRED      => __( 'Expired', 'cannyforge-archive' ),
+			self::STATUS_ERROR        => __( 'Error', 'cannyforge-archive' ),
+			self::STATUS_NEEDS_REAUTH => __( 'Needs re-authorising', 'cannyforge-archive' ),
+			default                   => __( 'Disconnected', 'cannyforge-archive' ),
+		};
 	}
 
 	/**
