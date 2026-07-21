@@ -1,7 +1,7 @@
 # Ticket 603: Real-WordPress integration test rig (replace the manual smoke checklist)
 
 **Sprint:** 6 — Trust & Scale
-**Status:** In review
+**Status:** Done
 **Owner:** unassigned
 **Estimate:** L
 
@@ -152,6 +152,23 @@ at merge time.
   required follow-up for `archive-filters.js` browser-level testing, per this
   ticket's own "out of scope" note — now that a real, addressable WordPress
   instance boots in CI, only the browser-automation layer itself is missing.
+  Renumbered to `tickets/704-playwright-archive-filters-js.md` during
+  integration, since 618/619 collided with duplicate ticket files independently
+  filed by other Sprint 6 tickets over the same test-shim bug (see
+  `completed/618-phpunit-shim-collision-silently-truncated-suite.md`), and
+  genuinely new out-of-scope work is numbered into the Sprint 7 block per the
+  project's own hundred-block convention.
+
+- 2026-07-21 — **Post-agent integration fixes**, done while merging into
+  `main` rather than by the implementing agent: `tests/WpIntegration/`'s new
+  files had PHPCS violations (`composer qa` was not actually green when the
+  branch was handed off) — fixed (doc-comment capitalisation, a short-ternary
+  rewrite, and corrected `phpcs:ignore` sniff codes for the intentional
+  `shell_exec()`/`var_export()` uses). Also reconciled a `README.md` merge
+  conflict against ticket 609 (already merged): the accessibility and
+  "still manual" sections claimed axe-core/JS-filter automation was "blocked
+  on ticket 603" — now that 603 has landed, reworded both to correctly point
+  at ticket 704 (the still-missing browser-automation layer) instead.
 
 ---
 
