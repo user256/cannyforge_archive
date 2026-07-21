@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
+use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Settings\CsvUrlExtractor;
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
 use CannyForge\Archive\Integration\Google\GoogleClientConfigImporter;
@@ -39,12 +40,6 @@ final class SettingsPage {
 	 * Capability required to view and save settings.
 	 */
 	private const CAPABILITY = 'manage_options';
-
-	/**
-	 * Default archive endpoint slug for the preview link. Mirrors the Frontend
-	 * ArchivePage endpoint slug; kept local so Admin needn't depend on Frontend.
-	 */
-	private const DEFAULT_ARCHIVE_SLUG = 'archive';
 
 	/**
 	 * Settings persistence.
@@ -110,6 +105,16 @@ final class SettingsPage {
 	private GoogleClientConfigImporter $google_client_importer;
 
 	/**
+	 * Resolves the "View Archive" preview link: the `archive_url` override, or
+	 * the archive endpoint URL. Shared with the front-end pagination link and
+	 * the endpoint's own tail redirect (ticket 612) so all three destinations
+	 * agree.
+	 *
+	 * @var ArchiveUrlResolver
+	 */
+	private ArchiveUrlResolver $url_resolver;
+
+	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface     $repository Settings persistence.
@@ -121,6 +126,7 @@ final class SettingsPage {
 	 * @param SearchConsoleCacheStore|null    $search_cache           Search Console cache store.
 	 * @param Ga4CacheStore|null              $ga4_cache              GA4 cache store.
 	 * @param GoogleClientConfigImporter|null $google_client_importer Google client JSON importer.
+	 * @param ArchiveUrlResolver|null         $url_resolver           Archive URL resolver.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -131,7 +137,8 @@ final class SettingsPage {
 		?GoogleTokenStore $google_tokens = null,
 		?SearchConsoleCacheStore $search_cache = null,
 		?Ga4CacheStore $ga4_cache = null,
-		?GoogleClientConfigImporter $google_client_importer = null
+		?GoogleClientConfigImporter $google_client_importer = null,
+		?ArchiveUrlResolver $url_resolver = null
 	) {
 		$this->repository             = $repository;
 		$this->parser                 = $parser;
@@ -142,6 +149,7 @@ final class SettingsPage {
 		$this->search_cache           = $search_cache ?? new SearchConsoleCacheStore();
 		$this->ga4_cache              = $ga4_cache ?? new Ga4CacheStore();
 		$this->google_client_importer = $google_client_importer ?? new GoogleClientConfigImporter();
+		$this->url_resolver           = $url_resolver ?? new ArchiveUrlResolver();
 	}
 
 	/**
@@ -208,11 +216,7 @@ final class SettingsPage {
 	 * @return string
 	 */
 	private function preview_url(): string {
-		$override = $this->repository->get()->archive_url();
-
-		return '' !== $override
-			? $override
-			: home_url( '/' . self::DEFAULT_ARCHIVE_SLUG . '/' );
+		return $this->url_resolver->destination_url( $this->repository->get() );
 	}
 
 	/**

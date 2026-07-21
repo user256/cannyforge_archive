@@ -218,6 +218,22 @@ if ( ! function_exists( 'home_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_safe_redirect' ) ) {
+	/**
+	 * Record a redirect that would be sent (recorded for inspection; sends no
+	 * real Location header in the test runtime). Callers still must `exit`
+	 * themselves afterwards, exactly as in production — this shim does not.
+	 *
+	 * @param string $location Redirect target.
+	 * @param int    $status   HTTP status code.
+	 * @return bool
+	 */
+	function wp_safe_redirect( string $location, int $status = 302 ): bool {
+		\CannyForge\Archive\Tests\HookSpy::record( 'wp_safe_redirect', static fn () => array( $location, $status ) );
+		return '' !== $location;
+	}
+}
+
 if ( ! function_exists( 'add_menu_page' ) ) {
 	/**
 	 * Record a menu-page registration and return the hook suffix.
@@ -299,13 +315,14 @@ if ( ! function_exists( 'get_footer' ) ) {
 
 if ( ! function_exists( 'status_header' ) ) {
 	/**
-	 * No-op status header.
+	 * Record the HTTP status code that would be sent (recorded for inspection;
+	 * sends no real header in the test runtime).
 	 *
 	 * @param int $code HTTP status code.
 	 * @return void
 	 */
 	function status_header( int $code ): void {
-		unset( $code );
+		\CannyForge\Archive\Tests\HookSpy::record( 'status_header:' . $code, static fn () => $code );
 	}
 }
 

@@ -13,19 +13,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use CannyForge\Archive\Contracts\Settings\Mode;
 use CannyForge\Archive\Contracts\Settings\Settings;
 
 /**
  * Caches the rendered archive HTML using the WordPress Transients API.
  *
- * The cache key is the archive mode (Blog / News), so the two modes cache
- * independently. The cache is not keyed by the full settings; instead it is
- * invalidated by event — {@see CacheInvalidator} clears it on every post
- * save/delete and whenever the plugin settings are saved
- * (`cannyforge_archive_settings_saved`). A configuration change made through the
- * admin UI therefore takes effect immediately; changes written directly to the
- * option (bypassing that action) only take effect on the next post change or
- * after the TTL expires.
+ * The cache key is the archive mode (Blog / News / Hybrid), so each mode
+ * caches independently. The cache is not keyed by the full settings; instead
+ * it is invalidated by event — {@see CacheInvalidator} clears it on every post
+ * save/delete, term and author change, and whenever the plugin settings are
+ * saved (`cannyforge_archive_settings_saved`). A configuration change made
+ * through the admin UI therefore takes effect immediately; changes written
+ * directly to the option (bypassing that action) only take effect on the next
+ * invalidating event or after the TTL expires.
  */
 final class ArchiveCache {
 	/**
@@ -64,15 +65,16 @@ final class ArchiveCache {
 	/**
 	 * Clear all archive HTML transients.
 	 *
-	 * WordPress does not support wildcard deletion, so we delete the two
-	 * known keys (Blog and News modes). If more modes are added in the
-	 * future this method should be updated accordingly.
+	 * WordPress does not support wildcard deletion, so we delete one key per
+	 * {@see Mode} case. Iterating the enum (rather than a hand-maintained list
+	 * of key strings) means a future mode is covered automatically.
 	 *
 	 * @return void
 	 */
 	public function clear(): void {
-		delete_transient( self::PREFIX . 'blog' );
-		delete_transient( self::PREFIX . 'news' );
+		foreach ( Mode::cases() as $mode ) {
+			delete_transient( self::PREFIX . $mode->value );
+		}
 	}
 
 	/**

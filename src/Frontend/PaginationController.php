@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
+use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Pagination\ArchiveContext;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use CannyForge\Archive\Core\Pagination\TargetingPredicate;
@@ -65,23 +66,34 @@ final class PaginationController {
 	private string $archive_slug;
 
 	/**
+	 * Resolves the "View Archive" destination: the `archive_url` override, or
+	 * the archive endpoint URL.
+	 *
+	 * @var ArchiveUrlResolver
+	 */
+	private ArchiveUrlResolver $url_resolver;
+
+	/**
 	 * Construct the controller.
 	 *
 	 * @param SettingsRepositoryInterface $repository   Settings persistence.
 	 * @param TargetingPredicate          $predicate    Targeting decision.
 	 * @param PaginationRenderer          $renderer     Markup renderer.
 	 * @param string                      $archive_slug Archive endpoint slug.
+	 * @param ArchiveUrlResolver|null     $url_resolver Archive URL resolver.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		TargetingPredicate $predicate,
 		PaginationRenderer $renderer,
-		string $archive_slug = ArchivePage::DEFAULT_SLUG
+		string $archive_slug = ArchivePage::DEFAULT_SLUG,
+		?ArchiveUrlResolver $url_resolver = null
 	) {
 		$this->repository   = $repository;
 		$this->predicate    = $predicate;
 		$this->renderer     = $renderer;
 		$this->archive_slug = '' !== $archive_slug ? $archive_slug : ArchivePage::DEFAULT_SLUG;
+		$this->url_resolver = $url_resolver ?? new ArchiveUrlResolver( $this->archive_slug );
 	}
 
 	/**
@@ -155,7 +167,7 @@ final class PaginationController {
 			$this->total_pages(),
 			$settings->pagination_limit(),
 			$settings->pagination_style(),
-			$this->archive_url( $settings->archive_url() ),
+			$this->url_resolver->destination_url( $settings ),
 			__( 'View Archive', 'cannyforge-archive' ),
 			static fn ( int $page ): string => (string) get_pagenum_link( $page ),
 			$settings->theme()
@@ -184,15 +196,5 @@ final class PaginationController {
 		$total = $wp_query->max_num_pages ?? 0;
 
 		return is_numeric( $total ) ? (int) $total : 0;
-	}
-
-	/**
-	 * Resolve the "View Archive" destination, falling back to the endpoint URL.
-	 *
-	 * @param string $override Configured destination override (may be empty).
-	 * @return string
-	 */
-	private function archive_url( string $override ): string {
-		return '' !== $override ? $override : home_url( '/' . $this->archive_slug . '/' );
 	}
 }
