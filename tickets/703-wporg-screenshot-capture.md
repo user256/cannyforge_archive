@@ -1,6 +1,6 @@
-# Ticket 618: Capture wp.org listing screenshots
+# Ticket 703: Capture wp.org listing screenshots
 
-**Sprint:** 6 — Trust & Scale
+**Sprint:** 7 — Modernisation (proposed)
 **Status:** Not started
 **Owner:** unassigned
 **Estimate:** S

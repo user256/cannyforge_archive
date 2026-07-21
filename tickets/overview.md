@@ -123,16 +123,16 @@ behavior, release packaging, scale, accessibility, and SEO interoperability.
 See the [2026-07-21 plugin audit](plugin-audit-2026-07-21.md) for evidence and
 priority.
 
-- [ ] [601 — Unit tests for ArchiveSearchEndpoint](601-archive-search-endpoint-tests.md)
-- [ ] [602 — Unit tests for Google admin controllers & settings surface](602-google-admin-controller-tests.md)
+- [x] [601 — Unit tests for ArchiveSearchEndpoint](completed/601-archive-search-endpoint-tests.md)
+- [x] [602 — Unit tests for Google admin controllers & settings surface](completed/602-google-admin-controller-tests.md)
 - [ ] [603 — Real-WordPress integration test rig](603-real-wordpress-integration-rig.md)
 - [ ] [604 — Infection minMsi threshold as a merge gate](604-infection-msi-gate.md)
-- [ ] [605 — SecretCipher hardening (AEAD, fail-loud, key rotation)](605-secretcipher-hardening.md)
-- [ ] [606 — uninstall.php: options, transients, token revocation](606-uninstall-cleanup.md)
-- [ ] [607 — CI version matrix + repo hygiene](607-ci-matrix-repo-hygiene.md)
+- [x] [605 — SecretCipher hardening (AEAD, fail-loud, key rotation)](completed/605-secretcipher-hardening.md)
+- [x] [606 — uninstall.php: options, transients, token revocation](completed/606-uninstall-cleanup.md)
+- [x] [607 — CI version matrix + repo hygiene](completed/607-ci-matrix-repo-hygiene.md)
 - [ ] [608 — Performance at scale (bounded queries, caching, throttle)](608-performance-at-scale.md)
-- [ ] [609 — Archive accessibility pass (WCAG 2.2 AA)](609-archive-accessibility.md)
-- [ ] [610 — i18n completeness + wp.org listing assets](610-i18n-wporg-listing.md)
+- [x] [609 — Archive accessibility pass (WCAG 2.2 AA)](completed/609-archive-accessibility.md) (follow-up: 702)
+- [x] [610 — i18n completeness + wp.org listing assets](completed/610-i18n-wporg-listing.md) (follow-up: 703)
 - [x] [611 — Restore release gate + runtime-only package](completed/611-release-branch-stabilisation.md) (follow-up: 616)
 - [x] [612 — Archive-tail redirects + Hybrid cache invalidation](completed/612-archive-route-cache-correctness.md) (follow-up: 617)
 - [x] [613 — Admin settings UI integrity + accessibility](completed/613-admin-settings-ui-integrity.md)
@@ -141,3 +141,19 @@ priority.
 - [x] [616 — Restore PHP 8.1 Composer-lock compatibility](completed/616-php81-composer-lock-compatibility.md)
 - [x] [617 — Handle rejected archive-tail safe redirects](completed/617-archive-tail-safe-redirect-fallback.md)
 - [ ] [699 — Sprint 6 review gate (including deferred live Google smoke)](699-sprint-6-review.md)
+
+Also fixed mid-sprint, discovered independently by six of the tickets above:
+[a `wp_safe_redirect` test-shim collision](completed/618-phpunit-shim-collision-silently-truncated-suite.md)
+that silently truncated the whole PHPUnit run after ~8 tests while still
+exiting 0 — every "`composer qa` is green" claim before this fix (this
+sprint and possibly earlier ones) was unverified past that point.
+
+## Sprint 7 — Modernisation (proposed)
+
+Candidates filed as genuine out-of-scope discoveries during Sprint 6, not
+yet scheduled. See ticket 699's own "out of scope" note for the REST-migration
+and Playwright candidates also expected to land here.
+
+- [ ] [701 — PHPUnit 10/11 and PHPStan 2.x toolchain modernisation](701-phpunit-phpstan-toolchain-modernisation.md)
+- [ ] [702 — Non-text (UI component) contrast for the front-end theme's border colour](702-archive-theme-non-text-contrast.md)
+- [ ] [703 — Capture wp.org listing screenshots](703-wporg-screenshot-capture.md)

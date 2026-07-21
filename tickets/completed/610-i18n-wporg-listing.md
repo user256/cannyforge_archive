@@ -41,7 +41,7 @@ wp.org listing assets and readme are submission-complete.
       shortened pagination) with matching `== Screenshots ==` captions in
       readme.txt. **Partially done** — banner and icon PNGs at all four spec
       sizes are produced (`.wordpress-org/`). The three screenshots are NOT
-      produced; see the decisions log and follow-up ticket 618.
+      produced; see the decisions log and follow-up ticket 703.
 - [x] readme.txt FAQ covers: pagination reversibility, exactly what data is
       sent to Google and when (extending the Sprint 5 disclosure), and cache
       behaviour.
@@ -144,11 +144,11 @@ wp.org listing assets and readme are submission-complete.
   through that theme/content would misrepresent the plugin for the wp.org
   listing, and mutating a shared instance's active theme/content risked
   disrupting concurrent work with no visibility into what else might depend
-  on its current state. Filed ticket 618 to capture the three screenshots
+  on its current state. Filed ticket 703 to capture the three screenshots
   properly once either a dedicated instance is carved out or ticket 603's
   real-WordPress integration rig lands. `readme.txt`'s `== Screenshots ==`
   section has the three captions reserved with an explicit reviewer note
-  that the image files themselves are pending ticket 618 — not faked as
+  that the image files themselves are pending ticket 703 — not faked as
   present.
 
 ---

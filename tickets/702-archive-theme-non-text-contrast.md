@@ -1,6 +1,6 @@
-# Ticket 618: Non-text (UI component) contrast for the front-end theme's border colour
+# Ticket 702: Non-text (UI component) contrast for the front-end theme's border colour
 
-**Sprint:** unassigned
+**Sprint:** 7 — Modernisation (proposed)
 **Status:** Not started
 **Owner:** unassigned
 **Estimate:** S

@@ -1,4 +1,4 @@
-# Ticket 618: PHPUnit 10/11 and PHPStan 2.x toolchain modernisation
+# Ticket 701: PHPUnit 10/11 and PHPStan 2.x toolchain modernisation
 
 **Sprint:** 7 — Modernisation (proposed)
 **Status:** Not started
@@ -49,8 +49,10 @@ matrix introduced in ticket 607.
 
 - Changing the plugin's own `Requires PHP` floor (still 8.1, per readme.txt
   and composer.json `require.php`) — this ticket only touches `require-dev`.
-- Any other Sprint 6 test-suite defects; see ticket 619 for a specific,
-  independent test-infrastructure bug discovered while validating 607.
+- Any other Sprint 6 test-suite defects; see the resolved
+  [618 — PHPUnit shim collision](completed/618-phpunit-shim-collision-silently-truncated-suite.md)
+  for a specific, independent test-infrastructure bug discovered while
+  validating 607 (already fixed on `main`).
 
 ## Dependencies
 
