@@ -1,8 +1,8 @@
 # Ticket 613: Make the redesigned admin settings UI truthful, complete, and accessible
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In progress
+**Owner:** background-agent
 **Estimate:** M
 **Priority:** P1 — pre-release UX
 
