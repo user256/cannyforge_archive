@@ -1,8 +1,8 @@
 # Ticket 616: Restore PHP 8.1 Composer-lock compatibility
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In review
+**Owner:** background-agent
 **Estimate:** S
 **Priority:** P0 — release blocker
 
@@ -21,12 +21,12 @@ verified PHP version.
 
 ## Acceptance criteria
 
-- [ ] Decide whether PHP 8.1 remains supported; retain it unless an explicit
+- [x] Decide whether PHP 8.1 remains supported; retain it unless an explicit
       compatibility-policy change is approved.
-- [ ] Make `composer install` succeed on PHP 8.1, or update the declared
+- [x] Make `composer install` succeed on PHP 8.1, or update the declared
       minimum version, readme, and CI together if support is dropped.
 - [ ] Run all QA gates in the claimed minimum-version CI environment.
-- [ ] Prevent a newer-local-PHP lock refresh from silently breaking the
+- [x] Prevent a newer-local-PHP lock refresh from silently breaking the
       supported floor again.
 
 ## Dependencies
@@ -39,6 +39,13 @@ verified PHP version.
 - 2026-07-21 — PR #4 Actions runs 29827884219 and 29827912847 failed at
   `composer install` on PHP 8.1.34: the lock contains packages requiring PHP
   >=8.2 and `infection/abstract-testframework-adapter` requiring PHP ^8.3.
+- 2026-07-21 — PHP 8.1 remains the supported floor. The development
+  constraint now uses Infection 0.28, whose adapter and transitive Symfony
+  packages resolve on PHP 8.1, and `config.platform.php` pins lock refreshes
+  to that floor even when run locally on a newer PHP version. `composer
+  validate`, a dry-run dependency update, and install from the regenerated
+  lock all pass locally. The full QA gates were run on PHP 8.3.6; the
+  workflow's PHP 8.1 run remains the final minimum-runtime verification.
 
 ---
 

@@ -52,7 +52,9 @@ Gated out of the box:
 
 ## Development Workflow
 
-- Run `composer install` to pull the dev toolchain.
+- Run `composer install` to pull the dev toolchain. Composer resolves the
+  development lock against PHP 8.1, the plugin's supported minimum, so a
+  newer local PHP version cannot silently raise the compatibility floor.
 - Run `composer dist` to build `dist/cannyforge-archive/` plus a WordPress-uploadable ZIP.
 - Run `composer install:local` to build, zip, and install into the local WordPress site at `/var/www/html`.
 - Run `composer seed:historic` to generate older posts on the local WordPress site for archive/pagination smoke testing.
