@@ -1,8 +1,8 @@
 # Ticket 615: Prevent duplicate SEO tags and define canonical ownership
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In review
+**Owner:** background-agent
 **Estimate:** M
 **Priority:** P1 — SEO correctness
 
@@ -24,22 +24,27 @@ predictably with established WordPress SEO providers.
 
 ## Acceptance criteria
 
-- [ ] Define and document ownership/precedence for document title, meta
+- [x] Define and document ownership/precedence for document title, meta
       description, robots, and canonical tags when no SEO plugin is active and
       when a supported SEO plugin is active.
-- [ ] Integrate through public provider hooks/APIs (at minimum the leading
+- [x] Integrate through public provider hooks/APIs (at minimum the leading
       installed providers selected during implementation) or suppress this
       plugin's duplicate tags when another provider owns the archive request.
-- [ ] The plugin never emits two canonical tags or contradictory robots
+- [x] The plugin never emits two canonical tags or contradictory robots
       directives on `/archive/` in the supported integration matrix.
-- [ ] One canonical URL resolver is shared with ticket 612 and respects only the
+- [x] One canonical URL resolver is shared with ticket 612 and respects only the
       documented setting; a pagination-link destination cannot accidentally
       become the page canonical.
-- [ ] Keep `cannyforge_archive_seo_head` as an escape hatch and document its
+- [x] Keep `cannyforge_archive_seo_head` as an escape hatch and document its
       return contract, priority, and examples in `docs/HOOKS.md`.
 - [ ] Real-WordPress tests inspect `wp_head` output with no SEO plugin and with
-      each supported provider active.
-- [ ] `composer qa` passes.
+      each supported provider active. (Not available — ticket 603's real-WP
+      harness doesn't exist yet; covered instead with PHPUnit tests against the
+      repo's `add_filter()`/`apply_filters()` shim and an injectable provider
+      detector faking Yoast/Rank Math presence signals. See PR notes.)
+- [ ] `composer qa` passes. (Repo-wide baseline failure pre-dates this ticket,
+      tracked on 611; `composer cs`/`stan`/`test`/`arch`/`deptrac`/`mess` all
+      verified clean when scoped to the files this ticket touches.)
 
 ## Out of scope
 
@@ -56,6 +61,21 @@ predictably with established WordPress SEO providers.
 
 - 2026-07-21 — The audit found no provider detection or provider-specific hook;
   the current `SeoHead` always emits its fragment on the archive query var.
+- 2026-07-21 — Implemented ahead of 612 landing: added
+  `Core\Seo\CanonicalUrlResolver` (SEO override else the archive endpoint's own
+  URL, never `Settings::archive_url()`) for `HeadTagBuilder` and the provider
+  bridge. After 612 landed, `SeoHead` now derives that endpoint URL from its
+  `Core\Archive\ArchiveUrlResolver`, which also drives the route, pagination,
+  and admin preview; the SEO canonical remains deliberately independent of the
+  pagination destination. Added `Core\Seo\SeoProviderDetector` (injectable, defaults
+  to `defined( 'WPSEO_VERSION' )` / `defined( 'RANK_MATH_VERSION' )` ||
+  `class_exists( 'RankMath\\RankMath' )`) and wired `SeoHead` to suppress its
+  own robots/description/canonical output and feed its resolved values into
+  Yoast's (`wpseo_*`) and Rank Math's (`rank_math/frontend/*`) public filters
+  when either is detected active; `pre_get_document_title` is left untouched
+  in that case so the provider's own title pipeline is the only one running.
+  Filter names are best-effort from each plugin's public docs, not verified
+  against a live install (603 gap).
 
 ---
 

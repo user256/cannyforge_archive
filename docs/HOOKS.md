@@ -36,6 +36,82 @@ add_filter( 'cannyforge_archive_theme_css', function ( string $css, $theme ): st
 }, 10, 2 );
 ```
 
+### `cannyforge_archive_seo_head`
+
+Applied to the SEO head-tag fragment (`<meta name="robots">`, `<meta
+name="description">`, `<link rel="canonical">`) immediately before it is
+echoed into `wp_head`, on the archive request only. This is the escape hatch
+for anything this plugin's own SEO/provider-interop logic (ticket 615) does
+not cover.
+
+**Priority:** applied once, unconditionally, right before output — there is
+no configurable priority on this plugin's side; use the normal
+`add_filter( ..., $priority )` third argument if you need to run relative to
+other callbacks on this same hook.
+
+**Return contract:** return the full replacement fragment (raw, pre-escaped
+HTML) to be echoed — CannyForge does not re-escape or otherwise post-process
+whatever this filter returns. Return `''` to suppress output entirely.
+`$tags` (the value being filtered) is:
+- the built `<meta>`/`<link>` fragment, when no supported SEO plugin (Yoast
+  SEO, Rank Math) is detected active — this plugin owns the archive's SEO
+  tags directly in this case; or
+- `''`, when a supported SEO plugin is active — this plugin has already
+  suppressed its own output and fed its resolved values into that provider's
+  own filters instead (see
+  {@see \CannyForge\Archive\Frontend\SeoHead} for the full precedence table
+  and the provider bridge), so the default here is silence. Returning
+  something non-empty forces extra output alongside the provider's own tags.
+
+**Parameters:**
+- `$tags` (`string`) — The head-tag fragment this plugin would otherwise echo (see above).
+- `$provider` (`\CannyForge\Archive\Core\Seo\SeoProvider`) — The detected active provider (`None`, `Yoast`, or `RankMath`).
+
+**Example — always suppress this plugin's own tags:**
+```php
+use CannyForge\Archive\Frontend\SeoHead;
+
+add_filter( SeoHead::FILTER, function ( string $tags, $provider ): string {
+    return '';
+}, 10, 2 );
+```
+
+**Example — append a tag regardless of provider state:**
+```php
+use CannyForge\Archive\Frontend\SeoHead;
+
+add_filter( SeoHead::FILTER, function ( string $tags, $provider ): string {
+    return $tags . '<meta name="theme-color" content="#111111">';
+}, 10, 2 );
+```
+
+## SEO tag ownership and precedence (ticket 615)
+
+The archive page produces one authoritative set of SEO directives — no
+duplicate canonical tags, no contradictory robots directives — whether or not
+a third-party SEO plugin is active. This plugin currently recognises Yoast SEO
+and Rank Math (the leading WordPress SEO plugins, and the two this codebase
+already special-cases elsewhere — see the noindex post-meta reads in
+{@see \CannyForge\Archive\Core\Archive\BlogEntryProvider}).
+
+| Directive | No SEO plugin active | Yoast SEO / Rank Math active |
+|---|---|---|
+| Document title | Configured title, else the theme/site default (`pre_get_document_title`) | Configured title, else the provider's own title (fed through `wpseo_title` / `rank_math/frontend/title`; `pre_get_document_title` is left untouched) |
+| Meta description | Configured description, else omitted | Configured description, else the provider's own description (`wpseo_metadesc` / `rank_math/frontend/description`) |
+| Robots | Always this plugin's index/follow settings | Always this plugin's index/follow settings, fed into `wpseo_robots` / `rank_math/frontend/robots` — archive indexability is a CannyForge-owned setting, not the provider's to guess |
+| Canonical | Configured override, else the archive endpoint's own URL ({@see \CannyForge\Archive\Core\Seo\CanonicalUrlResolver}) | Same resolution, fed into `wpseo_canonical` / `rank_math/frontend/canonical` instead of echoed directly |
+
+The `archive_url` setting (the optional "View Archive" pagination-link
+destination) is never a candidate for any of the above in either column — see
+{@see \CannyForge\Archive\Core\Seo\CanonicalUrlResolver}.
+
+Detection (Yoast: `defined( 'WPSEO_VERSION' )`; Rank Math: `defined(
+'RANK_MATH_VERSION' )` or `class_exists( 'RankMath\\RankMath' )`) is based on
+each plugin's public signatures as documented at implementation time, not yet
+verified against a live install of either plugin — see the ticket 615 PR
+description for that gap and the plan to close it (ticket 603's real-WordPress
+harness).
+
 ## Actions
 
 ### `cannyforge_archive_before_render`
