@@ -115,6 +115,16 @@ final class SettingsPage {
 	private ArchiveUrlResolver $url_resolver;
 
 	/**
+	 * The actionable error from the last Google client JSON import attempt,
+	 * or empty when none was attempted or it succeeded. Rendered as a
+	 * distinct notice so a failed import is never mistaken for the general
+	 * "Settings saved" success message.
+	 *
+	 * @var string
+	 */
+	private string $google_import_error = '';
+
+	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface     $repository Settings persistence.
@@ -191,6 +201,13 @@ final class SettingsPage {
 		if ( $saved ) {
 			echo '<div class="notice notice-success is-dismissible"><p>';
 			echo esc_html__( 'Settings saved.', 'cannyforge-archive' );
+			echo '</p></div>';
+		}
+
+		if ( '' !== $this->google_import_error ) {
+			echo '<div class="notice notice-error is-dismissible"><p>';
+			echo esc_html__( 'Google OAuth client JSON was not imported: ', 'cannyforge-archive' );
+			echo esc_html( $this->google_import_error );
 			echo '</p></div>';
 		}
 
@@ -307,15 +324,27 @@ final class SettingsPage {
 	/**
 	 * Read the uploaded Google OAuth client JSON and extract its credentials.
 	 *
-	 * Returns an empty array when no file was uploaded, when the upload is not a
-	 * genuine temp file, or when the JSON does not match a Google client export.
+	 * Returns an empty array when no file was uploaded or the upload is not a
+	 * genuine temp file. When a file was uploaded but rejected (malformed,
+	 * oversized, or not a Web client export), also records an actionable
+	 * error in {@see self::$google_import_error} so the failure is reported
+	 * to the user instead of failing silently.
 	 *
 	 * @return array<string, string>
 	 */
 	private function uploaded_google_client_settings(): array {
 		$contents = $this->uploaded_file_contents( 'google_client_json' );
+		if ( '' === $contents ) {
+			return array();
+		}
 
-		return '' === $contents ? array() : $this->google_client_importer->extract( $contents );
+		$result = $this->google_client_importer->import( $contents );
+		if ( ! $result->ok() ) {
+			$this->google_import_error = $result->error();
+			return array();
+		}
+
+		return $result->fields();
 	}
 
 	/**

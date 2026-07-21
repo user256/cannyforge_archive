@@ -12,8 +12,44 @@
 	--cf-primary-hover: #4e26d4;
 	--cf-primary-light: #f4f3ff;
 	--cf-success: #039855;
+	--cf-warning: #b54708;
 	--cf-radius: 12px;
 	--cf-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/*
+ * Visually-hidden but still focusable/announced — used for the native mode
+ * radios and for icon-button text labels. Never `display:none`, which pulls
+ * a control out of the tab order and the accessibility tree.
+ */
+.cf-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Visible keyboard-focus ring, applied consistently across custom controls. */
+.cf-btn:focus-visible,
+.cf-app-nav a:focus-visible,
+.cf-accordion-summary:focus-visible,
+.cf-preview-device:focus-visible,
+.cannyforge-modal__close:focus-visible {
+	outline: 2px solid var(--cf-primary);
+	outline-offset: 2px;
+}
+.cf-mode-card:focus-within {
+	outline: 2px solid var(--cf-primary);
+	outline-offset: 2px;
+}
+.cf-mode-card:has(input:focus-visible) {
+	outline: 2px solid var(--cf-primary);
+	outline-offset: 2px;
 }
 
 /* Override WP default spacing */
@@ -201,7 +237,13 @@
 .cf-mode-card:hover {
 	border-color: var(--cf-primary);
 }
-.cf-mode-card.active {
+/*
+ * Active-state visuals are driven purely by `:has(input:checked)` — the
+ * radio itself (visually hidden, not display:none) is the single source of
+ * truth, so the card border/dot/badge update instantly on click, keyboard
+ * selection, or a native form reset with no JS involved.
+ */
+.cf-mode-card:has(input:checked) {
 	border: 2px solid var(--cf-primary);
 	background: var(--cf-primary-light);
 }
@@ -220,7 +262,7 @@
 	align-items: center;
 	justify-content: center;
 }
-.cf-mode-card.active .cf-radio-circle {
+.cf-mode-card:has(input:checked) .cf-radio-circle {
 	border-color: var(--cf-primary);
 }
 .cf-radio-dot {
@@ -228,6 +270,10 @@
 	height: 10px;
 	background: var(--cf-primary);
 	border-radius: 50%;
+	display: none;
+}
+.cf-mode-card:has(input:checked) .cf-radio-dot {
+	display: block;
 }
 .cf-check-badge {
 	width: 20px;
@@ -235,9 +281,12 @@
 	background: var(--cf-primary);
 	color: #fff;
 	border-radius: 50%;
-	display: flex;
+	display: none;
 	align-items: center;
 	justify-content: center;
+}
+.cf-mode-card:has(input:checked) .cf-check-badge {
+	display: flex;
 }
 .cf-check-badge .dashicons {
 	font-size: 14px;
@@ -381,32 +430,50 @@
 	font-size: 18px;
 }
 .cf-preview-header p {
-	margin: 0 0 24px;
+	margin: 0 0 8px;
 	font-size: 13px;
 	color: var(--cf-text-muted);
 }
+.cf-preview-stale {
+	margin: 0 0 16px;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--cf-warning);
+}
 .cf-preview-controls {
 	display: flex;
-	justify-content: space-between;
+	gap: 8px;
 	margin-bottom: 16px;
 	width: 100%;
 	min-width: 290px;
 }
-.cf-preview-controls select {
-	width: 120px;
-}
-.cf-preview-icons {
-	display: flex;
-	gap: 8px;
+.cf-preview-device {
+	display: inline-flex;
 	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border-radius: 8px;
+	border: 1px solid var(--cf-border-focus);
+	background: #fff;
 	color: var(--cf-text-muted);
+	cursor: pointer;
+}
+.cf-preview-device[aria-pressed="true"] {
+	background: var(--cf-primary-light);
+	border-color: var(--cf-primary);
+	color: var(--cf-primary);
 }
 .cf-preview-frame {
 	flex: 1;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
 	border: 1px solid var(--cf-border);
 	border-radius: 8px;
 	background: #fff;
-	overflow: hidden;
+	overflow: auto;
 }
 .cf-preview-frame iframe {
 	width: 100%;
@@ -436,23 +503,42 @@
 	font-size: 14px;
 	font-weight: 500;
 }
+.cf-footer-status[data-state="dirty"] {
+	color: var(--cf-warning);
+}
 .cf-footer-actions {
 	display: flex;
 	gap: 16px;
 }
 
-/* Responsive */
+/*
+ * Responsive
+ *
+ * The preview panel drops below the main column instead of being force-
+ * hidden with `display:none`, so the "Live Preview" toggle keeps working —
+ * and keeps its `aria-expanded` state truthful — at every width.
+ */
 @media (max-width: 1100px) {
 	.cf-app-body {
-		grid-template-columns: 200px 1fr;
+		flex-wrap: wrap;
 	}
 	.cf-app-preview {
-		display: none;
+		width: 100%;
+		height: 480px;
+		position: static;
+	}
+	.cf-app-container.nav-collapsed .cf-app-preview {
+		width: 100%;
+	}
+	.cf-app-container.preview-hidden .cf-app-preview,
+	.cf-app-container.nav-collapsed.preview-hidden .cf-app-preview {
+		width: 100%;
+		height: 0;
 	}
 }
 @media (max-width: 768px) {
 	.cf-app-body {
-		grid-template-columns: 1fr;
+		flex-direction: column;
 	}
 	.cf-app-sidebar {
 		display: none;
@@ -472,6 +558,13 @@
 	max-width: 720px;
 	width: 100%;
 	color: var(--cf-text-main);
+}
+.cannyforge-modal--wide {
+	max-width: 900px;
+}
+.cannyforge-modal--narrow {
+	max-width: 420px;
+	padding: 32px;
 }
 .cannyforge-modal::backdrop {
 	background: rgba(16, 24, 40, 0.5);

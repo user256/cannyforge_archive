@@ -57,3 +57,21 @@ jobs:
       - name: Infection (mutation testing — report only)
         continue-on-error: true
         run: composer infection
+
+  js-tests:
+    name: Admin JS tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Jest (assets/js/admin.js)
+        run: npm test

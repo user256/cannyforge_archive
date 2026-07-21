@@ -222,4 +222,104 @@ class SettingsViewTest extends TestCase {
 		$this->assertStringNotContainsString( 'id="cf-preview-toggle"', $html );
 		$this->assertStringNotContainsString( 'Live Preview', $html );
 	}
+
+	/**
+	 * No control uses an inline `onclick` handler; the enqueued admin.js
+	 * script wires everything via `data-cf-*` attributes and ids instead.
+	 *
+	 * @return void
+	 */
+	public function test_has_no_inline_event_handlers(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringNotContainsString( 'onclick=', $html );
+	}
+
+	/**
+	 * The header Save button and footer Reset button both operate on the
+	 * settings form via its id, not a JS-simulated click on another button.
+	 *
+	 * @return void
+	 */
+	public function test_save_and_reset_controls_reference_the_form(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringContainsString( 'id="' . SettingsView::FORM_ID . '"', $html );
+		$this->assertMatchesRegularExpression(
+			'/<button type="submit" class="cf-btn cf-btn-primary" form="' . preg_quote( SettingsView::FORM_ID, '/' ) . '">/',
+			$html
+		);
+		$this->assertMatchesRegularExpression( '/<button type="reset"[^>]*id="cf-reset-btn"/', $html );
+	}
+
+	/**
+	 * The mode radios stay real, focusable form controls: visually hidden
+	 * with a clip technique, never `display:none` (which removes a control
+	 * from the tab order and the accessibility tree).
+	 *
+	 * @return void
+	 */
+	public function test_mode_radios_are_focusable_not_display_none(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringNotContainsString( 'style="display:none;"', $html );
+		$this->assertMatchesRegularExpression( '/<input type="radio" name="mode" value="news" class="cf-visually-hidden"/', $html );
+	}
+
+	/**
+	 * The dead overflow ("...") button from the mock-up is gone rather than
+	 * left as an inert control.
+	 *
+	 * @return void
+	 */
+	public function test_does_not_render_dead_overflow_button(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringNotContainsString( 'dashicons-ellipsis', $html );
+	}
+
+	/**
+	 * The dirty/saved status region exists exactly once and starts in the
+	 * "saved" state (a freshly-rendered form matches the persisted settings).
+	 *
+	 * @return void
+	 */
+	public function test_renders_single_form_status_region(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertSame( 1, substr_count( $html, 'id="cf-form-status"' ) );
+		$this->assertStringContainsString( 'data-state="saved"', $html );
+		$this->assertStringNotContainsString( 'Draft changes', $html );
+	}
+
+	/**
+	 * The preview device toggle renders three real, labelled buttons instead
+	 * of the inert `<select>`/icon placeholders.
+	 *
+	 * @return void
+	 */
+	public function test_renders_preview_device_controls(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringContainsString( 'data-cf-preview-device="desktop"', $html );
+		$this->assertStringContainsString( 'data-cf-preview-device="tablet"', $html );
+		$this->assertStringContainsString( 'data-cf-preview-device="mobile"', $html );
+		$this->assertStringContainsString( 'aria-pressed="true"', $html );
+	}
+
+	/**
+	 * The colour-editor dialog is wired via data attributes (matching the
+	 * enqueued script), has an accessible close control, and is not a
+	 * duplicate/placeholder markup fragment.
+	 *
+	 * @return void
+	 */
+	public function test_colour_dialog_has_no_inline_handlers_and_accessible_close(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringContainsString( 'data-cf-dialog="colors"', $html );
+		$this->assertStringContainsString( 'data-cf-dialog-open="colors"', $html );
+		$this->assertStringContainsString( 'data-cf-dialog-close', $html );
+		$this->assertMatchesRegularExpression( '/aria-label="[^"]+"[^>]*data-cf-dialog-close/', $html );
+	}
 }

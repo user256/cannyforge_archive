@@ -29,6 +29,8 @@ phpinsights.php
 infection.json5
 deptrac.yaml
 composer.lock
+package.json
+package-lock.json
 
 # Tests + docs + project artefacts
 vendor

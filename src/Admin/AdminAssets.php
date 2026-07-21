@@ -95,6 +95,15 @@ final class AdminAssets {
 			$this->asset_version( 'assets/js/admin.js' ),
 			true
 		);
+
+		wp_localize_script(
+			self::SCRIPT_HANDLE,
+			'CannyForgeAdminL10n',
+			array(
+				'savedLabel' => __( 'All changes saved', 'cannyforge-archive' ),
+				'draftLabel' => __( 'Draft changes', 'cannyforge-archive' ),
+			)
+		);
 	}
 
 	/**

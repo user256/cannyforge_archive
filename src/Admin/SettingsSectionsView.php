@@ -1,7 +1,6 @@
 <?php
 /**
- * Renders the settings-form section bodies (theme, targeting, filters,
- * content selection, link types, SEO, pagination).
+ * Renders the settings-page accordion section bodies.
  *
  * @package CannyForge\Archive
  */
@@ -19,11 +18,11 @@ use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Contracts\Settings\Theme;
 
 /**
- * Presentation-only renderer for the settings-page section bodies.
- *
- * Split out of SettingsView (ticket 611) to keep both classes under the
- * PHPMD length budget; this class owns only the accordion/tab body markup,
- * not the page shell (header, nav, footer, preview panel).
+ * Presentation-only renderer for the Display/Pagination/Filters/SEO/Advanced
+ * accordion bodies. Split out of {@see SettingsView} to keep that class's
+ * top-level page structure readable; every method here is pure output, owns
+ * no persistence, and mirrors the field-name contract {@see SettingsFormParser}
+ * expects back on submit.
  */
 final class SettingsSectionsView {
 	/**
@@ -43,12 +42,12 @@ final class SettingsSectionsView {
 	}
 
 	/**
-	 * Render the pagination-only settings panel.
+	 * Render the pagination fields (limit, style, archive-link URL).
 	 *
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
-	public function render_pagination_only( Settings $settings ): void {
+	public function pagination( Settings $settings ): void {
 		echo '<p><label><strong>' . esc_html__( 'Leading Pagination Pages', 'cannyforge-archive' ) . '</strong><br>';
 		printf( '<input type="number" min="1" name="pagination_limit" value="%d"></label></p>', absint( $settings->pagination_limit() ) );
 
@@ -63,12 +62,12 @@ final class SettingsSectionsView {
 	}
 
 	/**
-	 * Render the front-end theming controls.
+	 * Render the front-end theming controls, including the colour-editor dialog.
 	 *
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
-	public function render_theme( Settings $settings ): void {
+	public function theme( Settings $settings ): void {
 		$theme = $settings->theme();
 
 		echo '<h2>' . esc_html__( 'Front-end Theme', 'cannyforge-archive' ) . '</h2>';
@@ -98,18 +97,38 @@ final class SettingsSectionsView {
 		);
 		echo '</select></label></p>';
 
-		echo '<p><button type="button" class="button button-secondary" onclick="document.getElementById(\'cf-colors-modal\').showModal()">' . esc_html__( 'Edit Colours', 'cannyforge-archive' ) . '</button></p>';
-		echo '<dialog id="cf-colors-modal" style="border: none; border-radius: 16px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-width: 400px; width: 100%;">';
-		echo '<h3>' . esc_html__( 'Edit Colours', 'cannyforge-archive' ) . '</h3>';
+		$this->render_colour_dialog( $theme );
+	}
+
+	/**
+	 * Render the "Edit Colours" opener button and its dialog.
+	 *
+	 * @param Theme $theme Current theme settings.
+	 * @return void
+	 */
+	private function render_colour_dialog( Theme $theme ): void {
+		printf(
+			'<p><button type="button" class="button button-secondary" data-cf-dialog-open="colors">%s</button></p>',
+			esc_html__( 'Edit Colours', 'cannyforge-archive' )
+		);
+		echo '<dialog class="cannyforge-modal cannyforge-modal--narrow" id="cf-colors-modal" data-cf-dialog="colors" aria-labelledby="cf-colors-modal-title">';
+		printf(
+			'<button type="button" class="cannyforge-modal__close" aria-label="%s" data-cf-dialog-close>&times;</button>',
+			esc_attr__( 'Close', 'cannyforge-archive' )
+		);
+		echo '<h3 id="cf-colors-modal-title">' . esc_html__( 'Edit Colours', 'cannyforge-archive' ) . '</h3>';
 
 		printf( '<p><label>%s <input type="color" name="theme_accent_color" value="%s"></label></p>', esc_html__( 'Accent Color', 'cannyforge-archive' ), esc_attr( $theme->accent_color() ) );
 		printf( '<p><label>%s <input type="color" name="theme_surface_color" value="%s"></label></p>', esc_html__( 'Surface Color', 'cannyforge-archive' ), esc_attr( $theme->surface_color() ) );
 		printf( '<p><label>%s <input type="color" name="theme_text_color" value="%s"></label></p>', esc_html__( 'Text Color', 'cannyforge-archive' ), esc_attr( $theme->text_color() ) );
 		printf( '<p><label>%s <input type="color" name="theme_border_color" value="%s"></label></p>', esc_html__( 'Border Color', 'cannyforge-archive' ), esc_attr( $theme->border_color() ) );
 
-		echo '<div style="text-align: right; margin-top: 1.5rem;">';
-		echo '<button type="button" class="button button-primary" onclick="document.getElementById(\'cf-colors-modal\').close()">' . esc_html__( 'Done', 'cannyforge-archive' ) . '</button>';
-		echo '</div>';
+		echo '<p class="submit">';
+		printf(
+			'<button type="button" class="button button-primary" data-cf-dialog-close>%s</button>',
+			esc_html__( 'Done', 'cannyforge-archive' )
+		);
+		echo '</p>';
 		echo '</dialog>';
 	}
 
@@ -119,7 +138,7 @@ final class SettingsSectionsView {
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
-	public function render_targeting( Settings $settings ): void {
+	public function targeting( Settings $settings ): void {
 		$targeting = $settings->targeting();
 
 		echo '<h2>' . esc_html__( 'Pagination Targeting', 'cannyforge-archive' ) . '</h2>';
@@ -138,7 +157,7 @@ final class SettingsSectionsView {
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
-	public function render_filters( Settings $settings ): void {
+	public function filters( Settings $settings ): void {
 		$filters = $settings->filters();
 
 		echo '<h2>' . esc_html__( 'User Filters', 'cannyforge-archive' ) . '</h2>';
@@ -155,7 +174,7 @@ final class SettingsSectionsView {
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
-	public function render_content_selection( Settings $settings ): void {
+	public function content_selection( Settings $settings ): void {
 		$selection  = $settings->content_selection();
 		$categories = $this->term_name_options( 'category' );
 		$tags       = $this->term_name_options( 'post_tag' );
@@ -178,7 +197,7 @@ final class SettingsSectionsView {
 	 * @param Settings $settings Current settings.
 	 * @return void
 	 */
-	public function render_link_types( Settings $settings ): void {
+	public function link_types( Settings $settings ): void {
 		$types = $settings->link_types();
 
 		echo '<h2>' . esc_html__( 'Archive Link Types', 'cannyforge-archive' ) . '</h2>';
@@ -189,37 +208,6 @@ final class SettingsSectionsView {
 		$this->fields->checkbox( 'link_tags', __( 'Tags', 'cannyforge-archive' ), $types->tags() );
 		$this->fields->checkbox( 'link_author', __( 'Author', 'cannyforge-archive' ), $types->author() );
 		$this->fields->checkbox( 'link_published_date', __( 'Published date', 'cannyforge-archive' ), $types->published_date() );
-	}
-
-	/**
-	 * Render the SEO controls (ticket 110).
-	 *
-	 * @param Settings $settings Current settings.
-	 * @return void
-	 */
-	public function render_seo( Settings $settings ): void {
-		$seo = $settings->seo();
-
-		echo '<h2>' . esc_html__( 'SEO', 'cannyforge-archive' ) . '</h2>';
-
-		echo '<p><label>' . esc_html__( 'Archive title', 'cannyforge-archive' ) . ' ';
-		printf( '<input type="text" name="seo_title" value="%s"></label></p>', esc_attr( $seo->title() ) );
-
-		echo '<p><label>' . esc_html__( 'Meta description', 'cannyforge-archive' ) . ' ';
-		printf(
-			'<textarea name="seo_meta_description" rows="2" cols="50">%s</textarea></label></p>',
-			esc_textarea( $seo->meta_description() )
-		);
-
-		$this->fields->checkbox( 'seo_index', __( 'Allow indexing (index)', 'cannyforge-archive' ), $seo->index() );
-		$this->fields->checkbox( 'seo_follow', __( 'Allow following links (follow)', 'cannyforge-archive' ), $seo->follow() );
-
-		echo '<p><label>' . esc_html__( 'Canonical URL (optional)', 'cannyforge-archive' ) . ' ';
-		printf(
-			'<input type="url" name="seo_canonical" value="%s" placeholder="%s"></label></p>',
-			esc_attr( $seo->canonical() ),
-			esc_attr__( 'Defaults to the archive URL', 'cannyforge-archive' )
-		);
 	}
 
 	/**
@@ -253,5 +241,36 @@ final class SettingsSectionsView {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Render the SEO controls (ticket 110).
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return void
+	 */
+	public function seo( Settings $settings ): void {
+		$seo = $settings->seo();
+
+		echo '<h2>' . esc_html__( 'SEO', 'cannyforge-archive' ) . '</h2>';
+
+		echo '<p><label>' . esc_html__( 'Archive title', 'cannyforge-archive' ) . ' ';
+		printf( '<input type="text" name="seo_title" value="%s"></label></p>', esc_attr( $seo->title() ) );
+
+		echo '<p><label>' . esc_html__( 'Meta description', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<textarea name="seo_meta_description" rows="2" cols="50">%s</textarea></label></p>',
+			esc_textarea( $seo->meta_description() )
+		);
+
+		$this->fields->checkbox( 'seo_index', __( 'Allow indexing (index)', 'cannyforge-archive' ), $seo->index() );
+		$this->fields->checkbox( 'seo_follow', __( 'Allow following links (follow)', 'cannyforge-archive' ), $seo->follow() );
+
+		echo '<p><label>' . esc_html__( 'Canonical URL (optional)', 'cannyforge-archive' ) . ' ';
+		printf(
+			'<input type="url" name="seo_canonical" value="%s" placeholder="%s"></label></p>',
+			esc_attr( $seo->canonical() ),
+			esc_attr__( 'Defaults to the archive URL', 'cannyforge-archive' )
+		);
 	}
 }
