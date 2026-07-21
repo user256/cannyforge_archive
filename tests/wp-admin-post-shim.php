@@ -6,10 +6,12 @@
  * unit tested without a full WordPress runtime.
  *
  * This is deliberately scoped to ticket 614's controller behaviour, not a
- * general admin-post test harness — see ticket 602 for that. Redirect/die
- * calls throw instead of terminating the process, so a test can assert on the
+ * general admin-post test harness — see ticket 602 for that. wp_die/wp_redirect
+ * throw instead of terminating the process, so a test can assert on the
  * outcome instead of the process exiting mid-test. Each is guarded so a real
- * WordPress environment takes precedence.
+ * WordPress environment takes precedence. wp_safe_redirect() is defined
+ * separately, in wp-admin-redirect-shim.php, scoped to the
+ * CannyForge\Archive\Admin namespace — see that file for why.
  *
  * @package CannyForge\Archive
  */
@@ -138,21 +140,6 @@ if ( ! function_exists( 'wp_redirect' ) ) {
 	 * @throws WpRedirectException Always, in place of a real redirect + exit.
 	 */
 	function wp_redirect( string $location, int $status = 302 ): never {
-		unset( $status );
-		throw new WpRedirectException( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- test-only control-flow signal, never rendered as output.
-	}
-}
-
-if ( ! function_exists( 'wp_safe_redirect' ) ) {
-	/**
-	 * In-memory wp_safe_redirect: throws instead of sending headers + exiting.
-	 *
-	 * @param string $location Redirect target.
-	 * @param int    $status   HTTP status (ignored).
-	 * @return never
-	 * @throws WpRedirectException Always, in place of a real redirect + exit.
-	 */
-	function wp_safe_redirect( string $location, int $status = 302 ): never {
 		unset( $status );
 		throw new WpRedirectException( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- test-only control-flow signal, never rendered as output.
 	}
