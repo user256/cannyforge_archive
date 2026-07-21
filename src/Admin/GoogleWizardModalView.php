@@ -217,7 +217,7 @@ final class GoogleWizardModalView {
 	 * @return void
 	 */
 	private function render_google_consent_copy( GoogleSettings $settings ): void {
-		$labels = array(
+		$labels       = array(
 			GoogleOauthScopePolicy::SCOPE_SEARCH_CONSOLE => __( 'Search Console (read-only)', 'cannyforge-archive' ),
 			GoogleOauthScopePolicy::SCOPE_ANALYTICS      => __( 'Google Analytics 4 (read-only)', 'cannyforge-archive' ),
 		);
