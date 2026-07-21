@@ -114,7 +114,7 @@ final class AdminAssets {
 				$mtime = filemtime( $absolute );
 
 				if ( false !== $mtime ) {
-					return $this->version . '.' . (string) $mtime;
+					return $this->version . '.' . $mtime;
 				}
 			}
 		}

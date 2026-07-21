@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		link.addEventListener('click', function (e) {
 			e.preventDefault();
 			var targetId = this.getAttribute('href').replace('#tab-', '');
-			
+
 			// Update active state in nav
 			navLinks.forEach(function (l) { l.parentElement.classList.remove('active'); });
 			this.parentElement.classList.add('active');
@@ -150,4 +150,3 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 });
-
