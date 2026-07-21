@@ -275,9 +275,6 @@ if ( ! function_exists( 'home_url' ) ) {
 if ( ! function_exists( 'wp_safe_redirect' ) ) {
 	/**
 	 * Record a redirect that would be sent (recorded for inspection; sends no
-	 * real Location header in the test runtime).
-	 *
-	 * Record a redirect that would be sent (recorded for inspection; sends no
 	 * real Location header in the test runtime). Callers still must `exit`
 	 * themselves afterwards, exactly as in production — this shim does not.
 	 * This is the global, real-WordPress-contract version (bool return);

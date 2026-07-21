@@ -49,9 +49,10 @@ if ( ! function_exists( 'get_current_user_id' ) ) {
 
 if ( ! function_exists( 'check_admin_referer' ) ) {
 	/**
-	 * In-memory check_admin_referer: always accepts in the test runtime, since
-	 * nonce verification is a WordPress-runtime concern outside this ticket's
-	 * scope (the CSRF surface this ticket covers is the OAuth state transient).
+	 * In-memory check_admin_referer: accepts by default (override via the
+	 * `cannyforge_test_admin_referer_valid` global to simulate a missing or
+	 * invalid nonce for a specific test). Mirrors real WordPress: an invalid
+	 * nonce calls `wp_die()` rather than returning falsy.
 	 *
 	 * @param int|string $action    Nonce action.
 	 * @param string     $query_arg Nonce field name.
@@ -59,7 +60,28 @@ if ( ! function_exists( 'check_admin_referer' ) ) {
 	 */
 	function check_admin_referer( $action = -1, string $query_arg = '_wpnonce' ) {
 		unset( $action, $query_arg );
+		if ( ! ( $GLOBALS['cannyforge_test_admin_referer_valid'] ?? true ) ) {
+			wp_die( esc_html__( 'Are you sure you want to do this?', 'cannyforge-archive' ) );
+		}
+
 		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+	/**
+	 * In-memory wp_verify_nonce: valid exactly when the nonce matches what
+	 * the `wp_create_nonce()`/`wp_nonce_field()` shims produce for the given
+	 * action (`test-nonce-{$action}`), mirroring real WordPress's
+	 * int-on-valid/false-on-invalid contract closely enough for truthiness
+	 * checks.
+	 *
+	 * @param string     $nonce  Nonce value to verify.
+	 * @param int|string $action Nonce action.
+	 * @return int|false
+	 */
+	function wp_verify_nonce( string $nonce, $action = -1 ) {
+		return 'test-nonce-' . $action === $nonce ? 1 : false;
 	}
 }
 

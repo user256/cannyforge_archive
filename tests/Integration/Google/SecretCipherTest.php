@@ -149,9 +149,17 @@ class SecretCipherTest extends TestCase {
 	 * @return void
 	 */
 	public function test_wrong_key_fails_to_decrypt_legacy_format(): void {
-		$legacy = $this->legacy_v1_value( 'salt-a', 'legacy-secret' );
+		// Legacy `enc:` is unauthenticated AES-256-CBC: decrypting with the
+		// wrong key produces random bytes, and OpenSSL's PKCS7 unpad happens
+		// to validate roughly 1 in 256 times purely by chance, which would
+		// make a single trial flaky. Independent IVs make each trial's
+		// coincidental-validation chance independent, so asserting across
+		// many trials keeps this deterministic in practice.
+		for ( $i = 0; $i < 25; $i++ ) {
+			$legacy = $this->legacy_v1_value( 'salt-a', 'legacy-secret' );
 
-		$this->assertSame( '', ( new SecretCipher( 'salt-b' ) )->decrypt( $legacy ) );
+			$this->assertSame( '', ( new SecretCipher( 'salt-b' ) )->decrypt( $legacy ) );
+		}
 	}
 
 	/**
