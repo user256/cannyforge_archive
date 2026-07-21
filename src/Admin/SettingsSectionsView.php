@@ -123,6 +123,13 @@ final class SettingsSectionsView {
 		printf( '<p><label>%s <input type="color" name="theme_text_color" value="%s"></label></p>', esc_html__( 'Text Color', 'cannyforge-archive' ), esc_attr( $theme->text_color() ) );
 		printf( '<p><label>%s <input type="color" name="theme_border_color" value="%s"></label></p>', esc_html__( 'Border Color', 'cannyforge-archive' ), esc_attr( $theme->border_color() ) );
 
+		// Live WCAG AA (4.5:1) contrast check for the chosen text/accent vs.
+		// surface colour pairs — computed client-side in admin.js as the
+		// colour pickers change, since the ratio depends on values the site
+		// owner is actively editing. Empty/hidden until a pair actually fails
+		// (ticket 609).
+		echo '<p class="cf-contrast-warning" data-cf-contrast-warning role="status" hidden></p>';
+
 		echo '<p class="submit">';
 		printf(
 			'<button type="button" class="button button-primary" data-cf-dialog-close>%s</button>',

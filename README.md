@@ -89,6 +89,28 @@ Recommended smoke checklist after `composer seed:historic`:
 
 These two are flagged for automation in ticket 603 (real-WordPress integration rig); until that lands they remain manual checks.
 
+### Accessibility smoke checklist (ticket 609)
+
+Automated axe-core-in-CI coverage for the archive page is blocked on ticket
+603 (real-WordPress integration rig); until that lands, verify these by hand
+after `composer seed:historic`:
+
+- Screen-reader walkthrough (VoiceOver/NVDA): search the archive box and
+  confirm the result count is announced (e.g. "3 results for 'query'"), type
+  a query with no matches and confirm the "no results" message is announced
+  too, then Tab through the search box, every filter select, the Reset
+  button, and the Prev/Next pagination controls and confirm each has an
+  audible, distinct label.
+- Keyboard-only walkthrough (no mouse): confirm every filter control, the
+  Reset button, and Prev/Next pagination buttons are reachable via Tab and
+  operable via Enter/Space, each with a visible focus outline.
+- Open the admin "Edit Colours" dialog, set the Text Color to something close
+  to the Surface Color, and confirm a contrast warning appears near the
+  colour pickers; fix the colour back and confirm the warning clears.
+- In your OS accessibility settings, enable "reduce motion" and reload the
+  archive page; confirm the entrance fade-in and hover-lift animations on
+  archive cards/pagination no longer move.
+
 ## License
 
 GPL-2.0-or-later.

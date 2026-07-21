@@ -51,6 +51,29 @@
 	}
 
 	/**
+	 * Build the human-readable, screen-reader-announced summary of a
+	 * search/filter result set, e.g. `3 results for "budget"` or
+	 * `No results for "budget".`. When there is no search term (a select
+	 * filter was used on its own) the query clause is omitted. Rendered into
+	 * the `aria-live="polite"` status region (see ArchiveRenderer), so every
+	 * change here — including the "no results" case — is announced to
+	 * assistive tech with no extra wiring.
+	 *
+	 * @param {number} total The result count.
+	 * @param {string} query The active search term, if any.
+	 * @return {string}
+	 */
+	function resultSummaryText( total, query ) {
+		var forQuery = query ? ' for "' + query + '"' : '';
+
+		if ( 0 === total ) {
+			return 'No results' + forQuery + '. Try a different search or clear your filters.';
+		}
+
+		return total + ' result' + ( 1 === total ? '' : 's' ) + forQuery;
+	}
+
+	/**
 	 * Initialise the search/filter navigation for one archive nav.
 	 *
 	 * @param {HTMLElement} root The .cannyforge-archive element.
@@ -109,15 +132,22 @@
 				return;
 			}
 
-			function button( label, page, disabled, current ) {
+			function button( label, page, disabled, current, ariaLabel ) {
 				var btn = document.createElement( 'button' );
 				btn.type = 'button';
-				btn.className = 'cannyforge-archive__page';
+				// Shares the server-rendered pagination's class names (see
+				// PaginationRenderer) so the AJAX-driven controls pick up the
+				// same visible styling and focus indicator instead of
+				// rendering unstyled.
+				btn.className = 'cannyforge-pagination__page';
 				if ( current ) {
 					btn.className += ' is-current';
 					btn.setAttribute( 'aria-current', 'page' );
 				}
 				btn.textContent = label;
+				if ( ariaLabel ) {
+					btn.setAttribute( 'aria-label', ariaLabel );
+				}
 				btn.disabled = !! disabled;
 				if ( ! disabled && ! current ) {
 					btn.addEventListener( 'click', function () {
@@ -129,34 +159,34 @@
 			}
 
 			pagination.appendChild(
-				button( '‹ Prev', data.page - 1, ! data.has_prev, false )
+				button( '‹ Prev', data.page - 1, ! data.has_prev, false, 'Previous page' )
 			);
 
 			var span = document.createElement( 'span' );
-			span.className = 'cannyforge-archive__page-status';
+			span.className = 'cannyforge-pagination__page-status';
 			span.textContent = 'Page ' + data.page + ' of ' + data.total_pages;
 			pagination.appendChild( span );
 
 			pagination.appendChild(
-				button( 'Next ›', data.page + 1, ! data.has_next, false )
+				button( 'Next ›', data.page + 1, ! data.has_next, false, 'Next page' )
 			);
 
 			pagination.hidden = false;
 		}
 
-		function showResults( data ) {
+		function showResults( data, state ) {
 			promoted.hidden = true;
 			results.hidden = false;
 			resultsList.innerHTML = data.html;
 
+			var noResults = data.total === 0;
+
 			if ( empty ) {
-				empty.hidden = data.total !== 0;
+				empty.hidden = ! noResults;
 			}
 
 			if ( summary ) {
-				summary.textContent = data.total === 0
-					? 'No results match your search.'
-					: 'Found ' + data.total + ' result' + ( data.total === 1 ? '' : 's' ) + ' across the whole archive';
+				summary.textContent = resultSummaryText( data.total, state && state.search ? state.search : '' );
 			}
 
 			renderPagination( data );
@@ -186,7 +216,7 @@
 						return; // A newer request superseded this one.
 					}
 					if ( payload && payload.success && payload.data ) {
-						showResults( payload.data );
+						showResults( payload.data, state );
 					}
 				} )
 				.catch( function () {
@@ -242,9 +272,22 @@
 		};
 	}
 
-	document.addEventListener( 'DOMContentLoaded', function () {
-		Array.prototype.slice
-			.call( document.querySelectorAll( '.cannyforge-archive' ) )
-			.forEach( init );
-	} );
+	if ( 'undefined' !== typeof document ) {
+		document.addEventListener( 'DOMContentLoaded', function () {
+			Array.prototype.slice
+				.call( document.querySelectorAll( '.cannyforge-archive' ) )
+				.forEach( init );
+		} );
+	}
+
+	// Exposed for unit tests only (no-op in the browser: `module` is undefined there).
+	if ( 'undefined' !== typeof module && module.exports ) {
+		module.exports = {
+			readState: readState,
+			isActive: isActive,
+			resultSummaryText: resultSummaryText,
+			debounce: debounce,
+			init: init,
+		};
+	}
 }() );
