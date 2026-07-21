@@ -1,8 +1,8 @@
 # Ticket 611: Restore the release gate and package only runtime files
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In progress
+**Owner:** background-agent
 **Estimate:** M
 **Priority:** P0 — release blocker
 
