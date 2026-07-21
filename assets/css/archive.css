@@ -220,7 +220,10 @@
 }
 
 .cannyforge-archive-filters__search::placeholder {
-	color: color-mix(in srgb, var(--cf-text) 55%, transparent);
+	/* 65% keeps the placeholder visibly lighter than typed text while still
+	 * clearing 4.5:1 against the default palette (computed ~5.4:1 against
+	 * #ffffff with the default #1b143f text colour) — ticket 609. */
+	color: color-mix(in srgb, var(--cf-text) 65%, transparent);
 }
 
 .cannyforge-archive-filters__search:hover,
@@ -256,6 +259,12 @@
 	border: 1px solid color-mix(in srgb, var(--cf-border) 85%, #fff);
 	border-radius: 14px;
 	cursor: pointer;
+}
+
+.cannyforge-archive__link:focus-visible,
+.cannyforge-archive-filters__reset:focus-visible {
+	outline: 3px solid var(--cf-accent);
+	outline-offset: 2px;
 }
 
 .cannyforge-archive__status {
@@ -362,6 +371,21 @@
 	font-weight: 700;
 }
 
+/* "Page X of Y" status text rendered between the Prev/Next buttons by the
+ * client-side (AJAX) pagination — see archive-filters.js. */
+.cannyforge-pagination__page-status {
+	font-weight: 600;
+	font-size: 0.85rem;
+	color: color-mix(in srgb, var(--cf-text) 78%, transparent);
+	padding: 0 0.25rem;
+}
+
+.cannyforge-pagination__page:focus-visible,
+.cannyforge-pagination__archive:focus-visible {
+	outline: 3px solid var(--cf-accent);
+	outline-offset: 2px;
+}
+
 @media (max-width: 700px) {
 	.cannyforge-archive {
 		padding: 0.95rem;
@@ -385,5 +409,36 @@
 	.cannyforge-archive-filters__search,
 	.cannyforge-archive-filters__select {
 		width: 100%;
+	}
+}
+
+/* Respect the OS-level "reduce motion" preference (ticket 609): drop every
+ * animation/transition duration to effectively nothing (rather than
+ * `display: none`, so `animation-fill-mode`/`transitionend`-dependent state
+ * still settles), and cancel the hover/focus transform shifts outright since
+ * those are motion, not just timing. */
+@media (prefers-reduced-motion: reduce) {
+	.cannyforge-archive,
+	.cannyforge-archive__item,
+	.cannyforge-archive__image,
+	.cannyforge-archive__link,
+	.cannyforge-archive-filters__search,
+	.cannyforge-archive-filters__select,
+	.cannyforge-modal__close,
+	.cannyforge-pagination__page,
+	.cannyforge-pagination__archive {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+	}
+
+	.cannyforge-archive__item:hover,
+	.cannyforge-archive.is-layout-list .cannyforge-archive__item:hover,
+	.cannyforge-archive__item:hover .cannyforge-archive__image,
+	.cannyforge-archive-filters__search:focus,
+	.cannyforge-archive-filters__select:focus,
+	.cannyforge-pagination__page:not(.is-current):hover,
+	.cannyforge-pagination__archive:hover {
+		transform: none !important;
 	}
 }

@@ -52,7 +52,11 @@ function settingsPageHtml() {
 								<dialog id="cf-colors-modal" data-cf-dialog="colors" aria-labelledby="cf-colors-modal-title">
 									<button type="button" class="cannyforge-modal__close" aria-label="Close" data-cf-dialog-close>&times;</button>
 									<h3 id="cf-colors-modal-title">Edit Colours</h3>
-									<input type="color" name="theme_accent_color" value="#000000">
+									<input type="color" name="theme_accent_color" value="#6d4aff">
+									<input type="color" name="theme_surface_color" value="#ffffff">
+									<input type="color" name="theme_text_color" value="#1b143f">
+									<input type="color" name="theme_border_color" value="#d8dbe8">
+									<p class="cf-contrast-warning" data-cf-contrast-warning role="status" hidden></p>
 									<button type="button" class="button button-primary" data-cf-dialog-close>Done</button>
 								</dialog>
 							</div>

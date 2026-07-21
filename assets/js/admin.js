@@ -50,6 +50,78 @@
 	var DEVICE_WIDTHS = { desktop: null, tablet: 768, mobile: 375 };
 
 	/**
+	 * The WCAG 2.2 AA contrast-ratio threshold for normal-size text (ticket 609).
+	 */
+	var WCAG_AA_TEXT_CONTRAST = 4.5;
+
+	/**
+	 * Parse a 3- or 6-digit `#hex` colour into 0-255 RGB channels.
+	 *
+	 * Pulled out as a pure function so the contrast maths can be unit tested
+	 * without a DOM/`<input type="color">`.
+	 *
+	 * @param {string} hex A `#rgb` or `#rrggbb` colour string.
+	 * @return {{r: number, g: number, b: number}|null} Parsed channels, or null if unparseable.
+	 */
+	function hexToRgb(hex) {
+		var normalized = String(hex || '').trim().replace(/^#/, '');
+
+		if (3 === normalized.length) {
+			normalized = normalized.replace(/(.)/g, '$1$1');
+		}
+
+		if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+			return null;
+		}
+
+		return {
+			r: parseInt(normalized.substring(0, 2), 16),
+			g: parseInt(normalized.substring(2, 4), 16),
+			b: parseInt(normalized.substring(4, 6), 16),
+		};
+	}
+
+	/**
+	 * WCAG relative luminance of an sRGB colour (0-1).
+	 *
+	 * @see https://www.w3.org/TR/WCAG22/#dfn-relative-luminance
+	 * @param {{r: number, g: number, b: number}} rgb 0-255 RGB channels.
+	 * @return {number} Relative luminance.
+	 */
+	function relativeLuminance(rgb) {
+		var channel = function (value) {
+			var c = value / 255;
+			return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+		};
+
+		return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+	}
+
+	/**
+	 * WCAG contrast ratio between two `#hex` colours, from 1 (no contrast) to 21.
+	 *
+	 * @see https://www.w3.org/TR/WCAG22/#dfn-contrast-ratio
+	 * @param {string} hexA First colour.
+	 * @param {string} hexB Second colour.
+	 * @return {number|null} Contrast ratio, or null if either colour is unparseable.
+	 */
+	function contrastRatio(hexA, hexB) {
+		var a = hexToRgb(hexA);
+		var b = hexToRgb(hexB);
+
+		if (!a || !b) {
+			return null;
+		}
+
+		var luminanceA = relativeLuminance(a);
+		var luminanceB = relativeLuminance(b);
+		var lighter = Math.max(luminanceA, luminanceB);
+		var darker = Math.min(luminanceA, luminanceB);
+
+		return (lighter + 0.05) / (darker + 0.05);
+	}
+
+	/**
 	 * Wire a `<dialog>` element's open/close/backdrop-click/close-on-escape
 	 * behaviour. Native `<dialog showModal()/close()>` already returns focus
 	 * to the invoking element and closes on Escape, so this only needs to
@@ -375,6 +447,74 @@
 		setDirty(false);
 	}
 
+	/**
+	 * Wire a live WCAG AA contrast warning into the "Edit Colours" dialog
+	 * (ticket 609): as the site owner edits the text/accent vs. surface
+	 * colour pickers, show a plain-language warning the moment a pair drops
+	 * below the 4.5:1 ratio normal text needs, and clear it once they fix it.
+	 * The warning region is `role="status"` (implicit `aria-live="polite"`),
+	 * so screen-reader users get the same feedback sighted users see.
+	 */
+	function initContrastWarning() {
+		var dialog = document.getElementById('cf-colors-modal');
+		var warning = dialog ? dialog.querySelector('[data-cf-contrast-warning]') : null;
+		var textInput = dialog ? dialog.querySelector('[name="theme_text_color"]') : null;
+		var surfaceInput = dialog ? dialog.querySelector('[name="theme_surface_color"]') : null;
+		var accentInput = dialog ? dialog.querySelector('[name="theme_accent_color"]') : null;
+
+		if (!dialog || !warning || !textInput || !surfaceInput) {
+			return;
+		}
+
+		var l10n = root.CannyForgeAdminL10n || {};
+
+		var formatRatio = function (ratio) {
+			return Math.round(ratio * 100) / 100;
+		};
+
+		var pairWarning = function (template, fallback, foreground) {
+			var ratio = contrastRatio(foreground, surfaceInput.value);
+			if (null === ratio || ratio >= WCAG_AA_TEXT_CONTRAST) {
+				return null;
+			}
+			return (template || fallback).replace('%s', String(formatRatio(ratio)));
+		};
+
+		var update = function () {
+			var messages = [];
+			var textMessage = pairWarning(
+				l10n.contrastTextWarning,
+				'Text vs. surface contrast is %s:1 — WCAG AA requires at least 4.5:1.',
+				textInput.value
+			);
+			if (textMessage) {
+				messages.push(textMessage);
+			}
+
+			if (accentInput) {
+				var accentMessage = pairWarning(
+					l10n.contrastAccentWarning,
+					'Accent vs. surface contrast is %s:1 — WCAG AA requires at least 4.5:1.',
+					accentInput.value
+				);
+				if (accentMessage) {
+					messages.push(accentMessage);
+				}
+			}
+
+			warning.textContent = messages.join(' ');
+			warning.hidden = 0 === messages.length;
+		};
+
+		[textInput, surfaceInput, accentInput].forEach(function (input) {
+			if (input) {
+				input.addEventListener('input', update);
+			}
+		});
+
+		update();
+	}
+
 	function init() {
 		initGenericDialogs();
 		initGoogleWizardDialogs();
@@ -382,6 +522,7 @@
 		initPanelToggles();
 		initPreviewDevices();
 		initDirtyState();
+		initContrastWarning();
 	}
 
 	if ('undefined' !== typeof document) {
@@ -394,6 +535,9 @@
 			computeDeviceScale: computeDeviceScale,
 			nextDirtyState: nextDirtyState,
 			wireDialog: wireDialog,
+			hexToRgb: hexToRgb,
+			relativeLuminance: relativeLuminance,
+			contrastRatio: contrastRatio,
 			init: init,
 		};
 	}
