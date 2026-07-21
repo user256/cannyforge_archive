@@ -1,8 +1,8 @@
 # Ticket 614: Enforce least-privilege Google OAuth and revoke credentials on disconnect
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In progress
+**Owner:** background-agent
 **Estimate:** M
 **Priority:** P0 — security/privacy
 
