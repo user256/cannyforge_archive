@@ -246,11 +246,17 @@
 			}
 
 			if (copyButton && callbackCode && navigator.clipboard && navigator.clipboard.writeText) {
+				// Capture the server-rendered (already localised) label instead of
+				// hardcoding the revert text, so only the transient "Copied" state
+				// needs its own localised string (ticket 610).
+				var copyDefaultLabel = copyButton.textContent;
+				var copiedLabel = (root.CannyForgeAdminL10n && root.CannyForgeAdminL10n.copiedLabel) || 'Copied';
+
 				copyButton.addEventListener('click', function () {
 					navigator.clipboard.writeText(callbackCode.textContent || '');
-					copyButton.textContent = 'Copied';
+					copyButton.textContent = copiedLabel;
 					window.setTimeout(function () {
-						copyButton.textContent = 'Copy Redirect URI';
+						copyButton.textContent = copyDefaultLabel;
 					}, 1600);
 				});
 			}

@@ -275,8 +275,16 @@ if ( ! function_exists( 'home_url' ) ) {
 if ( ! function_exists( 'wp_safe_redirect' ) ) {
 	/**
 	 * Record a redirect that would be sent (recorded for inspection; sends no
+	 * real Location header in the test runtime).
+	 *
+	 * Record a redirect that would be sent (recorded for inspection; sends no
 	 * real Location header in the test runtime). Callers still must `exit`
 	 * themselves afterwards, exactly as in production — this shim does not.
+	 * This is the global, real-WordPress-contract version (bool return);
+	 * `Frontend\ArchivePage::redirect_tail()` relies on that return value to
+	 * decide whether to try a fallback URL. Admin controllers that assume
+	 * success and unconditionally `exit` get a throwing override scoped to
+	 * their own namespace instead — see `wp-admin-redirect-shim.php`.
 	 *
 	 * @param string $location Redirect target.
 	 * @param int    $status   HTTP status code.

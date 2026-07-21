@@ -98,6 +98,50 @@ On targeted archive types it filters the theme's pagination output. Themes that
 render pagination in a non-standard way can use the `[cannyforge_pagination]`
 shortcode or the template tag instead.
 
+= If I deactivate the plugin (or turn off pagination targeting), do I get my normal pagination back? =
+
+Yes, completely and immediately. The shortened pagination is applied by
+filtering WordPress's own pagination output at render time (`navigation_markup_template`);
+nothing is written to your permalinks, post content, or database schema.
+Deactivating the plugin, or unchecking an archive type under Pagination
+Targeting in settings, restores the theme's default numbered pagination on
+the very next page load — there is no residue to clean up.
+
+= Exactly what data is sent to Google, and when? =
+
+Nothing is sent to Google unless you explicitly configure Google credentials
+and click Connect (or manually refresh a Google-backed cache) — never on
+install and never by default. Once connected, only these get sent: your
+configured OAuth Client ID/Secret (to exchange and refresh access tokens),
+your Search Console property identifier and/or GA4 property ID (when
+requesting top-page rows), and the resulting Google access token with those
+API requests. See the "External services" section above for the full
+disclosure, including exactly which OAuth scopes are requested and how
+disconnecting revokes them.
+
+= How does the archive cache behave, and when does it refresh? =
+
+The rendered archive HTML is cached per mode (Blog / News / Hybrid) using the
+WordPress Transients API for up to 24 hours. That cache is cleared
+immediately — not after the TTL — whenever you save the plugin's settings, or
+whenever a post/page is saved or deleted, or a term or author changes, so the
+archive reflects your latest configuration and content right away in the
+cases that matter. A change written directly to the `cannyforge_archive_settings`
+option outside the settings UI (bypassing that save action) only takes effect
+on the next invalidating event or once the 24-hour TTL expires.
+
+== Screenshots ==
+
+1. The settings page: archive mode, content selection, theme, pagination, and Google top-content setup in one screen.
+2. The generated archive / HTML sitemap page, with the client-side search and category / tag / month / author filters.
+3. The shortened pagination block ("1, 2, 3 … View Archive") replacing a theme's default deep pagination run on a targeted archive listing.
+
+Note for reviewers: the numbered captions above are reserved, but the
+screenshot image files themselves are not yet included in this submission —
+see the plugin's ticket 610 decisions log for why (capturing them needs a
+real rendered WordPress site, not available at generation time) and ticket
+618 for the follow-up to capture and add them before this listing goes live.
+
 == Changelog ==
 
 = 0.1.1 =

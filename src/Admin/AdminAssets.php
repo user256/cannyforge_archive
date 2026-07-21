@@ -102,6 +102,7 @@ final class AdminAssets {
 			array(
 				'savedLabel'            => __( 'All changes saved', 'cannyforge-archive' ),
 				'draftLabel'            => __( 'Draft changes', 'cannyforge-archive' ),
+				'copiedLabel'           => __( 'Copied', 'cannyforge-archive' ),
 				/* translators: %s is replaced client-side with the computed contrast ratio, e.g. "2.1". */
 				'contrastTextWarning'   => __( 'Text vs. surface contrast is %s:1 — WCAG AA requires at least 4.5:1.', 'cannyforge-archive' ),
 				/* translators: %s is replaced client-side with the computed contrast ratio, e.g. "2.1". */

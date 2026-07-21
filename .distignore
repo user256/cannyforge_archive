@@ -50,5 +50,9 @@ WordPressAudit.md
 # robust than chasing individual filenames.
 *.py
 
+# wp.org SVN /assets (banner/icon/screenshots) — lives in the SVN assets/
+# directory, never inside the plugin's own trunk/tag folder (ticket 610).
+.wordpress-org
+
 # This file itself
 .distignore
