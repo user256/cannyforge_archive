@@ -76,6 +76,32 @@ class ContentQueryTest extends TestCase {
 	}
 
 	/**
+	 * An oversized search term is clamped to the bounded length rather than
+	 * forwarded raw into the eventual `WP_Query` `s` argument.
+	 *
+	 * @return void
+	 */
+	public function test_search_term_is_length_clamped(): void {
+		$oversized = str_repeat( 'a', ContentQuery::MAX_SEARCH_LENGTH + 500 );
+
+		$query = new ContentQuery( $oversized );
+
+		$this->assertSame( ContentQuery::MAX_SEARCH_LENGTH, strlen( $query->search() ) );
+		$this->assertSame( str_repeat( 'a', ContentQuery::MAX_SEARCH_LENGTH ), $query->search() );
+	}
+
+	/**
+	 * A search term within the bound is left untouched.
+	 *
+	 * @return void
+	 */
+	public function test_search_term_within_bound_is_untouched(): void {
+		$query = new ContentQuery( 'crawl budget' );
+
+		$this->assertSame( 'crawl budget', $query->search() );
+	}
+
+	/**
 	 * The from_array() factory coerces and defaults each field.
 	 *
 	 * @return void

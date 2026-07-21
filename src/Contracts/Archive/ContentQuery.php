@@ -30,6 +30,12 @@ final class ContentQuery {
 	public const MAX_PER_PAGE = 100;
 
 	/**
+	 * Hard upper bound on the search term length, so a hostile oversized string
+	 * can't be forwarded raw into the `WP_Query` `s` argument (ticket 601).
+	 */
+	public const MAX_SEARCH_LENGTH = 200;
+
+	/**
 	 * Free-text search term ('' = no term).
 	 *
 	 * @var string
@@ -98,7 +104,7 @@ final class ContentQuery {
 		int $page = 1,
 		int $per_page = 20
 	) {
-		$this->search   = trim( $search );
+		$this->search   = $this->clamp_search( $search );
 		$this->category = trim( $category );
 		$this->tag      = trim( $tag );
 		$this->author   = trim( $author );
@@ -249,5 +255,15 @@ final class ContentQuery {
 		}
 
 		return min( $per_page, self::MAX_PER_PAGE );
+	}
+
+	/**
+	 * Trim a search term and clamp it to a bounded length.
+	 *
+	 * @param string $search Raw search term.
+	 * @return string
+	 */
+	private function clamp_search( string $search ): string {
+		return trim( mb_substr( trim( $search ), 0, self::MAX_SEARCH_LENGTH ) );
 	}
 }
