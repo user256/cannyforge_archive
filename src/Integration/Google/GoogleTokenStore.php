@@ -16,8 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Stores Google OAuth token state in dedicated option keys.
  *
- * The refresh token is encrypted at rest; the access token is cached with an
- * absolute expiry and a 90-second safety buffer.
+ * Both the refresh token and the cached access token are encrypted at rest
+ * (ticket 614) via {@see SecretCipher}; the access token also carries an
+ * absolute expiry and a 90-second safety buffer. {@see SecretCipher} decrypts
+ * an untagged legacy plaintext value to itself, so a site upgrading from the
+ * pre-614 plaintext access token keeps working without a migration step.
  */
 final class GoogleTokenStore {
 	/**
@@ -135,18 +138,18 @@ final class GoogleTokenStore {
 		$access  = (string) ( $this->get_option )( self::ACCESS_TOKEN_KEY, '' );
 		$expires = (int) ( $this->get_option )( self::ACCESS_TOKEN_EXPIRES_AT_KEY, 0 );
 
-		return ( '' !== $access && $expires > ( $now + 90 ) ) ? $access : '';
+		return ( '' !== $access && $expires > ( $now + 90 ) ) ? $this->cipher->decrypt( $access ) : '';
 	}
 
 	/**
-	 * Cache an access token with its absolute expiry.
+	 * Cache an access token, encrypted at rest, with its absolute expiry.
 	 *
 	 * @param string $access     Access token.
 	 * @param int    $expires_at Absolute Unix expiry.
 	 * @return void
 	 */
 	public function save_access_token( string $access, int $expires_at ): void {
-		( $this->set_option )( self::ACCESS_TOKEN_KEY, $access );
+		( $this->set_option )( self::ACCESS_TOKEN_KEY, $this->cipher->encrypt( $access ) );
 		( $this->set_option )( self::ACCESS_TOKEN_EXPIRES_AT_KEY, $expires_at );
 	}
 

@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
 use CannyForge\Archive\Integration\Google\GoogleOauthClient;
+use CannyForge\Archive\Integration\Google\GoogleOauthScopePolicy;
+use CannyForge\Archive\Integration\Google\GoogleRevocationService;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
@@ -125,23 +127,33 @@ final class GoogleConnectionController {
 	private Ga4CacheStore $ga4_cache;
 
 	/**
+	 * Best-effort Google token revocation, shared with uninstall (ticket 606).
+	 *
+	 * @var GoogleRevocationService
+	 */
+	private GoogleRevocationService $revocation;
+
+	/**
 	 * Construct the controller.
 	 *
-	 * @param GoogleSettingsStore     $settings     Google settings store.
-	 * @param GoogleTokenStore        $tokens       Google token store.
-	 * @param SearchConsoleCacheStore $search_cache Search Console cache store.
-	 * @param Ga4CacheStore|null      $ga4_cache    GA4 cache store.
+	 * @param GoogleSettingsStore          $settings     Google settings store.
+	 * @param GoogleTokenStore             $tokens       Google token store.
+	 * @param SearchConsoleCacheStore      $search_cache Search Console cache store.
+	 * @param Ga4CacheStore|null           $ga4_cache    GA4 cache store.
+	 * @param GoogleRevocationService|null $revocation   Token revocation service.
 	 */
 	public function __construct(
 		GoogleSettingsStore $settings,
 		GoogleTokenStore $tokens,
 		SearchConsoleCacheStore $search_cache,
-		?Ga4CacheStore $ga4_cache = null
+		?Ga4CacheStore $ga4_cache = null,
+		?GoogleRevocationService $revocation = null
 	) {
 		$this->settings     = $settings;
 		$this->tokens       = $tokens;
 		$this->search_cache = $search_cache;
 		$this->ga4_cache    = $ga4_cache ?? new Ga4CacheStore();
+		$this->revocation   = $revocation ?? new GoogleRevocationService( $tokens );
 	}
 
 	/**
@@ -179,7 +191,7 @@ final class GoogleConnectionController {
 			'client_id'              => $settings->client_id(),
 			'redirect_uri'           => $this->callback_url(),
 			'response_type'          => 'code',
-			'scope'                  => 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly',
+			'scope'                  => GoogleOauthScopePolicy::scope_string( $settings ),
 			'access_type'            => 'offline',
 			'prompt'                 => 'consent',
 			'state'                  => $state,
@@ -198,13 +210,19 @@ final class GoogleConnectionController {
 	public function handle_callback(): void {
 		$this->require_capability();
 		$callback = $this->callback_request();
+
+		// The CSRF state transient is validated and consumed before anything
+		// else touches token status (ticket 614): an attacker hitting this
+		// endpoint directly with `?error=...` and no/invalid state must not be
+		// able to flip the connection into an error state.
+		$this->assert_valid_state( $callback['state'] );
+
 		if ( '' !== $callback['error'] ) {
 			$this->tokens->set_status( GoogleTokenStore::STATUS_ERROR );
 			$this->redirect_to_settings( $callback['error'], self::NOTICE_ERROR );
 		}
 
-		$this->assert_callback_has_code_and_state( $callback['code'], $callback['state'] );
-		$this->assert_valid_state( $callback['state'] );
+		$this->assert_callback_has_code( $callback['code'] );
 
 		$client = $this->oauth_client();
 		if ( ! $client->connect( $callback['code'], $this->callback_url() ) ) {
@@ -225,18 +243,26 @@ final class GoogleConnectionController {
 	/**
 	 * Disconnect the stored Google connection.
 	 *
+	 * Makes a best-effort call to Google's revocation endpoint before local
+	 * cleanup (ticket 614). Local state and caches are always cleared, even
+	 * when the remote call fails or there is nothing to revoke, so disconnect
+	 * remains idempotent and never leaves stale credentials behind locally.
+	 *
 	 * @return void
 	 */
 	public function disconnect(): void {
 		$this->require_capability();
 		check_admin_referer( self::DISCONNECT_NONCE_ACTION, self::DISCONNECT_NONCE_FIELD );
 
-		$this->tokens->clear();
+		$revoked = $this->revocation->revoke_and_clear();
 		$this->search_cache->clear();
 		$this->ga4_cache->clear();
+
 		$this->redirect_to_settings(
-			__( 'Google disconnected.', 'cannyforge-archive' ),
-			self::NOTICE_SUCCESS
+			$revoked
+				? __( 'Google disconnected.', 'cannyforge-archive' )
+				: __( 'Google disconnected locally, but Google could not confirm the access grant was revoked. You can revoke it manually from your Google Account permissions.', 'cannyforge-archive' ),
+			$revoked ? self::NOTICE_SUCCESS : self::NOTICE_ERROR
 		);
 	}
 
@@ -305,20 +331,22 @@ final class GoogleConnectionController {
 	}
 
 	/**
-	 * Redirect with an error when the callback omitted the required values.
+	 * Redirect with an error when the callback omitted the authorization code.
 	 *
-	 * @param string $code  Callback code.
-	 * @param string $state Callback state.
+	 * Called only after {@see self::assert_valid_state()} has already
+	 * validated the CSRF state, so this is safe to let mutate token status.
+	 *
+	 * @param string $code Callback code.
 	 * @return void
 	 */
-	private function assert_callback_has_code_and_state( string $code, string $state ): void {
-		if ( '' !== $code && '' !== $state ) {
+	private function assert_callback_has_code( string $code ): void {
+		if ( '' !== $code ) {
 			return;
 		}
 
 		$this->tokens->set_status( GoogleTokenStore::STATUS_ERROR );
 		$this->redirect_to_settings(
-			__( 'Google callback did not include the expected code/state values.', 'cannyforge-archive' ),
+			__( 'Google callback did not include the expected code value.', 'cannyforge-archive' ),
 			self::NOTICE_ERROR
 		);
 	}
