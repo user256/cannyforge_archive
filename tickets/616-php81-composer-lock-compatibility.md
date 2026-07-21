@@ -25,7 +25,7 @@ verified PHP version.
       compatibility-policy change is approved.
 - [x] Make `composer install` succeed on PHP 8.1, or update the declared
       minimum version, readme, and CI together if support is dropped.
-- [ ] Run all QA gates in the claimed minimum-version CI environment.
+- [x] Run all QA gates in the claimed minimum-version CI environment.
 - [x] Prevent a newer-local-PHP lock refresh from silently breaking the
       supported floor again.
 
@@ -46,6 +46,8 @@ verified PHP version.
   validate`, a dry-run dependency update, and install from the regenerated
   lock all pass locally. The full QA gates were run on PHP 8.3.6; the
   workflow's PHP 8.1 run remains the final minimum-runtime verification.
+- 2026-07-21 — GitHub Actions run 29830681989 passed the PHP 8.1 quality
+  gates and the Node 20 Jest gate on PR #6.
 
 ---
 
