@@ -1,8 +1,8 @@
 # Ticket 615: Prevent duplicate SEO tags and define canonical ownership
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In progress
+**Owner:** background-agent
 **Estimate:** M
 **Priority:** P1 — SEO correctness
 
