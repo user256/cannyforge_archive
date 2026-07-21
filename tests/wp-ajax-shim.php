@@ -64,11 +64,19 @@ if ( ! function_exists( 'wp_send_json_error' ) ) {
 	/**
 	 * In-memory wp_send_json_error: records the payload instead of echoing
 	 * JSON and terminating the process, so a test can assert on it directly.
+	 * Matches the real function's optional status-code argument (ticket 608:
+	 * the search throttle sends 429) by delegating to the `status_header`
+	 * shim, so a test can assert on the code via `HookSpy`.
 	 *
-	 * @param mixed $data Response data.
+	 * @param mixed    $data        Response data.
+	 * @param int|null $status_code Optional HTTP status code to send.
 	 * @return void
 	 */
-	function wp_send_json_error( $data = null ): void {
+	function wp_send_json_error( $data = null, ?int $status_code = null ): void {
+		if ( null !== $status_code ) {
+			status_header( $status_code );
+		}
+
 		AjaxResponseSpy::record_error( $data );
 	}
 }

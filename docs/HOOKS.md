@@ -85,6 +85,40 @@ add_filter( SeoHead::FILTER, function ( string $tags, $provider ): string {
 }, 10, 2 );
 ```
 
+### `cannyforge_archive_search_throttle_limit`
+
+Applied to the number of requests a single IP may make to the whole-database
+search endpoint (`ArchiveSearchEndpoint`) per window before it is throttled
+with a 429-style JSON error (ticket 608).
+
+**Parameters:**
+- `$limit` (`int`) — The default per-window limit (`30`).
+
+**Example — allow more requests per window:**
+```php
+use CannyForge\Archive\Core\RateLimit\SearchThrottle;
+
+add_filter( SearchThrottle::LIMIT_FILTER, function ( int $limit ): int {
+    return 100;
+} );
+```
+
+### `cannyforge_archive_search_throttle_window`
+
+Applied to the throttle's window length, in seconds (ticket 608).
+
+**Parameters:**
+- `$window` (`int`) — The default window length (`MINUTE_IN_SECONDS`, i.e. 60).
+
+**Example — a 5-minute window instead of 1 minute:**
+```php
+use CannyForge\Archive\Core\RateLimit\SearchThrottle;
+
+add_filter( SearchThrottle::WINDOW_FILTER, function ( int $window ): int {
+    return 5 * MINUTE_IN_SECONDS;
+} );
+```
+
 ## SEO tag ownership and precedence (ticket 615)
 
 The archive page produces one authoritative set of SEO directives — no
@@ -142,4 +176,5 @@ add_action( 'cannyforge_archive_after_render', function (): void {
 
 Fired inside {@see \CannyForge\Archive\Core\Settings\OptionsSettingsRepository::save()}
 after settings have been persisted. Used internally by the cache invalidator to
-flush the archive HTML transient when configuration changes.
+flush the archive HTML transient and the whole-database search response cache
+(ticket 608) when configuration changes.

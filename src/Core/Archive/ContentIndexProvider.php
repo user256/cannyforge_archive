@@ -189,21 +189,40 @@ class ContentIndexProvider {
 	}
 
 	/**
-	 * Count the posts matching a query, cheaply (IDs only, no found-rows pass).
+	 * Build the `WP_Query` args used to derive the total match count.
+	 *
+	 * Bounded (ticket 608): fetches a single ID (`posts_per_page => 1`,
+	 * `fields => 'ids'`) rather than the previous `posts_per_page => -1`, which
+	 * materialised every matching post row — unbounded on a site with tens of
+	 * thousands of posts. The total still comes back exact because WordPress
+	 * computes `found_posts` via `SQL_CALC_FOUND_ROWS`/a `COUNT(*)` query
+	 * regardless of the `LIMIT` (`no_found_rows` is left at its default
+	 * `false` specifically so that calculation runs); {@see self::count()}
+	 * reads `$wp_query->found_posts` rather than counting the returned rows.
+	 *
+	 * @param ContentQuery $query The request.
+	 * @return array<string, mixed>
+	 */
+	public function build_count_args( ContentQuery $query ): array {
+		$args                   = $this->build_query_args( $query );
+		$args['fields']         = 'ids';
+		$args['posts_per_page'] = 1;
+		unset( $args['paged'] );
+
+		return $args;
+	}
+
+	/**
+	 * Count the posts matching a query, cheaply (a single bounded row fetch;
+	 * see {@see self::build_count_args()}).
 	 *
 	 * @param ContentQuery $query The request.
 	 * @return int
 	 */
 	private function count( ContentQuery $query ): int {
-		$args                   = $this->build_query_args( $query );
-		$args['fields']         = 'ids';
-		$args['posts_per_page'] = -1;
-		$args['no_found_rows']  = true;
-		unset( $args['paged'] );
+		$wp_query = new \WP_Query( $this->build_count_args( $query ) );
 
-		$wp_query = new \WP_Query( $args );
-
-		return count( $wp_query->posts );
+		return (int) $wp_query->found_posts;
 	}
 
 	/**

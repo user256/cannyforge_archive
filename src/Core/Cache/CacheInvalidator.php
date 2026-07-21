@@ -16,28 +16,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Hooks into WordPress post lifecycle, taxonomy term lifecycle, user profile
  * changes, and plugin settings save events to clear the rendered archive HTML
- * transient.
+ * transient plus the whole-database search response cache (ticket 608).
  *
- * Term and user hooks matter because the cached HTML embeds the whole-database
- * filter-control option lists ({@see \CannyForge\Archive\Core\Archive\FilterOptionsProvider}) —
- * category/tag names and author display names — not just the promoted entries,
- * so a rename or deletion of any of those needs to invalidate the cache too.
+ * Term and user hooks matter because both caches embed whole-database data
+ * beyond just the promoted/matched entries — the HTML cache embeds the
+ * filter-control option lists ({@see \CannyForge\Archive\Core\Archive\FilterOptionsProvider}),
+ * and each cached search response embeds rendered entry HTML carrying
+ * category/tag names and author display names — so a rename or deletion of
+ * any of those needs to invalidate both caches, not just a post save/delete.
  */
 final class CacheInvalidator {
 	/**
-	 * The cache instance to invalidate.
+	 * The HTML fragment cache to invalidate.
 	 *
 	 * @var ArchiveCache
 	 */
 	private ArchiveCache $cache;
 
 	/**
+	 * The search response cache to invalidate.
+	 *
+	 * @var SearchResultCache
+	 */
+	private SearchResultCache $search_cache;
+
+	/**
 	 * Construct the invalidator.
 	 *
-	 * @param ArchiveCache $cache The archive cache.
+	 * @param ArchiveCache           $cache        The archive HTML cache.
+	 * @param SearchResultCache|null $search_cache The search response cache.
 	 */
-	public function __construct( ArchiveCache $cache ) {
-		$this->cache = $cache;
+	public function __construct( ArchiveCache $cache, ?SearchResultCache $search_cache = null ) {
+		$this->cache        = $cache;
+		$this->search_cache = $search_cache ?? new SearchResultCache();
 	}
 
 	/**
@@ -63,11 +74,12 @@ final class CacheInvalidator {
 	}
 
 	/**
-	 * Clear the archive cache.
+	 * Clear the archive HTML cache and the search response cache.
 	 *
 	 * @return void
 	 */
 	public function invalidate(): void {
 		$this->cache->clear();
+		$this->search_cache->clear();
 	}
 }

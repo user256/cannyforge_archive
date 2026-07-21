@@ -105,4 +105,74 @@ class ContentIndexProviderTest extends TestCase {
 		$this->assertSame( 2024, $args['date_query'][0]['year'] );
 		$this->assertSame( 3, $args['date_query'][0]['month'] );
 	}
+
+	// -- Ticket 608: bounded queries only ------------------------------------
+
+	/**
+	 * No combination of request input ever produces a `posts_per_page => -1`
+	 * (or any other `-1`) value in the args handed to `WP_Query` for the main
+	 * paginated query — a guard against the unbounded query this ticket
+	 * removes (on the count path) ever coming back.
+	 *
+	 * @return void
+	 */
+	public function test_build_query_args_never_contains_unbounded_value(): void {
+		foreach ( $this->representative_queries() as $query ) {
+			$this->assert_no_negative_one( $this->args( $query ), 'build_query_args' );
+		}
+	}
+
+	/**
+	 * The total-count args are always a single, bounded, ids-only fetch —
+	 * never the old `posts_per_page => -1` full materialisation — regardless
+	 * of the requested page/page-size (even hostile ones; {@see ContentQuery}
+	 * clamps those before they ever reach here, but the guard holds
+	 * independently of that clamping too).
+	 *
+	 * @return void
+	 */
+	public function test_build_count_args_never_contains_unbounded_value(): void {
+		foreach ( $this->representative_queries() as $query ) {
+			$args = ( new ContentIndexProvider() )->build_count_args( $query );
+
+			$this->assert_no_negative_one( $args, 'build_count_args' );
+			$this->assertSame( 1, $args['posts_per_page'], 'The count query must fetch a single bounded row; the total comes from found_posts, not row count.' );
+			$this->assertSame( 'ids', $args['fields'] );
+			$this->assertArrayNotHasKey( 'paged', $args );
+		}
+	}
+
+	/**
+	 * A representative spread of queries, including edge-case paging input,
+	 * to run the guard assertions against.
+	 *
+	 * @return ContentQuery[]
+	 */
+	private function representative_queries(): array {
+		return array(
+			new ContentQuery(),
+			new ContentQuery( 'search term', 'category', 'tag', 'author', '2024-01', 1, 1 ),
+			new ContentQuery( '', '', '', '', '', 999999, 999999 ),
+		);
+	}
+
+	/**
+	 * Assert that no integer value anywhere in a `WP_Query` args array is
+	 * `-1` (WordPress's own "no limit" sentinel for `posts_per_page`, and the
+	 * value this ticket's bounded-query fix removes from the count path).
+	 *
+	 * @param array<string, mixed> $args  The args array to inspect.
+	 * @param string               $label Which builder produced the args (for the failure message).
+	 * @return void
+	 */
+	private function assert_no_negative_one( array $args, string $label ): void {
+		array_walk_recursive(
+			$args,
+			function ( $value ) use ( $label ): void {
+				if ( is_int( $value ) ) {
+					$this->assertNotSame( -1, $value, "{$label}() must never produce a -1 (unbounded) value reaching WP_Query." );
+				}
+			}
+		);
+	}
 }
