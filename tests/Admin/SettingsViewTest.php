@@ -11,6 +11,7 @@ namespace CannyForge\Archive\Tests\Admin;
 
 use CannyForge\Archive\Admin\SettingsView;
 use CannyForge\Archive\Contracts\Settings\Settings;
+use CannyForge\Archive\Integration\Google\GoogleSettings;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -45,6 +46,29 @@ class SettingsViewTest extends TestCase {
 		$this->assertStringContainsString( 'Disconnect', $html );
 		$this->assertStringContainsString( 'Refresh Search Console', $html );
 		$this->assertStringContainsString( 'Refresh GA4', $html );
+		$this->assertStringContainsString( 'data-cf-google-consent-copy', $html );
+		$this->assertStringContainsString( 'Search Console (read-only)', $html );
+		$this->assertStringNotContainsString( 'Google Analytics 4 (read-only)', $html );
+	}
+
+	/**
+	 * The pre-connect consent copy names Analytics too once GA4 is configured
+	 * (ticket 614: scopes shown must match what will actually be requested).
+	 *
+	 * @return void
+	 */
+	public function test_consent_copy_names_analytics_when_ga4_is_configured(): void {
+		ob_start();
+		( new SettingsView() )->render(
+			Settings::from_array( array( 'mode' => 'blog' ) ),
+			'admin.php?page=cannyforge-archive',
+			'',
+			new GoogleSettings( '', '', '', 30, '123456789' )
+		);
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'Search Console (read-only)', $html );
+		$this->assertStringContainsString( 'Google Analytics 4 (read-only)', $html );
 	}
 
 	/**

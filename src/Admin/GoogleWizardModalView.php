@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CannyForge\Archive\Integration\Google\GoogleSettings;
+use CannyForge\Archive\Integration\Google\GoogleOauthScopePolicy;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 
 /**
@@ -60,7 +61,7 @@ final class GoogleWizardModalView {
 		$this->render_step_properties();
 		$this->render_step_save_details( $settings, $secret_saved, $status );
 		$this->render_step_ga4_optional( $settings, $ga4_enabled );
-		$this->render_step_connect( $connect_url, $disconnect_url );
+		$this->render_step_connect( $settings, $connect_url, $disconnect_url );
 		echo '</ol>';
 
 		echo '<p class="submit"><button type="submit" class="button button-primary">' . esc_html__( 'Save Google details', 'cannyforge-archive' ) . '</button></p>';
@@ -192,16 +193,46 @@ final class GoogleWizardModalView {
 	/**
 	 * Render wizard step 8: connect and refresh actions.
 	 *
-	 * @param string $connect_url    Connect action URL.
-	 * @param string $disconnect_url Disconnect action URL.
+	 * @param GoogleSettings $settings       Current Google settings.
+	 * @param string         $connect_url    Connect action URL.
+	 * @param string         $disconnect_url Disconnect action URL.
 	 * @return void
 	 */
-	private function render_step_connect( string $connect_url, string $disconnect_url ): void {
+	private function render_step_connect( GoogleSettings $settings, string $connect_url, string $disconnect_url ): void {
 		echo '<li>';
 		echo '<strong>' . esc_html__( 'Connect Google and refresh the cache', 'cannyforge-archive' ) . '</strong>';
 		echo '<p>' . esc_html__( 'After saving the details, connect the Google account that has Search Console access and GA4 access if you enabled the fallback. Then refresh Search Console and optionally GA4 to populate the archive cache.', 'cannyforge-archive' ) . '</p>';
+		$this->render_google_consent_copy( $settings );
 		$this->render_google_actions( $connect_url, $disconnect_url );
 		echo '</li>';
+	}
+
+	/**
+	 * Render the scopes-to-be-requested consent copy shown before Connect.
+	 *
+	 * This renders exactly the scope set returned by the central OAuth policy,
+	 * so the visible consent copy cannot omit a scope the redirect requests.
+	 *
+	 * @param GoogleSettings $settings Current Google settings.
+	 * @return void
+	 */
+	private function render_google_consent_copy( GoogleSettings $settings ): void {
+		$labels       = array(
+			GoogleOauthScopePolicy::SCOPE_SEARCH_CONSOLE => __( 'Search Console (read-only)', 'cannyforge-archive' ),
+			GoogleOauthScopePolicy::SCOPE_ANALYTICS      => __( 'Google Analytics 4 (read-only)', 'cannyforge-archive' ),
+		);
+		$scope_labels = array_map(
+			static fn ( string $scope ): string => $labels[ $scope ] ?? $scope,
+			GoogleOauthScopePolicy::scopes( $settings )
+		);
+
+		echo '<p class="description" data-cf-google-consent-copy>';
+		printf(
+			/* translators: %s: comma-separated list of read-only Google scopes, e.g. "Search Console (read-only), Google Analytics 4 (read-only)". */
+			esc_html__( 'Connecting will ask Google to grant read-only access to: %s.', 'cannyforge-archive' ),
+			esc_html( implode( ', ', $scope_labels ) )
+		);
+		echo '</p>';
 	}
 
 	/**

@@ -60,10 +60,20 @@ What data is sent:
 * The configured GA4 property ID is sent when requesting report rows.
 * Google access tokens are sent with those API requests.
 
+What access is requested:
+
+* The connect flow always requests the Search Console read-only scope (`https://www.googleapis.com/auth/webmasters.readonly`).
+* The Analytics (GA4) read-only scope (`https://www.googleapis.com/auth/analytics.readonly`) is requested only when a GA4 property ID is configured, so a Search Console-only setup never asks for Analytics access.
+
 When it happens:
 
 * Only when the site owner clicks Connect or manually refreshes the Google-backed cache.
 * Never during wp.org installation or by default on an unconfigured site.
+
+How credentials are stored and removed:
+
+* The client secret, refresh token, and cached access token are encrypted at rest.
+* Clicking Disconnect makes a best-effort call to Google's token revocation endpoint before clearing the locally stored tokens and caches, so the connection is invalidated on Google's side as well as locally. If Google's revocation endpoint cannot be reached, the local credentials are still cleared and the admin is told the remote grant may need to be revoked manually.
 
 Service policies:
 

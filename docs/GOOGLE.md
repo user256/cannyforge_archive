@@ -45,10 +45,18 @@ Both signals share a single OAuth client and connection.
    and save. The secret is encrypted at rest and never rendered back into the
    form.
 
-The connect flow requests these read-only scopes:
+The connect flow requests scopes least-privilege, based on what's actually
+configured (ticket 614):
 
-- `https://www.googleapis.com/auth/webmasters.readonly` (Search Console)
-- `https://www.googleapis.com/auth/analytics.readonly` (GA4)
+- `https://www.googleapis.com/auth/webmasters.readonly` (Search Console) —
+  always requested; it is the primary, always-on signal.
+- `https://www.googleapis.com/auth/analytics.readonly` (GA4) — requested only
+  when a GA4 Property ID is saved. A Search Console-only setup never asks the
+  admin to grant Analytics access it won't use.
+
+The settings page shows the exact scopes that will be requested, next to the
+Connect button, before the admin is redirected to Google — so what's granted
+always matches what's configured, not what the plugin could theoretically use.
 
 ## Search Console configuration
 
@@ -85,3 +93,26 @@ paths and full URLs.
   caches and the stored tokens.
 - Misconfigured or empty Google data degrades cleanly: an unavailable or empty
   Google source simply falls through to the next fallback tier.
+
+## Token storage and disconnect (ticket 614)
+
+- The client secret, the OAuth refresh token, and the cached access token are
+  all encrypted at rest via the same `SecretCipher` (AES-256-CBC, keyed from
+  the WordPress auth salt). A site upgrading from an older version that stored
+  the access token in plaintext keeps working without a manual migration step:
+  an untagged (plaintext) stored value decrypts to itself.
+- Clicking **Disconnect** makes a best-effort call to Google's token
+  revocation endpoint (`https://oauth2.googleapis.com/revoke`) before clearing
+  local state, so the grant is invalidated on Google's side, not just locally.
+  Disconnecting is idempotent: calling it again (or with no stored tokens)
+  does not error, and local cleanup always happens even when the remote call
+  fails, times out, or Google is unreachable — the admin is told when that
+  happens so they can revoke access manually from their Google Account if
+  needed.
+- The OAuth callback validates and consumes the CSRF state transient before
+  anything else can change the connection status, including the provider
+  `error` path — a callback hit directly with a forged `error` parameter and
+  no valid state cannot flip the connection into an error state.
+- Uninstalling the plugin (ticket 606) reuses this same revocation call rather
+  than duplicating the network/token logic, so a stale grant doesn't linger in
+  the admin's Google account after full removal either.

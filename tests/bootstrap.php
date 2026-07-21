@@ -20,3 +20,4 @@ require __DIR__ . '/wp-options-shim.php';
 require __DIR__ . '/wp-transients-shim.php';
 require __DIR__ . '/wp-view-shim.php';
 require __DIR__ . '/wp-hooks-shim.php';
+require __DIR__ . '/wp-admin-post-shim.php';

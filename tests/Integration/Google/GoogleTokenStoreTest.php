@@ -58,6 +58,38 @@ class GoogleTokenStoreTest extends TestCase {
 	}
 
 	/**
+	 * Access tokens are encrypted at rest and decrypt on read (ticket 614).
+	 *
+	 * @return void
+	 */
+	public function test_access_token_is_encrypted_at_rest(): void {
+		$store = new GoogleTokenStore( new SecretCipher( 'test-salt' ) );
+		$store->save_access_token( 'access-token-value', 5000 );
+
+		$this->assertNotSame(
+			'access-token-value',
+			OptionStore::all()['cannyforge_archive_google_access_token'] ?? ''
+		);
+		$this->assertSame( 'access-token-value', $store->valid_access_token( 1000 ) );
+	}
+
+	/**
+	 * A pre-614 plaintext access token (no `enc:` tag) still decrypts to
+	 * itself, so upgrading sites keep a valid cached token without a
+	 * migration step.
+	 *
+	 * @return void
+	 */
+	public function test_legacy_plaintext_access_token_still_reads_correctly(): void {
+		OptionStore::set( 'cannyforge_archive_google_access_token', 'legacy-plaintext-token' );
+		OptionStore::set( 'cannyforge_archive_google_token_expires_at', 5000 );
+
+		$store = new GoogleTokenStore( new SecretCipher( 'test-salt' ) );
+
+		$this->assertSame( 'legacy-plaintext-token', $store->valid_access_token( 1000 ) );
+	}
+
+	/**
 	 * Clearing the token store removes the active connection state.
 	 *
 	 * @return void
