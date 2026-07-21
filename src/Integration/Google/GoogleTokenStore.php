@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Integration\Google;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Stores Google OAuth token state in dedicated option keys.
  *

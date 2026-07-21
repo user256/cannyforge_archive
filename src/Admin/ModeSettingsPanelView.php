@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Integration\Google\GoogleSettings;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
@@ -177,14 +181,29 @@ final class ModeSettingsPanelView {
 		string $notice,
 		string $notice_type
 	): void {
-		echo '<div style="margin-top:1.5rem;padding:1rem;border:1px solid var(--cf-border);border-radius:16px;background:rgba(247,245,255,0.6);">';
-		echo '<h3 style="margin-top:0;">' . esc_html__( 'Google Top Content (Search Console + GA4)', 'cannyforge-archive' ) . '</h3>';
+		echo '<div class="cannyforge-google-wizard">';
+		echo '<h3 class="cannyforge-google-wizard__title">' . esc_html__( 'Google Top Content', 'cannyforge-archive' ) . '</h3>';
 		echo '<p class="description">';
-		echo esc_html__( 'Save the OAuth client details here, then connect a Google account for read-only access. Search Console is the primary signal; an optional GA4 property adds a second one and is only used when Search Console returns nothing. Page renders never call Google directly — use the per-source Refresh buttons to update the cache.', 'cannyforge-archive' );
+		echo esc_html__( 'Use the guided setup to connect Google, choose your content signal, and refresh the archive cache without needing to understand the raw API fields first.', 'cannyforge-archive' );
 		echo '</p>';
 		$this->render_google_notice( $notice, $notice_type );
-		$this->render_google_fields( $settings, $secret_saved, $status );
-		$this->render_google_actions( $connect_url, $disconnect_url );
+		$this->render_google_summary( $settings, $status );
+		echo '<p class="cannyforge-google-wizard__launcher">';
+		printf(
+			'<button type="button" class="button button-primary" data-cf-google-wizard-open>%s</button>',
+			esc_html__( 'Open Google setup wizard', 'cannyforge-archive' )
+		);
+		echo ' ';
+		echo '<span class="description">' . esc_html__( 'You can reopen this any time to update credentials, reconnect, or refresh the cache.', 'cannyforge-archive' ) . '</span>';
+		echo '</p>';
+		$this->render_google_wizard_modal(
+			$settings,
+			$status,
+			$secret_saved,
+			$connect_url,
+			$disconnect_url,
+			$notice
+		);
 		echo '</div>';
 	}
 
@@ -221,6 +240,11 @@ final class ModeSettingsPanelView {
 			? esc_attr__( 'Saved. Leave blank to keep it.', 'cannyforge-archive' )
 			: esc_attr__( 'Paste the client secret, then save settings.', 'cannyforge-archive' );
 
+		echo '<p><label>' . esc_html__( 'Import OAuth client JSON (optional)', 'cannyforge-archive' ) . '<br>';
+		echo '<input type="file" name="google_client_json" accept=".json,application/json"></label></p>';
+		echo '<p class="description">';
+		echo esc_html__( 'In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file here to import the Client ID and Client Secret automatically on save.', 'cannyforge-archive' );
+		echo '</p>';
 		printf(
 			'<p><label>%s <input type="text" name="google_client_id" value="%s" autocomplete="off" style="width:100%%;"></label></p>',
 			esc_html__( 'Google Client ID', 'cannyforge-archive' ),
@@ -243,12 +267,6 @@ final class ModeSettingsPanelView {
 			absint( $settings->report_window_days() )
 		);
 		printf(
-			'<p><label>%s <input type="text" name="google_ga4_property_id" value="%s" placeholder="%s" style="width:100%%;"></label></p>',
-			esc_html__( 'GA4 Property ID (optional)', 'cannyforge-archive' ),
-			esc_attr( $settings->ga4_property_id() ),
-			esc_attr__( 'e.g. 123456789 — leave blank to use Search Console only', 'cannyforge-archive' )
-		);
-		printf(
 			'<p><strong>%s</strong> <span style="display:inline-block;padding:0.2rem 0.55rem;border-radius:999px;background:%s;color:%s;">%s</span></p>',
 			esc_html__( 'Connection status:', 'cannyforge-archive' ),
 			esc_attr( $this->google_status_background( $status ) ),
@@ -262,6 +280,166 @@ final class ModeSettingsPanelView {
 		echo '<p class="description">';
 		echo esc_html__( 'Save Settings after editing the Google fields. Use Connect only after the client details are saved.', 'cannyforge-archive' );
 		echo '</p>';
+	}
+
+	/**
+	 * Render the condensed Google setup summary shown on the main settings page.
+	 *
+	 * @param GoogleSettings $settings Current Google settings.
+	 * @param string         $status   Connection status.
+	 * @return void
+	 */
+	private function render_google_summary( GoogleSettings $settings, string $status ): void {
+		$has_credentials    = '' !== $settings->client_id();
+		$has_search_console = '' !== $settings->search_console_site_url();
+		$has_ga4            = '' !== $settings->ga4_property_id();
+
+		echo '<div class="cannyforge-google-wizard__summary">';
+		$this->render_google_summary_item(
+			__( 'Credentials', 'cannyforge-archive' ),
+			$has_credentials ? __( 'Saved', 'cannyforge-archive' ) : __( 'Needed', 'cannyforge-archive' ),
+			$has_credentials
+		);
+		$this->render_google_summary_item(
+			__( 'Google account', 'cannyforge-archive' ),
+			ucfirst( $status ),
+			GoogleTokenStore::STATUS_CONNECTED === $status
+		);
+		$this->render_google_summary_item(
+			__( 'Search Console property', 'cannyforge-archive' ),
+			$has_search_console ? __( 'Ready', 'cannyforge-archive' ) : __( 'Needed', 'cannyforge-archive' ),
+			$has_search_console
+		);
+		$this->render_google_summary_item(
+			__( 'GA4 fallback', 'cannyforge-archive' ),
+			$has_ga4 ? __( 'Enabled', 'cannyforge-archive' ) : __( 'Off', 'cannyforge-archive' ),
+			$has_ga4
+		);
+		echo '</div>';
+	}
+
+	/**
+	 * Render one status pill inside the Google summary strip.
+	 *
+	 * @param string $label   Summary item label.
+	 * @param string $value   Summary item value.
+	 * @param bool   $is_good Whether the item is in a ready/healthy state.
+	 * @return void
+	 */
+	private function render_google_summary_item( string $label, string $value, bool $is_good ): void {
+		printf(
+			'<div class="cannyforge-google-wizard__summary-item"><span class="cannyforge-google-wizard__summary-label">%1$s</span><span class="cannyforge-google-wizard__summary-value %2$s">%3$s</span></div>',
+			esc_html( $label ),
+			$is_good ? 'is-good' : 'is-pending',
+			esc_html( $value )
+		);
+	}
+
+	/**
+	 * Render the guided Google setup modal.
+	 *
+	 * @param GoogleSettings $settings       Current Google settings.
+	 * @param string         $status         Connection status.
+	 * @param bool           $secret_saved   Whether a client secret is already stored.
+	 * @param string         $connect_url    Connect action URL.
+	 * @param string         $disconnect_url Disconnect action URL.
+	 * @param string         $notice         One-shot notice text.
+	 * @return void
+	 */
+	private function render_google_wizard_modal(
+		GoogleSettings $settings,
+		string $status,
+		bool $secret_saved,
+		string $connect_url,
+		string $disconnect_url,
+		string $notice
+	): void {
+		$ga4_enabled = '' !== $settings->ga4_property_id();
+
+		echo '<dialog class="cannyforge-modal cannyforge-modal--wide" data-cf-google-wizard-dialog data-cf-google-wizard-auto-open="' . esc_attr( '' !== $notice ? '1' : '0' ) . '" aria-labelledby="cf-google-wizard-title">';
+		echo '<button type="button" class="cannyforge-modal__close" aria-label="' . esc_attr__( 'Close wizard', 'cannyforge-archive' ) . '" data-cf-google-wizard-close>&times;</button>';
+		echo '<h2 id="cf-google-wizard-title">' . esc_html__( 'Google top-content setup wizard', 'cannyforge-archive' ) . '</h2>';
+		echo '<p class="description">';
+		echo esc_html__( 'This wizard walks through the whole setup in order: choose your signal, create the Google app, save credentials, connect the account, and refresh the cache.', 'cannyforge-archive' );
+		echo '</p>';
+
+		echo '<ol class="cannyforge-google-wizard__steps">';
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Choose your signal path', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'Search Console is the main source and is enough for most sites. Turn on GA4 only if you also want an analytics fallback when Search Console returns nothing.', 'cannyforge-archive' ) . '</p>';
+		printf(
+			'<label class="cannyforge-google-wizard__toggle"><input type="checkbox" value="1" %1$s data-cf-google-ga4-toggle> %2$s</label>',
+			checked( $ga4_enabled, true, false ),
+			esc_html__( 'Also use GA4 as a fallback signal', 'cannyforge-archive' )
+		);
+		echo '</li>';
+
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Set up Google Auth Platform', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'In Google Cloud, create or select a project, then open Google Auth Platform. If this is a new project and Google shows a Get started prompt, complete that setup first. After that, the main screen you usually need here is Branding.', 'cannyforge-archive' ) . '</p>';
+		echo '<p>';
+		echo '<a class="button button-secondary" href="https://console.cloud.google.com/auth/branding" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open Branding', 'cannyforge-archive' ) . '</a> ';
+		echo '<a class="button button-secondary" href="https://developers.google.com/workspace/guides/configure-oauth-consent" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open Google setup guide', 'cannyforge-archive' ) . '</a>';
+		echo '</p>';
+		echo '<p class="description">' . esc_html__( 'If the app is not yet published and Google treats it as External, add yourself as a test user during the setup flow before trying to connect.', 'cannyforge-archive' ) . '</p>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Create the OAuth web client', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'Open Google Auth Platform > Clients, click Create client, and choose Web application. Give it a clear name such as CannyForge Archive Generator. During client creation, add the Redirect URI from the next step into Authorized redirect URIs. Authorized JavaScript origins are not required for this plugin.', 'cannyforge-archive' ) . '</p>';
+		echo '<p>';
+		echo '<a class="button button-secondary" href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open Clients', 'cannyforge-archive' ) . '</a> ';
+		echo '<a class="button button-secondary" href="https://console.cloud.google.com/apis/library/searchconsole.googleapis.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Enable Search Console API', 'cannyforge-archive' ) . '</a> ';
+		echo '<a class="button button-secondary" href="https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Enable Analytics Data API', 'cannyforge-archive' ) . '</a>';
+		echo '</p>';
+		echo '<p class="description">' . esc_html__( 'Search Console API is required. Enable Analytics Data API only if you plan to use the GA4 fallback. In the client form, scroll to Authorized redirect URIs, click + Add URI, paste the exact callback URL shown below, then click Create.', 'cannyforge-archive' ) . '</p>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Copy and add this Redirect URI', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'In the OAuth web client form, find Authorized redirect URIs, click + Add URI, and paste this exact URL before saving the client. It must match exactly, including `https`, trailing slash, and the full `admin-post.php?action=...` path.', 'cannyforge-archive' ) . '</p>';
+		echo '<code class="cannyforge-wizard-code" data-cf-google-callback-url>' . esc_html( $this->google_callback_url() ) . '</code>';
+		echo '<p><button type="button" class="button" data-cf-google-copy-callback>' . esc_html__( 'Copy Redirect URI', 'cannyforge-archive' ) . '</button></p>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Prepare the properties you want to read', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'In Search Console, use the property selector in the top-left and choose + Add property if this site is not there yet. Use Domain property if you control DNS; otherwise use a URL-prefix property. The Google account you connect here must already have access to that property.', 'cannyforge-archive' ) . '</p>';
+		echo '<p>';
+		echo '<a class="button button-secondary" href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open Search Console', 'cannyforge-archive' ) . '</a> ';
+		echo '<a class="button button-secondary" href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open GA4 Admin', 'cannyforge-archive' ) . '</a>';
+		echo '</p>';
+		echo '<p class="description">' . esc_html__( 'For the Search Console field below, use either `sc-domain:example.com` for a Domain property or the full URL such as `https://example.com/` for a URL-prefix property.', 'cannyforge-archive' ) . '</p>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Save the Google details', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'Either paste the Client ID and Client Secret from the Clients page, or download the OAuth client JSON from Google and import it here. Then enter the Search Console property you prepared above.', 'cannyforge-archive' ) . '</p>';
+		$this->render_google_fields( $settings, $secret_saved, $status );
+		echo '</li>';
+
+		echo '<li data-cf-google-ga4-fields' . ( $ga4_enabled ? '' : ' hidden' ) . '>';
+		echo '<strong>' . esc_html__( 'Optional: add the GA4 fallback property', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'Leave this blank if Search Console is enough. If you enable GA4, enter the numeric GA4 Property ID, not the Measurement ID that starts with `G-`.', 'cannyforge-archive' ) . '</p>';
+		printf(
+			'<p><label>%s <input type="text" name="google_ga4_property_id" value="%s" placeholder="%s" style="width:100%%;"%s></label></p>',
+			esc_html__( 'GA4 Property ID', 'cannyforge-archive' ),
+			esc_attr( $settings->ga4_property_id() ),
+			esc_attr__( 'numeric ID, e.g. 123456789', 'cannyforge-archive' ),
+			$ga4_enabled ? '' : ' disabled'
+		);
+		echo '<p class="description">' . esc_html__( 'Open GA4, go to Admin, select the property, then open Property Settings and copy the numeric Property ID. Do not use the Measurement ID and do not include the `properties/` prefix.', 'cannyforge-archive' ) . '</p>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<strong>' . esc_html__( 'Connect Google and refresh the cache', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'After saving the details, connect the Google account that has Search Console access and GA4 access if you enabled the fallback. Then refresh Search Console and optionally GA4 to populate the archive cache.', 'cannyforge-archive' ) . '</p>';
+		$this->render_google_actions( $connect_url, $disconnect_url );
+		echo '</li>';
+		echo '</ol>';
+
+		echo '<p class="submit"><button type="submit" class="button button-primary">' . esc_html__( 'Save Google details', 'cannyforge-archive' ) . '</button></p>';
+		echo '</dialog>';
 	}
 
 	/**
@@ -303,6 +481,15 @@ final class ModeSettingsPanelView {
 			esc_html__( 'Refresh GA4', 'cannyforge-archive' )
 		);
 		echo '</p>';
+	}
+
+	/**
+	 * The admin-post callback URL that must be registered in Google Cloud.
+	 *
+	 * @return string
+	 */
+	private function google_callback_url(): string {
+		return admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_CALLBACK );
 	}
 
 	/**

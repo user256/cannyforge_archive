@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
 use CannyForge\Archive\Integration\Google\GoogleOauthClient;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;

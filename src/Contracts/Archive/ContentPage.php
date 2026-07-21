@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Contracts\Archive;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Immutable result of a {@see ContentQuery}: the entries on the requested page
  * plus the pagination metadata the front-end needs to render navigation.

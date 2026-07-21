@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Tests\Core\Settings;
 
 use CannyForge\Archive\Contracts\Settings\Mode;
+use CannyForge\Archive\Contracts\Settings\PaginationStyle;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Contracts\Settings\Theme;
 use PHPUnit\Framework\TestCase;
@@ -28,12 +29,17 @@ class SettingsTest extends TestCase {
 
 		$this->assertSame( Mode::Blog, $settings->mode() );
 		$this->assertSame( 1, $settings->pagination_limit() );
+		$this->assertSame( PaginationStyle::Leading, $settings->pagination_style() );
 		$this->assertSame( 72, $settings->news_window_hours() );
 		$this->assertSame( 50, $settings->news_fallback_count() );
 		$this->assertSame( 100, $settings->blog_max_urls() );
 		$this->assertTrue( $settings->link_types()->title() );
 		$this->assertFalse( $settings->link_types()->description() );
 		$this->assertFalse( $settings->link_types()->featured_image() );
+		$this->assertTrue( $settings->link_types()->categories() );
+		$this->assertFalse( $settings->link_types()->tags() );
+		$this->assertTrue( $settings->link_types()->author() );
+		$this->assertTrue( $settings->link_types()->published_date() );
 		$this->assertTrue( $settings->filters()->search() );
 		$this->assertFalse( $settings->filters()->author() );
 		$this->assertTrue( $settings->targeting()->category() );
@@ -54,6 +60,7 @@ class SettingsTest extends TestCase {
 			array(
 				'mode'                => 'news',
 				'pagination_limit'    => 5,
+				'pagination_style'    => 'leading_tail',
 				'news_window_hours'   => 48,
 				'news_fallback_count' => 30,
 				'blog_max_urls'       => 25,
@@ -66,6 +73,7 @@ class SettingsTest extends TestCase {
 
 		$this->assertSame( Mode::News, $restored->mode() );
 		$this->assertSame( 5, $restored->pagination_limit() );
+		$this->assertSame( PaginationStyle::LeadingWithTail, $restored->pagination_style() );
 		$this->assertSame( 48, $restored->news_window_hours() );
 		$this->assertSame( 30, $restored->news_fallback_count() );
 		$this->assertSame( 25, $restored->blog_max_urls() );
@@ -85,6 +93,10 @@ class SettingsTest extends TestCase {
 					'title'          => true,
 					'description'    => true,
 					'featured_image' => true,
+					'categories'     => false,
+					'tags'           => true,
+					'author'         => false,
+					'published_date' => false,
 				),
 				'filters'           => array(
 					'search'     => false,
@@ -125,6 +137,10 @@ class SettingsTest extends TestCase {
 		$restored = Settings::from_array( $original->to_array() );
 
 		$this->assertTrue( $restored->link_types()->description() );
+		$this->assertFalse( $restored->link_types()->categories() );
+		$this->assertTrue( $restored->link_types()->tags() );
+		$this->assertFalse( $restored->link_types()->author() );
+		$this->assertFalse( $restored->link_types()->published_date() );
 		$this->assertTrue( $restored->filters()->author() );
 		$this->assertFalse( $restored->targeting()->category() );
 		$this->assertTrue( $restored->targeting()->author() );
@@ -177,6 +193,18 @@ class SettingsTest extends TestCase {
 	 */
 	public function test_unknown_mode_falls_back_to_blog(): void {
 		$this->assertSame( Mode::Blog, Settings::from_array( array( 'mode' => 'wat' ) )->mode() );
+	}
+
+	/**
+	 * Unknown pagination styles fall back to the original leading-pages behaviour.
+	 *
+	 * @return void
+	 */
+	public function test_unknown_pagination_style_falls_back_to_leading(): void {
+		$this->assertSame(
+			PaginationStyle::Leading,
+			Settings::from_array( array( 'pagination_style' => 'wat' ) )->pagination_style()
+		);
 	}
 
 	/**

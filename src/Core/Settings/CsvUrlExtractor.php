@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Settings;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Pulls the URLs out of an uploaded CSV for the Blog-mode URL list.
  *

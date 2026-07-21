@@ -33,9 +33,11 @@ class SettingsViewTest extends TestCase {
 
 		$this->assertStringContainsString( 'Top Articles', $html );
 		$this->assertStringContainsString( 'name="blog_urls"', $html );
-		$this->assertStringContainsString( 'Google Top Content (Search Console + GA4)', $html );
+		$this->assertStringContainsString( 'Google Top Content', $html );
+		$this->assertStringContainsString( 'Open Google setup wizard', $html );
 		$this->assertStringContainsString( 'name="google_client_id"', $html );
 		$this->assertStringContainsString( 'name="google_client_secret"', $html );
+		$this->assertStringContainsString( 'name="google_client_json"', $html );
 		$this->assertStringContainsString( 'name="google_search_console_site_url"', $html );
 		$this->assertStringContainsString( 'name="google_report_window_days"', $html );
 		$this->assertStringContainsString( 'name="google_ga4_property_id"', $html );
@@ -70,9 +72,14 @@ class SettingsViewTest extends TestCase {
 			array(
 				'name="mode"',
 				'name="pagination_limit"',
+				'name="pagination_style"',
 				'name="link_title"',
 				'name="link_description"',
 				'name="link_featured_image"',
+				'name="link_categories"',
+				'name="link_tags"',
+				'name="link_author"',
+				'name="link_published_date"',
 				'name="filter_search"',
 				'name="filter_category"',
 				'name="filter_tag"',
@@ -85,8 +92,10 @@ class SettingsViewTest extends TestCase {
 				'name="archive_url"',
 				'name="google_client_id"',
 				'name="google_client_secret"',
+				'name="google_client_json"',
 				'name="google_search_console_site_url"',
 				'name="google_report_window_days"',
+				'name="google_ga4_property_id"',
 				'name="seo_title"',
 				'name="seo_meta_description"',
 				'name="seo_index"',
@@ -94,8 +103,8 @@ class SettingsViewTest extends TestCase {
 				'name="seo_canonical"',
 				'name="theme_layout"',
 
-				'name="select_include_categories"',
-				'name="select_exclude_tags"',
+				'name="select_include_categories[]"',
+				'name="select_exclude_tags[]"',
 				'name="select_exclude_noindex"',
 				'name="select_pinned_urls"',
 				SettingsView::NONCE_FIELD,
@@ -118,20 +127,25 @@ class SettingsViewTest extends TestCase {
 		$this->assertDoesNotMatchRegularExpression( '/name="filter_author"[^>]*checked/', $html );
 		$this->assertMatchesRegularExpression( '/name="target_category"[^>]*checked/', $html );
 		$this->assertDoesNotMatchRegularExpression( '/name="target_date"[^>]*checked/', $html );
+		$this->assertMatchesRegularExpression( '/name="link_categories"[^>]*checked/', $html );
+		$this->assertDoesNotMatchRegularExpression( '/name="link_tags"[^>]*checked/', $html );
+		$this->assertMatchesRegularExpression( '/name="link_author"[^>]*checked/', $html );
+		$this->assertMatchesRegularExpression( '/name="link_published_date"[^>]*checked/', $html );
 		$this->assertMatchesRegularExpression( '/name="theme_layout"[\s\S]*value="cards" selected/', $html );
+		$this->assertMatchesRegularExpression( '/name="pagination_style"[\s\S]*value="leading" selected/', $html );
 	}
 
 
 
 	/**
-	 * The page is renamed to "Archive Generator" (not "HTML Sitemap Generator").
+	 * The page is renamed to "CannyForge Archive Generator" (not "HTML Sitemap Generator").
 	 *
 	 * @return void
 	 */
 	public function test_titled_archive_generator(): void {
 		$html = $this->render( new Settings() );
 
-		$this->assertStringContainsString( 'Archive Generator', $html );
+		$this->assertStringContainsString( 'CannyForge Archive Generator', $html );
 		$this->assertStringNotContainsString( 'HTML Sitemap Generator Settings', $html );
 	}
 

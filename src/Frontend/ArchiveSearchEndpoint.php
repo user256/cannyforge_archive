@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Frontend;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\Archive\ContentQuery;
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;

@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Renders small reusable field fragments.
  */
@@ -28,6 +32,41 @@ final class FormFieldView {
 			esc_attr( $name ),
 			esc_textarea( implode( "\n", $values ) )
 		);
+	}
+
+	/**
+	 * Render a labelled multi-select field.
+	 *
+	 * @param string                                          $name        Field name, without [] suffix.
+	 * @param string                                          $label       Human label.
+	 * @param array<int, array{value: string, label: string}> $options  Available options.
+	 * @param string[]                                        $selected    Selected values.
+	 * @param string                                          $description Optional helper text.
+	 * @return void
+	 */
+	public function multiselect_field( string $name, string $label, array $options, array $selected, string $description = '' ): void {
+		printf( '<p><label>%s<br>', esc_html( $label ) );
+		printf(
+			'<select name="%s[]" multiple size="6" style="min-width:100%%;">',
+			esc_attr( $name )
+		);
+
+		foreach ( $options as $option ) {
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $option['value'] ),
+				selected( in_array( $option['value'], $selected, true ), true, false ),
+				esc_html( $option['label'] )
+			);
+		}
+
+		echo '</select></label>';
+
+		if ( '' !== $description ) {
+			printf( '<span class="description">%s</span>', esc_html( $description ) );
+		}
+
+		echo '</p>';
 	}
 
 	/**

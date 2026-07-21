@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Tests\Core\Settings;
 
 use CannyForge\Archive\Contracts\Settings\Mode;
+use CannyForge\Archive\Contracts\Settings\PaginationStyle;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Tests\OptionStore;
@@ -52,6 +53,7 @@ class OptionsSettingsRepositoryTest extends TestCase {
 			array(
 				'mode'             => 'news',
 				'pagination_limit' => 3,
+				'pagination_style' => 'leading_tail',
 			)
 		);
 
@@ -60,6 +62,7 @@ class OptionsSettingsRepositoryTest extends TestCase {
 
 		$this->assertSame( Mode::News, $loaded->mode() );
 		$this->assertSame( 3, $loaded->pagination_limit() );
+		$this->assertSame( PaginationStyle::LeadingWithTail, $loaded->pagination_style() );
 		$this->assertEquals( $settings->to_array(), $loaded->to_array() );
 	}
 

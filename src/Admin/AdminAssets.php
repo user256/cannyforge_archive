@@ -1,6 +1,6 @@
 <?php
 /**
- * Enqueues the admin settings-page stylesheet.
+ * Enqueues the admin settings-page assets.
  *
  * @package CannyForge\Archive
  */
@@ -9,8 +9,12 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
- * Enqueues the CannyForge admin stylesheet, only on the plugin's settings page.
+ * Enqueues the CannyForge admin assets, only on the plugin's settings page.
  *
  * Gates on the `admin_enqueue_scripts` hook suffix so the brand styles never
  * load on other admin screens, and registers from a base URL/version pair so the
@@ -21,6 +25,11 @@ final class AdminAssets {
 	 * Handle for the admin stylesheet.
 	 */
 	public const STYLE_HANDLE = 'cannyforge-archive-admin';
+
+	/**
+	 * Handle for the admin script.
+	 */
+	public const SCRIPT_HANDLE = 'cannyforge-archive-admin';
 
 	/**
 	 * The hook suffix of the plugin's top-level menu page.
@@ -62,7 +71,7 @@ final class AdminAssets {
 	}
 
 	/**
-	 * Enqueue the admin stylesheet on the plugin's settings page only.
+	 * Enqueue the admin assets on the plugin's settings page only.
 	 *
 	 * @param string $hook_suffix The current admin page's hook suffix.
 	 * @return void
@@ -76,7 +85,40 @@ final class AdminAssets {
 			self::STYLE_HANDLE,
 			$this->base_url . 'assets/css/admin.css',
 			array(),
-			$this->version
+			$this->asset_version( 'assets/css/admin.css' )
 		);
+
+		wp_enqueue_script(
+			self::SCRIPT_HANDLE,
+			$this->base_url . 'assets/js/admin.js',
+			array(),
+			$this->asset_version( 'assets/js/admin.js' ),
+			true
+		);
+	}
+
+	/**
+	 * Cache-busting version for a plugin asset.
+	 *
+	 * Appends the local file mtime when available so repeated local reinstalls do
+	 * not keep serving stale admin CSS/JS under the same plugin version.
+	 *
+	 * @param string $relative_path Asset path relative to the plugin root.
+	 * @return string
+	 */
+	private function asset_version( string $relative_path ): string {
+		if ( defined( 'CANNYFORGE_ARCHIVE_FILE' ) ) {
+			$absolute = dirname( CANNYFORGE_ARCHIVE_FILE ) . '/' . ltrim( $relative_path, '/' );
+
+			if ( file_exists( $absolute ) ) {
+				$mtime = filemtime( $absolute );
+
+				if ( false !== $mtime ) {
+					return $this->version . '.' . (string) $mtime;
+				}
+			}
+		}
+
+		return $this->version;
 	}
 }

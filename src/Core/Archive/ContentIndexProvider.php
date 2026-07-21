@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Archive;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Archive\ContentPage;
 use CannyForge\Archive\Contracts\Archive\ContentQuery;
@@ -208,7 +212,7 @@ final class ContentIndexProvider {
 		return new ArchiveEntry(
 			(string) get_permalink( $post ),
 			get_the_title( $post ),
-			wp_strip_all_tags( get_the_excerpt( $post ) ),
+			trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( strip_shortcodes( (string) get_the_excerpt( $post ) ) ) ) ?? '' ),
 			(string) get_the_post_thumbnail_url( $post ),
 			$this->term_names( $post->ID, 'category' ),
 			$this->term_names( $post->ID, 'post_tag' ),

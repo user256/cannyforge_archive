@@ -9,6 +9,8 @@
 .github
 .env
 .env.*
+.agents
+.claude
 
 # Dev caches
 .phpunit.result.cache
@@ -16,6 +18,7 @@
 .phpunit.cache
 
 # Tooling configs (not runtime)
+composer.json
 phpcs.xml.dist
 phpstan.neon.dist
 phpunit.xml.dist
@@ -28,6 +31,7 @@ deptrac.yaml
 composer.lock
 
 # Tests + docs + project artefacts
+vendor
 tests
 docs
 tickets
@@ -37,6 +41,7 @@ scripts
 process_tickets.py
 CannyForge-Archive-Overview.md
 README.md
+WordPressAudit.md
 
 # This file itself
 .distignore

@@ -11,6 +11,7 @@ namespace CannyForge\Archive\Tests\Admin;
 
 use CannyForge\Archive\Admin\SettingsFormParser;
 use CannyForge\Archive\Contracts\Settings\Mode;
+use CannyForge\Archive\Contracts\Settings\PaginationStyle;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -27,11 +28,15 @@ class SettingsFormParserTest extends TestCase {
 			array(
 				'mode'                => 'news',
 				'pagination_limit'    => '4',
+				'pagination_style'    => 'leading_tail',
 				'news_window_hours'   => '36',
 				'news_fallback_count' => '20',
 				'blog_max_urls'       => '50',
 				'link_title'          => '1',
 				'link_description'    => '1',
+				'link_categories'     => '1',
+				'link_author'         => '1',
+				'link_published_date' => '1',
 				'filter_search'       => '1',
 				'filter_author'       => '1',
 				'blog_urls'           => "https://example.com/a\nhttps://example.com/b",
@@ -40,11 +45,16 @@ class SettingsFormParserTest extends TestCase {
 
 		$this->assertSame( Mode::News, $settings->mode() );
 		$this->assertSame( 4, $settings->pagination_limit() );
+		$this->assertSame( PaginationStyle::LeadingWithTail, $settings->pagination_style() );
 		$this->assertSame( 36, $settings->news_window_hours() );
 		$this->assertSame( 20, $settings->news_fallback_count() );
 		$this->assertTrue( $settings->link_types()->title() );
 		$this->assertTrue( $settings->link_types()->description() );
 		$this->assertFalse( $settings->link_types()->featured_image() );
+		$this->assertTrue( $settings->link_types()->categories() );
+		$this->assertFalse( $settings->link_types()->tags() );
+		$this->assertTrue( $settings->link_types()->author() );
+		$this->assertTrue( $settings->link_types()->published_date() );
 		$this->assertTrue( $settings->filters()->search() );
 		$this->assertTrue( $settings->filters()->author() );
 		$this->assertSame( 'cards', $settings->theme()->layout() );
@@ -60,8 +70,26 @@ class SettingsFormParserTest extends TestCase {
 
 		$this->assertFalse( $settings->link_types()->title() );
 		$this->assertFalse( $settings->link_types()->description() );
+		$this->assertFalse( $settings->link_types()->categories() );
 		$this->assertFalse( $settings->filters()->search() );
 		$this->assertFalse( $settings->filters()->author() );
+	}
+
+	/**
+	 * Multi-select category/tag fields map to string lists.
+	 *
+	 * @return void
+	 */
+	public function test_multiselect_content_selection_fields_are_parsed(): void {
+		$settings = ( new SettingsFormParser() )->parse(
+			array(
+				'select_include_categories' => array( 'News', 'Guides' ),
+				'select_exclude_tags'       => array( 'Sponsored', 'Internal' ),
+			)
+		);
+
+		$this->assertSame( array( 'News', 'Guides' ), $settings->content_selection()->include_categories() );
+		$this->assertSame( array( 'Sponsored', 'Internal' ), $settings->content_selection()->exclude_tags() );
 	}
 
 	/**
@@ -153,6 +181,7 @@ class SettingsFormParserTest extends TestCase {
 		);
 
 		$this->assertSame( 1, $settings->pagination_limit() );
+		$this->assertSame( PaginationStyle::Leading, $settings->pagination_style() );
 	}
 
 	/**

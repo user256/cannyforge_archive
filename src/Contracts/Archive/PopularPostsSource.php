@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Contracts\Archive;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Supplies the IDs of the most popular published posts, when a popularity signal
  * is available (ticket 402, tier 2).

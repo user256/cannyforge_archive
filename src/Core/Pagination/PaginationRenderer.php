@@ -9,61 +9,84 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Pagination;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+use CannyForge\Archive\Contracts\Settings\PaginationStyle;
 use CannyForge\Archive\Contracts\Settings\Theme;
 
 /**
  * Builds the "1 2 3 … View Archive →" replacement for the default paginated
  * tail.
  *
- * Pure and framework-free: given the page links to show and the archive URL it
- * returns escaped HTML. Capping the visible page count and dropping the deep
- * tail (the crawl-budget goal of ticket 107) is the caller's job via
- * {@see self::visible_count()}; this class only renders what it is handed.
+ * Pure and framework-free: given the pagination settings and archive URL it
+ * returns escaped HTML.
  */
 final class PaginationRenderer {
 	/**
-	 * How many page links to show for a given limit and total.
+	 * Which page numbers should be shown for the given settings.
 	 *
-	 * Never more than the configured limit, never more than the pages that exist,
-	 * never negative.
+	 * Leading mode shows the first N pages. Leading+tail mode appends the
+	 * penultimate and final pages when they exist, de-duplicated in order.
 	 *
-	 * @param int $limit       Configured pagination limit (pages before the link).
-	 * @param int $total_pages Total pages available.
-	 * @return int
+	 * @param int             $limit       Configured pagination limit (pages before the link).
+	 * @param int             $total_pages Total pages available.
+	 * @param PaginationStyle $style How the visible page numbers are selected.
+	 * @return int[]
 	 */
-	public function visible_count( int $limit, int $total_pages ): int {
-		return max( 0, min( $limit, $total_pages ) );
+	public function visible_pages( int $limit, int $total_pages, PaginationStyle $style ): array {
+		$visible = max( 0, min( $limit, $total_pages ) );
+		$pages   = $visible > 0 ? range( 1, $visible ) : array();
+
+		if ( PaginationStyle::LeadingWithTail === $style && $total_pages > 0 ) {
+			$pages[] = max( 1, $total_pages - 1 );
+			$pages[] = $total_pages;
+		}
+
+		$pages = array_values(
+			array_unique(
+				array_filter(
+					$pages,
+					static fn ( int $page ): bool => $page >= 1 && $page <= $total_pages
+				)
+			)
+		);
+
+		sort( $pages );
+
+		return $pages;
 	}
 
 	/**
 	 * Render the shortened pagination block.
 	 *
-	 * Emits page links 1..N (N = visible count) marking the current page, then a
-	 * "View Archive" link to $archive_url. Returns an empty string when there is
+	 * Emits the selected page links, marking the current page, then a "View
+	 * Archive" link to $archive_url. Returns an empty string when there is
 	 * nothing to show and no archive to link to.
 	 *
-	 * @param int                   $current      The current page number (1-based).
-	 * @param int                   $total_pages  Total pages available.
-	 * @param int                   $limit        Configured pagination limit.
-	 * @param string                $archive_url  Destination for the "View Archive" link.
+	 * @param int                   $current       The current page number (1-based).
+	 * @param int                   $total_pages   Total pages available.
+	 * @param int                   $limit         Configured pagination limit.
+	 * @param PaginationStyle       $style         How the visible page numbers are selected.
+	 * @param string                $archive_url   Destination for the "View Archive" link.
 	 * @param string                $archive_label Label for the archive link.
-	 * @param callable(int): string $page_url Maps a page number to its URL.
-	 * @param Theme|null            $theme       Optional front-end theme settings.
+	 * @param callable(int): string $page_url     Maps a page number to its URL.
+	 * @param Theme|null            $theme        Optional front-end theme settings.
 	 * @return string
 	 */
 	public function render(
 		int $current,
 		int $total_pages,
 		int $limit,
+		PaginationStyle $style,
 		string $archive_url,
 		string $archive_label,
 		callable $page_url,
 		?Theme $theme = null
 	): string {
-		$visible = $this->visible_count( $limit, $total_pages );
-
 		$links = '';
-		for ( $page = 1; $page <= $visible; $page++ ) {
+		foreach ( $this->visible_pages( $limit, $total_pages, $style ) as $page ) {
 			$links .= $this->page_link( $page, $current, (string) $page_url( $page ) );
 		}
 

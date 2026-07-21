@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Archive Generator
+ * Plugin Name: CannyForge Archive Generator
  * Description: A combined HTML sitemap + JS-powered archive, and a crawl-budget-friendly replacement for default WordPress taxonomy pagination.
  * Version: 0.1.1
  * Requires at least: 6.4
@@ -26,10 +26,7 @@ if ( ! defined( 'CANNYFORGE_ARCHIVE_FILE' ) ) {
 	define( 'CANNYFORGE_ARCHIVE_FILE', __FILE__ );
 }
 
-$cannyforge_archive_autoload = __DIR__ . '/vendor/autoload.php';
-if ( file_exists( $cannyforge_archive_autoload ) ) {
-	require $cannyforge_archive_autoload;
-}
+require __DIR__ . '/autoload.php';
 
 // Initialize the plugin.
 add_action(
@@ -55,5 +52,15 @@ register_deactivation_hook(
 	__FILE__,
 	function () {
 		flush_rewrite_rules();
+	}
+);
+
+// Add Settings link to the Plugins page.
+add_filter(
+	'plugin_action_links_' . plugin_basename( __FILE__ ),
+	function ( $links ) {
+		$settings_link = '<a href="admin.php?page=' . \CannyForge\Archive\Admin\SettingsPage::PAGE_SLUG . '">' . __( 'Settings', 'cannyforge-archive' ) . '</a>';
+		array_unshift( $links, $settings_link );
+		return $links;
 	}
 );

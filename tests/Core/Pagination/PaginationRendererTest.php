@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Tests\Core\Pagination;
 
+use CannyForge\Archive\Contracts\Settings\PaginationStyle;
 use CannyForge\Archive\Contracts\Settings\Theme;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
 use PHPUnit\Framework\TestCase;
@@ -30,15 +31,17 @@ class PaginationRendererTest extends TestCase {
 	/**
 	 * Render with the given limit/total at page 1, linking to a fixed archive.
 	 *
-	 * @param int $limit Pagination limit.
-	 * @param int $total Total pages.
+	 * @param int             $limit Pagination limit.
+	 * @param int             $total Total pages.
+	 * @param PaginationStyle $style Pagination display style.
 	 * @return string
 	 */
-	private function render( int $limit, int $total ): string {
+	private function render( int $limit, int $total, PaginationStyle $style = PaginationStyle::Leading ): string {
 		return ( new PaginationRenderer() )->render(
 			1,
 			$total,
 			$limit,
+			$style,
 			'https://site.test/archive/',
 			'View Archive',
 			fn ( int $page ): string => $this->pageUrl( $page )
@@ -91,6 +94,32 @@ class PaginationRendererTest extends TestCase {
 	}
 
 	/**
+	 * The tail style appends the last two pages after the leading run.
+	 *
+	 * @return void
+	 */
+	public function test_tail_style_appends_penultimate_and_last_pages(): void {
+		$markup = $this->render( 2, 20, PaginationStyle::LeadingWithTail );
+
+		$this->assertStringContainsString( $this->pageUrl( 2 ), $markup );
+		$this->assertStringContainsString( $this->pageUrl( 19 ), $markup );
+		$this->assertStringContainsString( $this->pageUrl( 20 ), $markup );
+		$this->assertStringNotContainsString( $this->pageUrl( 3 ), $markup );
+	}
+
+	/**
+	 * The tail style de-duplicates when the archive is short.
+	 *
+	 * @return void
+	 */
+	public function test_tail_style_deduplicates_overlapping_pages(): void {
+		$markup = $this->render( 2, 3, PaginationStyle::LeadingWithTail );
+
+		$this->assertSame( 3, substr_count( $markup, 'cannyforge-pagination__page' ) );
+		$this->assertStringContainsString( $this->pageUrl( 3 ), $markup );
+	}
+
+	/**
 	 * The archive link target is the URL passed in.
 	 *
 	 * @return void
@@ -113,6 +142,7 @@ class PaginationRendererTest extends TestCase {
 			1,
 			20,
 			1,
+			PaginationStyle::Leading,
 			'https://elsewhere.test/all-stories/',
 			'View Archive',
 			fn ( int $page ): string => $this->pageUrl( $page )
@@ -131,6 +161,7 @@ class PaginationRendererTest extends TestCase {
 			2,
 			20,
 			3,
+			PaginationStyle::Leading,
 			'https://site.test/archive/',
 			'View Archive',
 			fn ( int $page ): string => $this->pageUrl( $page )
@@ -150,6 +181,7 @@ class PaginationRendererTest extends TestCase {
 			1,
 			0,
 			1,
+			PaginationStyle::Leading,
 			'',
 			'View Archive',
 			fn ( int $page ): string => $this->pageUrl( $page )
@@ -168,6 +200,7 @@ class PaginationRendererTest extends TestCase {
 			1,
 			2,
 			1,
+			PaginationStyle::Leading,
 			'https://site.test/archive/',
 			'View Archive',
 			fn ( int $page ): string => $this->pageUrl( $page ),

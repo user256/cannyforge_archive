@@ -11,6 +11,10 @@
 
 declare(strict_types=1);
 
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/wp-options-shim.php';
 require __DIR__ . '/wp-transients-shim.php';

@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Cache;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Hooks into WordPress post lifecycle and plugin settings save events to
  * clear the rendered archive HTML transient.

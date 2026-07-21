@@ -1,4 +1,5 @@
-=== Archive Generator ===
+=== CannyForge Archive Generator ===
+Contributors: user256
 Tags: sitemap, archive, pagination, seo, crawl-budget
 Requires at least: 6.4
 Tested up to: 7.0
@@ -11,12 +12,12 @@ HTML sitemap + JS archive, and a crawl-budget-friendly replacement for default t
 
 == Description ==
 
-Archive Generator gives news and blog sites a combined HTML sitemap and
+CannyForge Archive Generator gives news and blog sites a combined HTML sitemap and
 JavaScript-powered archive, and replaces WordPress's default taxonomy
 pagination with a shorter sequence that links out to that archive.
 
 Default pagination wastes crawl budget and leaks PageRank into deep, low-value
-paginated pages. Archive Generator shortens the visible pagination run and
+paginated pages. CannyForge Archive Generator shortens the visible pagination run and
 routes crawlers to a single rich archive page, helping sculpt PageRank toward
 the content that matters — fresh articles on news sites, evergreen posts on
 blogs.
@@ -35,8 +36,39 @@ Features:
 
 1. Upload the `cannyforge-archive` folder to `/wp-content/plugins/`.
 2. Activate the plugin through the *Plugins* menu in WordPress.
-3. Open *Archive Generator* in the admin menu and configure the archive.
+3. Open *CannyForge Archive Generator* in the admin menu and configure the archive.
 4. Visit `/archive/` (or your configured slug) to view the generated archive.
+
+== External services ==
+
+This plugin can connect to Google services to fetch top-content signals for the
+archive. These integrations are optional and are only used when the site owner
+configures Google credentials and explicitly connects an account.
+
+= Google OAuth / Search Console / Google Analytics 4 =
+
+What the service is used for:
+
+* Google OAuth authenticates the site owner's Google account and refreshes API access tokens.
+* Google Search Console can supply top page URLs for the configured property.
+* Google Analytics 4 can supply top page paths as an optional fallback signal.
+
+What data is sent:
+
+* The configured OAuth client ID and client secret are used to exchange and refresh access tokens with Google.
+* The configured Search Console property identifier is sent when requesting top-page rows.
+* The configured GA4 property ID is sent when requesting report rows.
+* Google access tokens are sent with those API requests.
+
+When it happens:
+
+* Only when the site owner clicks Connect or manually refreshes the Google-backed cache.
+* Never during wp.org installation or by default on an unconfigured site.
+
+Service policies:
+
+* Terms of Service: https://policies.google.com/terms
+* Privacy Policy: https://policies.google.com/privacy
 
 == Frequently Asked Questions ==
 

@@ -57,6 +57,7 @@ class AdminAssetsTest extends TestCase {
 		$this->assets()->enqueue( 'toplevel_page_' . SettingsPage::PAGE_SLUG );
 
 		$this->assertTrue( HookSpy::has( 'style:' . AdminAssets::STYLE_HANDLE ) );
+		$this->assertTrue( HookSpy::has( 'script:' . AdminAssets::SCRIPT_HANDLE ) );
 	}
 
 	/**

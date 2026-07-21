@@ -9,9 +9,14 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Settings\CsvUrlExtractor;
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
+use CannyForge\Archive\Integration\Google\GoogleClientConfigImporter;
 use CannyForge\Archive\Integration\Google\GoogleSettings;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
@@ -98,16 +103,24 @@ final class SettingsPage {
 	private Ga4CacheStore $ga4_cache;
 
 	/**
+	 * Google OAuth client JSON importer.
+	 *
+	 * @var GoogleClientConfigImporter
+	 */
+	private GoogleClientConfigImporter $google_client_importer;
+
+	/**
 	 * Construct the page.
 	 *
-	 * @param SettingsRepositoryInterface  $repository Settings persistence.
-	 * @param SettingsFormParser           $parser     Form mapper.
-	 * @param SettingsView                 $view       Form renderer.
-	 * @param CsvUrlExtractor|null         $csv        CSV URL extractor.
-	 * @param GoogleSettingsStore|null     $google_settings Google settings store.
-	 * @param GoogleTokenStore|null        $google_tokens   Google token store.
-	 * @param SearchConsoleCacheStore|null $search_cache   Search Console cache store.
-	 * @param Ga4CacheStore|null           $ga4_cache      GA4 cache store.
+	 * @param SettingsRepositoryInterface     $repository Settings persistence.
+	 * @param SettingsFormParser              $parser     Form mapper.
+	 * @param SettingsView                    $view       Form renderer.
+	 * @param CsvUrlExtractor|null            $csv        CSV URL extractor.
+	 * @param GoogleSettingsStore|null        $google_settings        Google settings store.
+	 * @param GoogleTokenStore|null           $google_tokens          Google token store.
+	 * @param SearchConsoleCacheStore|null    $search_cache           Search Console cache store.
+	 * @param Ga4CacheStore|null              $ga4_cache              GA4 cache store.
+	 * @param GoogleClientConfigImporter|null $google_client_importer Google client JSON importer.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -117,16 +130,18 @@ final class SettingsPage {
 		?GoogleSettingsStore $google_settings = null,
 		?GoogleTokenStore $google_tokens = null,
 		?SearchConsoleCacheStore $search_cache = null,
-		?Ga4CacheStore $ga4_cache = null
+		?Ga4CacheStore $ga4_cache = null,
+		?GoogleClientConfigImporter $google_client_importer = null
 	) {
-		$this->repository      = $repository;
-		$this->parser          = $parser;
-		$this->view            = $view;
-		$this->csv             = $csv ?? new CsvUrlExtractor();
-		$this->google_settings = $google_settings ?? new GoogleSettingsStore();
-		$this->google_tokens   = $google_tokens ?? new GoogleTokenStore();
-		$this->search_cache    = $search_cache ?? new SearchConsoleCacheStore();
-		$this->ga4_cache       = $ga4_cache ?? new Ga4CacheStore();
+		$this->repository             = $repository;
+		$this->parser                 = $parser;
+		$this->view                   = $view;
+		$this->csv                    = $csv ?? new CsvUrlExtractor();
+		$this->google_settings        = $google_settings ?? new GoogleSettingsStore();
+		$this->google_tokens          = $google_tokens ?? new GoogleTokenStore();
+		$this->search_cache           = $search_cache ?? new SearchConsoleCacheStore();
+		$this->ga4_cache              = $ga4_cache ?? new Ga4CacheStore();
+		$this->google_client_importer = $google_client_importer ?? new GoogleClientConfigImporter();
 	}
 
 	/**
@@ -145,8 +160,8 @@ final class SettingsPage {
 	 */
 	public function add_menu_page(): void {
 		add_menu_page(
-			__( 'Archive Generator', 'cannyforge-archive' ),
-			__( 'Archive Generator', 'cannyforge-archive' ),
+			__( 'CannyForge Archive Generator', 'cannyforge-archive' ),
+			__( 'CannyForge Archive Generator', 'cannyforge-archive' ),
 			self::CAPABILITY,
 			self::PAGE_SLUG,
 			array( $this, 'render_page' ),
@@ -221,11 +236,13 @@ final class SettingsPage {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 		$input    = wp_unslash( $_POST );
+		$input    = is_array( $input ) ? $input : array();
+		$input    = array_merge( $input, $this->uploaded_google_client_settings() );
 		$csv_urls = $this->uploaded_csv_urls();
 		$this->repository->save(
-			$this->parser->parse( is_array( $input ) ? $input : array(), $csv_urls )
+			$this->parser->parse( $input, $csv_urls )
 		);
-		$this->google_settings->save( GoogleSettings::from_array( is_array( $input ) ? $input : array() ) );
+		$this->google_settings->save( GoogleSettings::from_array( $input ) );
 		$this->search_cache->clear();
 		$this->ga4_cache->clear();
 
@@ -238,8 +255,7 @@ final class SettingsPage {
 	 * @return string
 	 */
 	private function google_notice(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display of a handler-generated notice.
-		$raw = isset( $_GET[ GoogleConnectionController::NOTICE_KEY ] ) ? wp_unslash( $_GET[ GoogleConnectionController::NOTICE_KEY ] ) : '';
+		$raw = filter_input( INPUT_GET, GoogleConnectionController::NOTICE_KEY, FILTER_UNSAFE_RAW );
 
 		return is_scalar( $raw ) ? sanitize_text_field( rawurldecode( (string) $raw ) ) : '';
 	}
@@ -250,8 +266,7 @@ final class SettingsPage {
 	 * @return string
 	 */
 	private function google_notice_type(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only display of a handler-generated notice.
-		$raw  = isset( $_GET[ GoogleConnectionController::NOTICE_TYPE_KEY ] ) ? wp_unslash( $_GET[ GoogleConnectionController::NOTICE_TYPE_KEY ] ) : '';
+		$raw  = filter_input( INPUT_GET, GoogleConnectionController::NOTICE_TYPE_KEY, FILTER_UNSAFE_RAW );
 		$type = is_scalar( $raw ) ? sanitize_text_field( (string) $raw ) : '';
 
 		return GoogleConnectionController::NOTICE_SUCCESS === $type
@@ -283,5 +298,43 @@ final class SettingsPage {
 		$contents = file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading a small uploaded temp file.
 
 		return false === $contents ? array() : $this->csv->extract( $contents );
+	}
+
+	/**
+	 * Read the uploaded Google OAuth client JSON and extract its credentials.
+	 *
+	 * Returns an empty array when no file was uploaded, when the upload is not a
+	 * genuine temp file, or when the JSON does not match a Google client export.
+	 *
+	 * @return array<string, string>
+	 */
+	private function uploaded_google_client_settings(): array {
+		$contents = $this->uploaded_file_contents( 'google_client_json' );
+
+		return '' === $contents ? array() : $this->google_client_importer->extract( $contents );
+	}
+
+	/**
+	 * Read a small uploaded temp file into memory.
+	 *
+	 * @param string $field File input name.
+	 * @return string
+	 */
+	private function uploaded_file_contents( string $field ): string {
+		// Nonce + capability are verified by the caller, maybe_save(), before this runs.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( empty( $_FILES[ $field ]['tmp_name'] ) ) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- path validated via is_uploaded_file below.
+		$tmp = (string) $_FILES[ $field ]['tmp_name'];
+		if ( ! is_uploaded_file( $tmp ) ) {
+			return '';
+		}
+
+		$contents = file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading a small uploaded temp file.
+
+		return is_string( $contents ) ? $contents : '';
 	}
 }

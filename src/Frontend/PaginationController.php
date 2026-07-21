@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Frontend;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Pagination\ArchiveContext;
 use CannyForge\Archive\Core\Pagination\PaginationRenderer;
@@ -150,6 +154,7 @@ final class PaginationController {
 			$this->current_page(),
 			$this->total_pages(),
 			$settings->pagination_limit(),
+			$settings->pagination_style(),
 			$this->archive_url( $settings->archive_url() ),
 			__( 'View Archive', 'cannyforge-archive' ),
 			static fn ( int $page ): string => (string) get_pagenum_link( $page ),

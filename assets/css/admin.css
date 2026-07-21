@@ -1,216 +1,585 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap');
+/* 
+ * Reset and Variables 
+ */
+:root {
+	--cf-bg: #f9f9fb;
+	--cf-surface: #ffffff;
+	--cf-border: #eaecf0;
+	--cf-border-focus: #d0d5dd;
+	--cf-text-main: #101828;
+	--cf-text-muted: #667085;
+	--cf-primary: #5a2eed;
+	--cf-primary-hover: #4e26d4;
+	--cf-primary-light: #f4f3ff;
+	--cf-success: #039855;
+	--cf-radius: 12px;
+	--cf-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
 
-/* CannyForge Archive — admin settings page styling (ticket 108).
- * Applies the CannyForge design system to the plugin's settings screen without
- * fighting core admin usability. Light mode only (per ticket scope). */
-
+/* Override WP default spacing */
+#wpcontent {
+	padding-left: 0;
+}
 .cannyforge-archive-settings {
-	--cf-violet: #6d4aff;
-	--cf-royal: #372580;
-	--cf-ink: #1b143f;
-	--cf-lavender: #f7f5ff;
-	--cf-lavender-tint: #e2dbff;
-	--cf-gold: #ca8a04;
-	--cf-border: #e5e7eb;
-
-	max-width: 1200px;
-	color: var(--cf-ink);
-	font-family: 'Inter', system-ui, sans-serif;
-	animation: cfFadeIn 0.5s ease-out forwards;
+	margin: 0;
+	padding: 0;
+	background: var(--cf-bg);
+	min-height: 100vh;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+.cf-app-container {
+	display: flex;
+	flex-direction: column;
+	background: var(--cf-bg);
+	min-height: calc(100vh - 32px); /* WP admin bar compensation */
 }
 
-@keyframes cfFadeIn {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
+/* Header */
+.cf-app-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 16px 32px;
+	background: var(--cf-surface);
+	border-bottom: 1px solid var(--cf-border);
+	position: sticky;
+	top: 32px;
+	z-index: 100;
 }
-
-.cannyforge-archive-settings .cannyforge-archive-brand {
+.cf-header-left {
 	display: flex;
 	align-items: center;
-	gap: 0.75rem;
-	padding: 1rem 0 1.25rem;
-	border-bottom: 1px solid var(--cf-border);
-	margin-bottom: 1.5rem;
+	gap: 16px;
 }
-
-.cannyforge-archive-settings .cannyforge-archive-brand__logo {
-	height: 32px;
-	width: auto;
-}
-
-.cannyforge-archive-settings h1 {
-	font-family: "Instrument Serif", Georgia, serif;
-	font-weight: 400;
-	letter-spacing: -0.03em;
-	color: var(--cf-royal);
+.cf-header-left h1 {
 	margin: 0;
-	font-size: 2.2rem;
-	animation: cfFadeIn 0.6s ease-out forwards;
-}
-
-.cannyforge-archive-settings h2 {
-	color: var(--cf-royal);
-	font-size: 1.15rem;
-	margin-top: 1.5rem;
+	font-size: 20px;
 	font-weight: 600;
+	color: var(--cf-text-main);
+}
+.cf-badge {
+	background: var(--cf-primary-light);
+	color: var(--cf-primary);
+	padding: 4px 10px;
+	border-radius: 16px;
+	font-size: 12px;
+	font-weight: 500;
+}
+.cf-header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
 }
 
-.cannyforge-archive-col h2:first-child {
-	margin-top: 0;
-	margin-bottom: 1rem;
-}
-
-.cannyforge-archive-settings label {
-	display: block;
-	width: 100%;
-}
-
-.cannyforge-archive-settings label:has(input[type="checkbox"]),
-.cannyforge-archive-settings label:has(input[type="radio"]) {
+/* Buttons */
+.cf-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
-	width: auto;
+	justify-content: center;
+	padding: 8px 16px;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	border: 1px solid transparent;
+	text-decoration: none;
+	transition: all 0.2s;
 }
-
-.cannyforge-archive-grid {
-	column-count: 1;
-	column-gap: 24px;
-	margin-top: 1.5rem;
-}
-
-@media (min-width: 768px) {
-	.cannyforge-archive-grid {
-		column-count: 2;
-	}
-}
-
-@media (min-width: 1100px) {
-	.cannyforge-archive-grid {
-		column-count: 3;
-	}
-}
-
-.cannyforge-archive-col {
-	background: rgba(255, 255, 255, 0.78);
-	backdrop-filter: blur(14px);
-	border: 1px solid var(--cf-border);
-	border-top: 3px solid var(--cf-gold);
-	border-radius: 24px;
-	padding: 1.75rem;
-	box-shadow: 0 14px 34px rgba(59, 37, 128, 0.08);
-	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-	animation: cfFadeIn 0.7s ease-out both;
-	break-inside: avoid;
-	margin-bottom: 24px;
-	display: inline-block;
-	width: 100%;
-	box-sizing: border-box;
-}
-
-.cannyforge-archive-col:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 24px 54px rgba(59, 37, 128, 0.12);
-}
-
-.cannyforge-archive-settings input[type="number"],
-.cannyforge-archive-settings input[type="url"],
-.cannyforge-archive-settings input[type="text"],
-.cannyforge-archive-settings input[type="file"],
-.cannyforge-archive-settings select,
-.cannyforge-archive-settings textarea {
-	border-radius: 16px;
-	border: 1px solid #d1d5db;
-	padding: 0.6rem 0.85rem;
-	font: inherit;
-	transition: all 0.2s ease;
-	background: rgba(255, 255, 255, 0.92);
-	width: 100%;
-	max-width: 100%;
-	box-sizing: border-box;
-}
-
-.cannyforge-archive-settings input:focus,
-.cannyforge-archive-settings select:focus,
-.cannyforge-archive-settings textarea:focus {
-	outline: none;
-	border-color: var(--cf-violet);
-	box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.14);
+.cf-btn-outline {
 	background: #fff;
-	transform: translateY(-1px);
+	border-color: var(--cf-border-focus);
+	color: var(--cf-text-main);
+}
+.cf-btn-outline:hover {
+	background: #f9fafb;
+}
+.cf-btn-primary {
+	background: var(--cf-primary);
+	color: #fff;
+}
+.cf-btn-primary:hover {
+	background: var(--cf-primary-hover);
+}
+.cf-btn-text {
+	background: transparent;
+	color: var(--cf-text-muted);
+}
+.cf-btn-text:hover {
+	color: var(--cf-text-main);
+}
+.cf-btn-icon {
+	padding: 8px;
+	background: transparent;
+	border: 1px solid var(--cf-border-focus);
+	color: var(--cf-text-muted);
 }
 
-.cannyforge-archive-settings dialog::backdrop {
-	background: rgba(0, 0, 0, 0.4);
+/* Body Grid */
+.cf-app-body {
+	display: flex;
+	gap: 48px;
+	padding: 48px 32px;
+	max-width: 1440px;
+	margin: 0 auto;
+	flex: 1;
+}
+
+/* Sidebar Nav */
+.cf-app-sidebar {
+	position: sticky;
+	top: 100px;
+	height: fit-content;
+	width: 200px;
+	flex-shrink: 0;
+	transition: all 0.3s ease;
+}
+.cf-app-container.nav-collapsed .cf-app-sidebar {
+	width: 0;
+	opacity: 0;
+	overflow: hidden;
+}
+.cf-app-nav {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	width: 200px; /* Keep fixed width inside so it doesn't wrap during collapse */
+}
+.cf-app-nav li {
+	margin-bottom: 4px;
+}
+.cf-app-nav a {
+	display: block;
+	padding: 10px 16px;
+	border-radius: 6px;
+	color: var(--cf-text-muted);
+	text-decoration: none;
+	font-weight: 500;
+	font-size: 14px;
+	transition: all 0.2s;
+	border-left: 3px solid transparent;
+}
+.cf-app-nav li.active a {
+	background: var(--cf-primary-light);
+	color: var(--cf-primary);
+	border-left-color: var(--cf-primary);
+}
+
+/* Main Area */
+.cf-app-main {
+	flex: 1;
+	min-width: 0;
+	transition: all 0.3s ease;
+}
+.cf-section-header {
+	margin-bottom: 24px;
+}
+.cf-section-header h2 {
+	margin: 0 0 8px;
+	font-size: 24px;
+	font-weight: 600;
+}
+.cf-section-header p {
+	margin: 0;
+	color: var(--cf-text-muted);
+}
+
+/* Mode Cards */
+.cf-mode-cards {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 16px;
+}
+.cf-mode-card {
+	background: var(--cf-surface);
+	border: 1px solid var(--cf-border);
+	border-radius: var(--cf-radius);
+	padding: 20px;
+	cursor: pointer;
+	position: relative;
+	transition: all 0.2s;
+}
+.cf-mode-card:hover {
+	border-color: var(--cf-primary);
+}
+.cf-mode-card.active {
+	border: 2px solid var(--cf-primary);
+	background: var(--cf-primary-light);
+}
+.cf-mode-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+}
+.cf-radio-circle {
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	border: 1px solid var(--cf-border-focus);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.cf-mode-card.active .cf-radio-circle {
+	border-color: var(--cf-primary);
+}
+.cf-radio-dot {
+	width: 10px;
+	height: 10px;
+	background: var(--cf-primary);
+	border-radius: 50%;
+}
+.cf-check-badge {
+	width: 20px;
+	height: 20px;
+	background: var(--cf-primary);
+	color: #fff;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.cf-check-badge .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+}
+.cf-mode-card-icon {
+	color: var(--cf-primary);
+	margin-bottom: 16px;
+}
+.cf-mode-card-icon .dashicons {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+}
+.cf-mode-card h4 {
+	margin: 0 0 8px;
+	font-size: 15px;
+}
+.cf-mode-card p {
+	margin: 0;
+	font-size: 13px;
+	color: var(--cf-text-muted);
+}
+
+/* General Cards / Boxes */
+.cf-card {
+	background: var(--cf-surface);
+	border: 1px solid var(--cf-border);
+	border-radius: var(--cf-radius);
+	padding: 24px;
+}
+
+/* Accordions */
+.cf-accordion {
+	background: var(--cf-surface);
+	border: 1px solid var(--cf-border);
+	border-radius: var(--cf-radius);
+	margin-top: 16px;
+	overflow: hidden;
+}
+.cf-accordion-summary {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 24px;
+	cursor: pointer;
+	user-select: none;
+	list-style: none;
+}
+.cf-accordion-summary::-webkit-details-marker {
+	display: none;
+}
+.cf-accordion-title {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+}
+.cf-accordion-title .dashicons {
+	color: var(--cf-text-muted);
+	margin-top: 2px;
+}
+.cf-accordion-title strong {
+	display: block;
+	font-size: 15px;
+	margin-bottom: 4px;
+}
+.cf-accordion-title p {
+	margin: 0;
+	font-size: 13px;
+	color: var(--cf-text-muted);
+}
+.cf-accordion-status {
+	font-size: 13px;
+	color: var(--cf-success);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.cf-accordion-body {
+	border-top: 1px solid var(--cf-border);
+	padding: 24px;
+	background: #fff;
+}
+
+/* Forms */
+.cf-app-form input[type="text"],
+.cf-app-form input[type="number"],
+.cf-app-form input[type="url"],
+.cf-app-form input[type="password"],
+.cf-app-form select,
+.cf-app-form textarea {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--cf-border-focus);
+	border-radius: 8px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+	font-size: 14px;
+	margin-top: 6px;
+}
+.cf-app-form input:focus,
+.cf-app-form select:focus,
+.cf-app-form textarea:focus {
+	border-color: var(--cf-primary);
+	box-shadow: 0 0 0 4px var(--cf-primary-light);
+	outline: none;
+}
+
+/* Preview Sidebar */
+.cf-app-preview {
+	background: var(--cf-surface);
+	border: 1px solid var(--cf-border);
+	border-radius: var(--cf-radius);
+	padding: 24px;
+	height: calc(100vh - 120px);
+	position: sticky;
+	top: 100px;
+	display: flex;
+	flex-direction: column;
+	width: 340px;
+	flex-shrink: 0;
+	transition: all 0.3s ease;
+}
+.cf-app-container.nav-collapsed .cf-app-preview {
+	width: 588px; /* Absorbs the 200px nav + 48px margin */
+}
+.cf-app-container.preview-hidden .cf-app-preview,
+.cf-app-container.nav-collapsed.preview-hidden .cf-app-preview {
+	width: 0;
+	padding: 0;
+	border: none;
+	opacity: 0;
+	overflow: hidden;
+}
+.cf-preview-header {
+	width: 100%;
+	min-width: 290px;
+}
+.cf-preview-header h3 {
+	margin: 0 0 4px;
+	font-size: 18px;
+}
+.cf-preview-header p {
+	margin: 0 0 24px;
+	font-size: 13px;
+	color: var(--cf-text-muted);
+}
+.cf-preview-controls {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 16px;
+	width: 100%;
+	min-width: 290px;
+}
+.cf-preview-controls select {
+	width: 120px;
+}
+.cf-preview-icons {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	color: var(--cf-text-muted);
+}
+.cf-preview-frame {
+	flex: 1;
+	border: 1px solid var(--cf-border);
+	border-radius: 8px;
+	background: #fff;
+	overflow: hidden;
+}
+.cf-preview-frame iframe {
+	width: 100%;
+	height: 100%;
+	border: none;
+}
+
+/* Footer */
+.cf-app-footer {
+	position: fixed;
+	bottom: 0;
+	left: 160px; /* offset WP menu */
+	right: 0;
+	background: var(--cf-surface);
+	border-top: 1px solid var(--cf-border);
+	padding: 16px 32px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	z-index: 100;
+}
+.cf-footer-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--cf-success);
+	font-size: 14px;
+	font-weight: 500;
+}
+.cf-footer-actions {
+	display: flex;
+	gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+	.cf-app-body {
+		grid-template-columns: 200px 1fr;
+	}
+	.cf-app-preview {
+		display: none;
+	}
+}
+@media (max-width: 768px) {
+	.cf-app-body {
+		grid-template-columns: 1fr;
+	}
+	.cf-app-sidebar {
+		display: none;
+	}
+	.cf-app-footer {
+		left: 0;
+	}
+}
+
+/* Modals / Dialogs */
+.cannyforge-modal {
+	background: var(--cf-surface);
+	border: 1px solid var(--cf-border);
+	border-radius: 16px;
+	padding: 40px;
+	box-shadow: 0 20px 40px rgba(16, 24, 40, 0.1);
+	max-width: 720px;
+	width: 100%;
+	color: var(--cf-text-main);
+}
+.cannyforge-modal::backdrop {
+	background: rgba(16, 24, 40, 0.5);
 	backdrop-filter: blur(4px);
 }
-
-.cannyforge-archive-settings dialog {
-	margin: auto;
-}
-
-.cannyforge-archive-settings .button-primary {
-	background: var(--cf-violet);
-	border-color: var(--cf-violet);
-	border-radius: 999px;
-	padding: 0.5rem 1.5rem;
-	font-weight: 700;
-	color: #ffffff;
-	transition: all 0.2s ease;
-	box-shadow: 0 4px 14px rgba(109, 74, 255, 0.3);
-}
-
-.cannyforge-archive-settings .button-primary:hover {
-	background: #5b3ce6;
-	border-color: #5b3ce6;
-	transform: translateY(-2px);
-	box-shadow: 0 6px 20px rgba(109, 74, 255, 0.4);
-}
-
-.cannyforge-archive-settings .description {
-	color: #6b7280;
-	font-size: 0.9rem;
-	line-height: 1.4;
-	margin-top: 0.4rem;
-}
-
-.cannyforge-archive-segment {
-	display: inline-flex;
-	background: var(--cf-lavender-tint);
-	border-radius: 999px;
-	padding: 4px;
-	margin-bottom: 1rem;
-}
-
-.cannyforge-archive-segment__label {
-	padding: 0.45rem 1.25rem;
-	border-radius: 999px;
-	font-weight: 600;
-	font-size: 0.9rem;
-	transition: all 0.2s ease;
-	color: var(--cf-royal);
+.cannyforge-modal__close {
+	position: absolute;
+	top: 24px;
+	right: 24px;
+	background: transparent;
+	border: none;
+	font-size: 24px;
+	line-height: 1;
+	color: var(--cf-text-muted);
 	cursor: pointer;
+	padding: 4px;
+	border-radius: 4px;
+	transition: background 0.2s, color 0.2s;
+}
+.cannyforge-modal__close:hover {
+	background: var(--cf-bg);
+	color: var(--cf-text-main);
 }
 
-.cannyforge-archive-segment__label input[type="radio"] {
-	display: none;
+.cannyforge-modal h2 {
+	margin: 0 0 12px;
+	font-size: 24px;
+	font-weight: 600;
+}
+.cannyforge-modal > .description {
+	font-size: 14px;
+	color: var(--cf-text-muted);
+	margin-bottom: 32px;
 }
 
-.cannyforge-archive-segment__label:has(input:checked) {
-	background: var(--cf-violet);
-	color: #fff;
-	box-shadow: 0 4px 14px rgba(109,74,255,0.3);
+/* Wizard Steps */
+.cannyforge-google-wizard__steps {
+	margin: 0 0 32px;
+	padding: 0 0 0 24px;
 }
-
-.cannyforge-archive-settings:has(input[name="mode"][value="blog"]:checked) .cf-panel-news {
-	display: none;
+.cannyforge-google-wizard__steps li {
+	margin-bottom: 32px;
+	padding-left: 8px;
 }
-
-.cannyforge-archive-settings:has(input[name="mode"][value="news"]:checked) .cf-panel-blog {
-	display: none;
+.cannyforge-google-wizard__steps li::marker {
+	font-weight: 600;
+	color: var(--cf-primary);
 }
-
-.cannyforge-archive-settings:has(input[name="mode"][value="hybrid"]:checked) .cf-panel-news,
-.cannyforge-archive-settings:has(input[name="mode"][value="hybrid"]:checked) .cf-panel-blog {
+.cannyforge-google-wizard__steps strong {
 	display: block;
+	font-size: 16px;
+	margin-bottom: 8px;
+	color: var(--cf-text-main);
+}
+.cannyforge-google-wizard__steps p {
+	font-size: 14px;
+	color: var(--cf-text-muted);
+	margin-bottom: 12px;
+	line-height: 1.5;
+}
+.cannyforge-wizard-code {
+	display: inline-block;
+	background: var(--cf-bg);
+	border: 1px solid var(--cf-border);
+	padding: 8px 12px;
+	border-radius: 6px;
+	font-family: monospace;
+	font-size: 13px;
+	color: var(--cf-text-main);
+	margin-bottom: 12px;
+	word-break: break-all;
+}
+
+/* Reset WP buttons in the modal to use our styling */
+.cannyforge-modal .button-secondary {
+	background: #fff;
+	border: 1px solid var(--cf-border-focus);
+	color: var(--cf-text-main);
+	padding: 8px 16px;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	text-decoration: none;
+	display: inline-flex;
+	margin-right: 8px;
+	transition: background 0.2s;
+}
+.cannyforge-modal .button-secondary:hover {
+	background: #f9fafb;
+}
+.cannyforge-modal .button-primary {
+	background: var(--cf-primary);
+	border: none;
+	color: #fff;
+	padding: 10px 20px;
+	border-radius: 8px;
+	font-size: 15px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+.cannyforge-modal .button-primary:hover {
+	background: var(--cf-primary-hover);
+}
+.cannyforge-modal .submit {
+	margin: 0;
+	padding: 0;
+	text-align: right;
+	border-top: 1px solid var(--cf-border);
+	padding-top: 24px;
 }

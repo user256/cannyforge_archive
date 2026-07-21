@@ -150,7 +150,7 @@ if ( ! function_exists( 'checked' ) ) {
 	 * @return string
 	 */
 	function checked( $checked, $current = true, bool $display = true ): string {
-		$result = ( $checked === $current ) ? ' checked="checked"' : '';
+		$result = ( (string) $checked === (string) $current ) ? ' checked="checked"' : '';
 		if ( $display ) {
 			echo $result; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
@@ -168,7 +168,7 @@ if ( ! function_exists( 'selected' ) ) {
 	 * @return string
 	 */
 	function selected( $selected, $current = true, bool $display = true ): string {
-		$result = ( $selected === $current ) ? ' selected="selected"' : '';
+		$result = ( (string) $selected === (string) $current ) ? ' selected="selected"' : '';
 		if ( $display ) {
 			echo $result; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
@@ -208,5 +208,17 @@ if ( ! function_exists( 'submit_button' ) ) {
 			htmlspecialchars( $text, ENT_QUOTES )
 		);
 		echo $button; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}
+
+if ( ! function_exists( 'strip_shortcodes' ) ) {
+	/**
+	 * Remove shortcode-looking tokens from text.
+	 *
+	 * @param string $text Text that may contain shortcodes.
+	 * @return string
+	 */
+	function strip_shortcodes( string $text ): string {
+		return (string) preg_replace( '/\[[^\]]+\]/', '', $text );
 	}
 }

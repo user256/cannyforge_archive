@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Pagination;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Immutable, framework-free snapshot of which archive type the current request
  * is (mirroring WordPress's is_category / is_tag / is_author / is_date).

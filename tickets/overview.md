@@ -14,6 +14,8 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 2 — Hardening & fit** | Done | 201–208 implemented and tested; 299 = GO. |
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
 | **Sprint 4 — Resilience & empty-state fallbacks** | Done | 401–406 implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), optional GA4 source (406). 499 = GO (qa green, 192 tests); live Google smoke deferred (needs real credentials). |
+| **Sprint 5 — wp.org submission compliance** | Done | 501 completed: runtime-only packaging, direct-file guards, branded naming, and external-services readme disclosure. |
+| **Sprint 6 — Trust & Scale** | Not started | Audit backlog 601–615 filed; current working tree is No-Go pending release-gate, lifecycle, security, scale, accessibility, and integration work. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -101,3 +103,39 @@ infrastructure already proven in `cannyforge-lead-capture`.
 - [x] [405 — Search Console cached top-content source for Blog fallback](completed/405-search-console-cached-top-content-source.md)
 - [x] [406 — GA4 top-content source (optional second Google signal)](completed/406-ga4-top-content-source.md)
 - [x] [499 — Sprint 4 review gate (GO; qa green, live Google smoke deferred)](completed/499-sprint-4-review.md)
+
+## Sprint 5 — wp.org submission compliance
+
+The first WordPress.org audit surfaced review-facing issues that are separate
+from ordinary code quality: the distributable ZIP was shipping development
+dependencies, the first-party PHP files lacked direct-access guards, the public
+name was still generic, and the readme did not disclose the optional Google
+services. Sprint 5 closes those submission blockers.
+
+- [x] [501 — WordPress.org audit remediation](completed/501-wordpress-org-audit-remediation.md)
+- [x] [502 — Autoloader PHPCS cleanup](completed/502-autoloader-phpcs-cleanup.md)
+
+## Sprint 6 — Trust & Scale
+
+Sprint 6 closes the gap between the stated quality bar and the surfaces not yet
+covered by it: the public search endpoint, OAuth lifecycle, real-WordPress
+behavior, release packaging, scale, accessibility, and SEO interoperability.
+See the [2026-07-21 plugin audit](plugin-audit-2026-07-21.md) for evidence and
+priority.
+
+- [ ] [601 — Unit tests for ArchiveSearchEndpoint](601-archive-search-endpoint-tests.md)
+- [ ] [602 — Unit tests for Google admin controllers & settings surface](602-google-admin-controller-tests.md)
+- [ ] [603 — Real-WordPress integration test rig](603-real-wordpress-integration-rig.md)
+- [ ] [604 — Infection minMsi threshold as a merge gate](604-infection-msi-gate.md)
+- [ ] [605 — SecretCipher hardening (AEAD, fail-loud, key rotation)](605-secretcipher-hardening.md)
+- [ ] [606 — uninstall.php: options, transients, token revocation](606-uninstall-cleanup.md)
+- [ ] [607 — CI version matrix + repo hygiene](607-ci-matrix-repo-hygiene.md)
+- [ ] [608 — Performance at scale (bounded queries, caching, throttle)](608-performance-at-scale.md)
+- [ ] [609 — Archive accessibility pass (WCAG 2.2 AA)](609-archive-accessibility.md)
+- [ ] [610 — i18n completeness + wp.org listing assets](610-i18n-wporg-listing.md)
+- [ ] [611 — Restore release gate + runtime-only package](611-release-branch-stabilisation.md)
+- [ ] [612 — Archive-tail redirects + Hybrid cache invalidation](612-archive-route-cache-correctness.md)
+- [ ] [613 — Admin settings UI integrity + accessibility](613-admin-settings-ui-integrity.md)
+- [ ] [614 — Google OAuth least privilege + revocation](614-google-oauth-least-privilege-lifecycle.md)
+- [ ] [615 — SEO plugin interoperability + canonical ownership](615-seo-plugin-interoperability.md)
+- [ ] [699 — Sprint 6 review gate (including deferred live Google smoke)](699-sprint-6-review.md)

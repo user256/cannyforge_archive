@@ -50,7 +50,7 @@ class ArchiveRendererTest extends TestCase {
 	}
 
 	/**
-	 * Defaults (Title on, Description/Image off): title link only.
+	 * Defaults keep the current presentation: title on, description/image off.
 	 *
 	 * @return void
 	 */
@@ -61,6 +61,10 @@ class ArchiveRendererTest extends TestCase {
 		$this->assertStringContainsString( 'A Post Title', $html );
 		$this->assertStringNotContainsString( 'A short description.', $html );
 		$this->assertStringNotContainsString( '<img', $html );
+		$this->assertStringContainsString( 'News', $html );
+		$this->assertStringContainsString( 'Jane Doe', $html );
+		$this->assertStringContainsString( '18 Jun 2026', $html );
+		$this->assertStringNotContainsString( '>world<', $html );
 	}
 
 	/**
@@ -98,6 +102,10 @@ class ArchiveRendererTest extends TestCase {
 					'title'          => true,
 					'description'    => true,
 					'featured_image' => true,
+					'categories'     => true,
+					'tags'           => true,
+					'author'         => true,
+					'published_date' => true,
 				),
 			)
 		);
@@ -105,6 +113,33 @@ class ArchiveRendererTest extends TestCase {
 		$this->assertStringContainsString( '<img', $html );
 		$this->assertStringContainsString( 'A Post Title', $html );
 		$this->assertStringContainsString( 'A short description.', $html );
+		$this->assertStringContainsString( 'News', $html );
+		$this->assertStringContainsString( 'world', $html );
+		$this->assertStringContainsString( 'Jane Doe', $html );
+		$this->assertStringContainsString( '18 Jun 2026', $html );
+	}
+
+	/**
+	 * Metadata chips can be disabled individually.
+	 *
+	 * @return void
+	 */
+	public function test_metadata_chips_respect_their_toggles(): void {
+		$html = $this->render(
+			array(
+				'link_types' => array(
+					'categories'     => false,
+					'tags'           => true,
+					'author'         => false,
+					'published_date' => false,
+				),
+			)
+		);
+
+		$this->assertStringNotContainsString( '>News<', $html );
+		$this->assertStringContainsString( '>world<', $html );
+		$this->assertStringNotContainsString( '>Jane Doe<', $html );
+		$this->assertStringNotContainsString( '18 Jun 2026', $html );
 	}
 
 	/**

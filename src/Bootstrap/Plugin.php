@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Bootstrap;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Admin\AdminAssets;
 use CannyForge\Archive\Admin\Ga4RefreshController;
 use CannyForge\Archive\Admin\GoogleConnectionController;

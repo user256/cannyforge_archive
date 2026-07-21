@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Contracts\Settings;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Inclusion/exclusion rules and pinned ordering applied to the archive entries
  * before rendering, for both News and Blog modes.

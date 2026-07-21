@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\Settings\Settings;
 
 /**
@@ -34,6 +38,7 @@ final class SettingsFormParser {
 			array(
 				'mode'                => $this->string( $input, 'mode' ),
 				'pagination_limit'    => $this->string( $input, 'pagination_limit' ),
+				'pagination_style'    => $this->string( $input, 'pagination_style' ),
 				'archive_url'         => $this->string( $input, 'archive_url' ),
 				'news_window_hours'   => $this->string( $input, 'news_window_hours' ),
 				'news_fallback_count' => $this->string( $input, 'news_fallback_count' ),
@@ -42,6 +47,10 @@ final class SettingsFormParser {
 					'title'          => $this->checkbox( $input, 'link_title' ),
 					'description'    => $this->checkbox( $input, 'link_description' ),
 					'featured_image' => $this->checkbox( $input, 'link_featured_image' ),
+					'categories'     => $this->checkbox( $input, 'link_categories' ),
+					'tags'           => $this->checkbox( $input, 'link_tags' ),
+					'author'         => $this->checkbox( $input, 'link_author' ),
+					'published_date' => $this->checkbox( $input, 'link_published_date' ),
 				),
 				'filters'             => array(
 					'search'     => $this->checkbox( $input, 'filter_search' ),
@@ -72,10 +81,10 @@ final class SettingsFormParser {
 					'border_color'  => $this->string( $input, 'theme_border_color' ),
 				),
 				'content_selection'   => array(
-					'include_categories' => $this->lines( $input, 'select_include_categories' ),
-					'include_tags'       => $this->lines( $input, 'select_include_tags' ),
-					'exclude_categories' => $this->lines( $input, 'select_exclude_categories' ),
-					'exclude_tags'       => $this->lines( $input, 'select_exclude_tags' ),
+					'include_categories' => $this->string_list_field( $input, 'select_include_categories' ),
+					'include_tags'       => $this->string_list_field( $input, 'select_include_tags' ),
+					'exclude_categories' => $this->string_list_field( $input, 'select_exclude_categories' ),
+					'exclude_tags'       => $this->string_list_field( $input, 'select_exclude_tags' ),
 					'exclude_noindex'    => $this->checkbox( $input, 'select_exclude_noindex' ),
 					'pinned_urls'        => $this->lines( $input, 'select_pinned_urls' ),
 				),
@@ -148,5 +157,32 @@ final class SettingsFormParser {
 		$lines = preg_split( '/[\r\n,]+/', $raw );
 
 		return false === $lines ? array() : array_values( array_filter( array_map( 'trim', $lines ) ) );
+	}
+
+	/**
+	 * Read a field that may arrive as a multi-select array or a legacy textarea string.
+	 *
+	 * @param array<string, mixed> $input Raw form data.
+	 * @param string               $key   Field name.
+	 * @return string[]
+	 */
+	private function string_list_field( array $input, string $key ): array {
+		$value = $input[ $key ] ?? array();
+
+		if ( is_array( $value ) ) {
+			$strings = array();
+			foreach ( $value as $item ) {
+				if ( is_scalar( $item ) ) {
+					$trimmed = trim( (string) $item );
+					if ( '' !== $trimmed ) {
+						$strings[] = $trimmed;
+					}
+				}
+			}
+
+			return array_values( array_unique( $strings ) );
+		}
+
+		return $this->lines( $input, $key );
 	}
 }

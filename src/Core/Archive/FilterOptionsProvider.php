@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Archive;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Supplies the filter dropdown options (categories, tags, authors, months) drawn
  * from the *entire* content database rather than the promoted entry set

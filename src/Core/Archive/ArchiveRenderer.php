@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Core\Archive;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Settings\LinkTypes;
 use CannyForge\Archive\Contracts\Settings\Mode;
@@ -130,7 +134,7 @@ final class ArchiveRenderer {
 			);
 		}
 
-		$inner .= $this->meta( $entry );
+		$inner .= $this->meta( $entry, $types );
 
 		return sprintf( '<li class="cannyforge-archive__item"%s>%s</li>', $this->data_attributes( $entry ), $inner );
 	}
@@ -152,27 +156,38 @@ final class ArchiveRenderer {
 	 * Render readable metadata chips beneath an entry.
 	 *
 	 * @param ArchiveEntry $entry The entry.
+	 * @param LinkTypes    $types Which metadata fields are enabled.
 	 * @return string
 	 */
-	private function meta( ArchiveEntry $entry ): string {
+	private function meta( ArchiveEntry $entry, LinkTypes $types ): string {
 		$parts = array();
 
-		if ( array() !== $entry->categories() ) {
-			$parts[] = '<span class="cannyforge-archive__meta-chip">'
-				. esc_html( $entry->categories()[0] )
-				. '</span>';
+		if ( $types->categories() ) {
+			foreach ( $entry->categories() as $category ) {
+				$parts[] = '<span class="cannyforge-archive__meta-chip">'
+					. esc_html( $category )
+					. '</span>';
+			}
 		}
 
-		if ( '' !== $entry->author() ) {
+		if ( $types->tags() ) {
+			foreach ( $entry->tags() as $tag ) {
+				$parts[] = '<span class="cannyforge-archive__meta-chip">'
+					. esc_html( $tag )
+					. '</span>';
+			}
+		}
+
+		if ( $types->author() && '' !== $entry->author() ) {
 			$parts[] = '<span class="cannyforge-archive__meta-chip">'
 				. esc_html( $entry->author() )
 				. '</span>';
 		}
 
-		$month = $this->human_month( $entry->published_date() );
-		if ( '' !== $month ) {
+		$date = $this->human_date( $entry->published_date() );
+		if ( $types->published_date() && '' !== $date ) {
 			$parts[] = '<span class="cannyforge-archive__meta-chip">'
-				. esc_html( $month )
+				. esc_html( $date )
 				. '</span>';
 		}
 
@@ -189,14 +204,14 @@ final class ArchiveRenderer {
 	 * @param string $date Raw date.
 	 * @return string
 	 */
-	private function human_month( string $date ): string {
+	private function human_date( string $date ): string {
 		if ( '' === $date ) {
 			return '';
 		}
 
 		$parsed = \DateTimeImmutable::createFromFormat( 'Y-m-d', $date );
 
-		return false === $parsed ? substr( $date, 0, 7 ) : $parsed->format( 'M Y' );
+		return false === $parsed ? $date : $parsed->format( 'j M Y' );
 	}
 
 	/**

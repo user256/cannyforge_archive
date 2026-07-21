@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Contracts\Settings;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Immutable, framework-free snapshot of the plugin configuration.
  *
@@ -58,6 +62,13 @@ final class Settings {
 	 * @var int
 	 */
 	private int $pagination_limit;
+
+	/**
+	 * How the visible page numbers are selected.
+	 *
+	 * @var PaginationStyle
+	 */
+	private PaginationStyle $pagination_style;
 
 	/**
 	 * Which fields each archive entry renders.
@@ -153,6 +164,7 @@ final class Settings {
 	 * @param Theme            $theme             Front-end theme settings.
 	 * @param ContentSelection $content_selection Content-selection rules.
 	 * @param int              $news_fallback_count Latest-N count when the News window is empty.
+	 * @param PaginationStyle  $pagination_style  How the visible page numbers are selected.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -167,7 +179,8 @@ final class Settings {
 		?Seo $seo = null,
 		?Theme $theme = null,
 		?ContentSelection $content_selection = null,
-		int $news_fallback_count = 50
+		int $news_fallback_count = 50,
+		PaginationStyle $pagination_style = PaginationStyle::Leading
 	) {
 		$this->mode                = $mode;
 		$this->pagination_limit    = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
@@ -185,6 +198,7 @@ final class Settings {
 		$this->seo                 = $seo ?? new Seo();
 		$this->theme               = $theme ?? new Theme();
 		$this->content_selection   = $content_selection ?? new ContentSelection();
+		$this->pagination_style    = $pagination_style;
 	}
 
 	/**
@@ -203,6 +217,15 @@ final class Settings {
 	 */
 	public function pagination_limit(): int {
 		return $this->pagination_limit;
+	}
+
+	/**
+	 * How the visible page numbers are selected.
+	 *
+	 * @return PaginationStyle
+	 */
+	public function pagination_style(): PaginationStyle {
+		return $this->pagination_style;
 	}
 
 	/**
@@ -325,7 +348,8 @@ final class Settings {
 			Seo::from_array( self::sub_array( $data, 'seo' ) ),
 			Theme::from_array( self::sub_array( $data, 'theme' ) ),
 			ContentSelection::from_array( self::sub_array( $data, 'content_selection' ) ),
-			self::to_int( $data['news_fallback_count'] ?? null, 50 )
+			self::to_int( $data['news_fallback_count'] ?? null, 50 ),
+			PaginationStyle::from_value( $data['pagination_style'] ?? null )
 		);
 	}
 
@@ -338,6 +362,7 @@ final class Settings {
 		return array(
 			'mode'                => $this->mode->value,
 			'pagination_limit'    => $this->pagination_limit,
+			'pagination_style'    => $this->pagination_style->value,
 			'link_types'          => $this->link_types->to_array(),
 			'filters'             => $this->filters->to_array(),
 			'news_window_hours'   => $this->news_window_hours,

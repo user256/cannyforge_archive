@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CannyForge\Archive\Frontend;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use CannyForge\Archive\Contracts\Archive\ArchiveEntryProviderInterface;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
