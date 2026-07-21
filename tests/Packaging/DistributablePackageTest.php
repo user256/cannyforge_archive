@@ -35,6 +35,7 @@ class DistributablePackageTest extends TestCase {
 	private const ALLOWED_PREFIXES = array(
 		'assets/',
 		'src/',
+		'languages/',
 	);
 
 	/**

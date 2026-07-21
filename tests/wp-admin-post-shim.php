@@ -143,17 +143,10 @@ if ( ! function_exists( 'wp_redirect' ) ) {
 	}
 }
 
-if ( ! function_exists( 'wp_safe_redirect' ) ) {
-	/**
-	 * In-memory wp_safe_redirect: throws instead of sending headers + exiting.
-	 *
-	 * @param string $location Redirect target.
-	 * @param int    $status   HTTP status (ignored).
-	 * @return never
-	 * @throws WpRedirectException Always, in place of a real redirect + exit.
-	 */
-	function wp_safe_redirect( string $location, int $status = 302 ): never {
-		unset( $status );
-		throw new WpRedirectException( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- test-only control-flow signal, never rendered as output.
-	}
-}
+// `wp_safe_redirect()` is intentionally NOT (re-)defined here: the one
+// canonical shim lives in `wp-hooks-shim.php` (loaded first by
+// `tests/bootstrap.php`), where it throws `WpRedirectException` on a
+// "successful" redirect too — so this controller's `wp_safe_redirect(...);
+// exit;` pattern is exercised the same way as its `wp_die()`/`wp_redirect()`
+// calls below, instead of a duplicate, load-order-shadowed definition here
+// silently falling back to a plain `exit;` mid-test.

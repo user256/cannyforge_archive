@@ -65,6 +65,27 @@ Gated out of the box:
 - Document planned work as markdown tickets in [`tickets/`](tickets/).
 - Keep git commit messages to a single summary line.
 
+## Release Procedure
+
+1. Bump the version in `cannyforge-archive.php` (both the `Version:` header
+   and the `CANNYFORGE_ARCHIVE_VERSION` constant) and in `readme.txt`
+   (`Stable tag:`), and add a changelog entry to `readme.txt`.
+2. Run `composer i18n` to regenerate `languages/cannyforge-archive.pot` from
+   the current source strings (WP-CLI's `wp i18n make-pot`, requires WP-CLI
+   on `PATH`). Commit the regenerated `.pot` — it's translators' source of
+   truth and ships inside the plugin build. Translating the strings
+   themselves (producing `.po`/`.mo` files) is out of scope; this step only
+   keeps the template current.
+3. Run `composer qa` and confirm it's green, including the `WordPress.WP.I18n`
+   PHPCS sniff (gates the `cannyforge-archive` text domain on every
+   translation call).
+4. Run `composer dist` to build `dist/cannyforge-archive/` plus the
+   distributable ZIP.
+5. Update the wp.org listing assets under `.wordpress-org/` (banner, icon,
+   screenshots) if the visuals changed; they are not part of the plugin ZIP
+   (see `.distignore`) and are uploaded separately to the plugin's SVN
+   `assets/` directory.
+
 ## Archive Smoke Data
 
 The historic-content seeder creates published posts spread across multiple years,

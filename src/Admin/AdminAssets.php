@@ -100,8 +100,9 @@ final class AdminAssets {
 			self::SCRIPT_HANDLE,
 			'CannyForgeAdminL10n',
 			array(
-				'savedLabel' => __( 'All changes saved', 'cannyforge-archive' ),
-				'draftLabel' => __( 'Draft changes', 'cannyforge-archive' ),
+				'savedLabel'  => __( 'All changes saved', 'cannyforge-archive' ),
+				'draftLabel'  => __( 'Draft changes', 'cannyforge-archive' ),
+				'copiedLabel' => __( 'Copied', 'cannyforge-archive' ),
 			)
 		);
 	}

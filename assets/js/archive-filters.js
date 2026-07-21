@@ -13,6 +13,33 @@
 	var config = window.cannyforgeArchive || null;
 
 	/**
+	 * Localised (or English-fallback) UI strings. `config` is populated by
+	 * `wp_localize_script()` in ArchiveAssets::enqueue() so none of this
+	 * user-facing copy is hardcoded English at runtime (ticket 610).
+	 */
+	var L10N = {
+		prevLabel: ( config && config.prevLabel ) || '‹ Prev',
+		nextLabel: ( config && config.nextLabel ) || 'Next ›',
+		pageStatusTemplate: ( config && config.pageStatusTemplate ) || 'Page {current} of {total}',
+		noResultsLabel: ( config && config.noResultsLabel ) || 'No results match your search.',
+		resultsCountSingular: ( config && config.resultsCountSingular ) || 'Found %s result across the whole archive',
+		resultsCountPlural: ( config && config.resultsCountPlural ) || 'Found %s results across the whole archive'
+	};
+
+	/**
+	 * Fill in a `{token}`-style template.
+	 *
+	 * @param {string} template The template string.
+	 * @param {Object} tokens   Map of token name (without braces) to value.
+	 * @return {string} The filled-in string.
+	 */
+	function formatTemplate( template, tokens ) {
+		return Object.keys( tokens ).reduce( function ( result, key ) {
+			return result.split( '{' + key + '}' ).join( String( tokens[ key ] ) );
+		}, template );
+	}
+
+	/**
 	 * Read the active filter/search state from a form.
 	 *
 	 * @param {HTMLElement} form The filters form.
@@ -129,16 +156,16 @@
 			}
 
 			pagination.appendChild(
-				button( '‹ Prev', data.page - 1, ! data.has_prev, false )
+				button( L10N.prevLabel, data.page - 1, ! data.has_prev, false )
 			);
 
 			var span = document.createElement( 'span' );
 			span.className = 'cannyforge-archive__page-status';
-			span.textContent = 'Page ' + data.page + ' of ' + data.total_pages;
+			span.textContent = formatTemplate( L10N.pageStatusTemplate, { current: data.page, total: data.total_pages } );
 			pagination.appendChild( span );
 
 			pagination.appendChild(
-				button( 'Next ›', data.page + 1, ! data.has_next, false )
+				button( L10N.nextLabel, data.page + 1, ! data.has_next, false )
 			);
 
 			pagination.hidden = false;
@@ -155,8 +182,8 @@
 
 			if ( summary ) {
 				summary.textContent = data.total === 0
-					? 'No results match your search.'
-					: 'Found ' + data.total + ' result' + ( data.total === 1 ? '' : 's' ) + ' across the whole archive';
+					? L10N.noResultsLabel
+					: ( 1 === data.total ? L10N.resultsCountSingular : L10N.resultsCountPlural ).replace( '%s', String( data.total ) );
 			}
 
 			renderPagination( data );

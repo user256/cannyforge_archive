@@ -207,8 +207,8 @@ class SettingsViewTest extends TestCase {
 
 		$this->assertStringContainsString( 'id="cf-preview-toggle"', $html );
 		$this->assertStringContainsString( 'Live Preview', $html );
-		$this->assertStringContainsString( 'href="http://example.test/archive/" target="_blank" rel="noopener noreferrer">Open', $html );
-		$this->assertStringContainsString( '<iframe src="http://example.test/archive/" title="Preview"></iframe>', $html );
+		$this->assertStringContainsString( 'href="http://example.test/archive/" target="_blank" rel="noopener noreferrer">Preview Archive', $html );
+		$this->assertStringContainsString( '<iframe src="http://example.test/archive/" title="Archive preview"></iframe>', $html );
 	}
 
 	/**

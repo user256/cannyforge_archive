@@ -142,10 +142,19 @@ final class ArchiveAssets {
 				self::SCRIPT_HANDLE,
 				'cannyforgeArchive',
 				array(
-					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'action'  => ArchiveSearchEndpoint::ACTION,
-					'nonce'   => wp_create_nonce( ArchiveSearchEndpoint::NONCE ),
-					'perPage' => 20,
+					'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+					'action'               => ArchiveSearchEndpoint::ACTION,
+					'nonce'                => wp_create_nonce( ArchiveSearchEndpoint::NONCE ),
+					'perPage'              => 20,
+					'prevLabel'            => __( '‹ Prev', 'cannyforge-archive' ),
+					'nextLabel'            => __( 'Next ›', 'cannyforge-archive' ),
+					/* translators: {current} and {total} are replaced client-side with page numbers; kept as literal tokens (not sprintf) because the JS layer has no printf-style formatter. */
+					'pageStatusTemplate'   => __( 'Page {current} of {total}', 'cannyforge-archive' ),
+					'noResultsLabel'       => __( 'No results match your search.', 'cannyforge-archive' ),
+					/* translators: %s is replaced client-side with the number of matching results (singular form). */
+					'resultsCountSingular' => _n( 'Found %s result across the whole archive', 'Found %s results across the whole archive', 1, 'cannyforge-archive' ),
+					/* translators: %s is replaced client-side with the number of matching results (plural form). */
+					'resultsCountPlural'   => _n( 'Found %s result across the whole archive', 'Found %s results across the whole archive', 2, 'cannyforge-archive' ),
 				)
 			);
 		}

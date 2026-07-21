@@ -55,6 +55,22 @@ if ( ! function_exists( 'esc_attr__' ) ) {
 	}
 }
 
+if ( ! function_exists( '_n' ) ) {
+	/**
+	 * Pass-through plural translation (English plural rule: singular iff count is 1).
+	 *
+	 * @param string $single Singular form.
+	 * @param string $plural Plural form.
+	 * @param int    $number Count deciding which form to use.
+	 * @param string $domain Text domain (ignored).
+	 * @return string
+	 */
+	function _n( string $single, string $plural, int $number, string $domain = 'default' ): string {
+		unset( $domain );
+		return 1 === $number ? $single : $plural;
+	}
+}
+
 if ( ! function_exists( 'esc_html' ) ) {
 	/**
 	 * HTML-escape.

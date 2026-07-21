@@ -221,20 +221,36 @@ if ( ! function_exists( 'home_url' ) ) {
 if ( ! function_exists( 'wp_safe_redirect' ) ) {
 	/**
 	 * Record a redirect that would be sent (recorded for inspection; sends no
-	 * real Location header in the test runtime). Callers still must `exit`
-	 * themselves afterwards, exactly as in production — this shim does not.
+	 * real Location header in the test runtime).
+	 *
+	 * This is the one canonical `wp_safe_redirect()` shim — every caller in
+	 * `src/` follows the real-WordPress contract of checking the return value
+	 * (or assuming success) and then `exit`-ing itself, so a "successful"
+	 * redirect here throws {@see \CannyForge\Archive\Tests\WpRedirectException}
+	 * in place of that `exit`, exactly like the `wp_die()`/`wp_redirect()`
+	 * shims in `wp-admin-post-shim.php`. Set the
+	 * `cannyforge_test_safe_redirect_result` global to `false` to exercise a
+	 * *rejected* redirect instead (no throw, real `false` return) — see
+	 * {@see \CannyForge\Archive\Frontend\ArchivePage::redirect_tail()}'s
+	 * fallback-on-rejection tests.
 	 *
 	 * @param string $location Redirect target.
 	 * @param int    $status   HTTP status code.
 	 * @return bool
+	 * @throws \CannyForge\Archive\Tests\WpRedirectException When the redirect "succeeds".
 	 */
 	function wp_safe_redirect( string $location, int $status = 302 ): bool {
 		\CannyForge\Archive\Tests\HookSpy::record( 'wp_safe_redirect', static fn () => array( $location, $status ) );
-		if ( array_key_exists( 'cannyforge_test_safe_redirect_result', $GLOBALS ) ) {
-			return (bool) $GLOBALS['cannyforge_test_safe_redirect_result'];
+
+		$result = array_key_exists( 'cannyforge_test_safe_redirect_result', $GLOBALS )
+			? (bool) $GLOBALS['cannyforge_test_safe_redirect_result']
+			: ( '' !== $location );
+
+		if ( $result ) {
+			throw new \CannyForge\Archive\Tests\WpRedirectException( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- test-only control-flow signal, never rendered as output.
 		}
 
-		return '' !== $location;
+		return $result;
 	}
 }
 

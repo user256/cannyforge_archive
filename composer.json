@@ -46,6 +46,7 @@
     "scripts": {
         "cs": "phpcs",
         "cs:fix": "phpcbf",
+        "i18n": "wp i18n make-pot . languages/cannyforge-archive.pot --slug=cannyforge-archive --domain=cannyforge-archive --exclude=vendor,tests,dist,node_modules,.wordpress-org",
         "dist": "bash scripts/install-plugin.sh --build-only",
         "install:local": "bash scripts/install-plugin.sh --site-path /var/www/html",
         "seed:historic": "bash scripts/seed-historic-content.sh --site-path /var/www/html",
@@ -77,6 +78,7 @@
     },
     "scripts-descriptions": {
         "cs": "PHPCS / WordPress Coding Standards (gating)",
+        "i18n": "Generate languages/cannyforge-archive.pot via WP-CLI (run before each release so translators have current strings)",
         "dist": "Build the distributable plugin folder and ZIP archive",
         "install:local": "Build, zip, and install the plugin into the local WordPress site at /var/www/html",
         "seed:historic": "Seed the local WordPress site with older posts for archive smoke testing",
