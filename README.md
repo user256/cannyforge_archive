@@ -82,6 +82,10 @@ Recommended smoke checklist after `composer seed:historic`:
 - Change the category, tag, month, and author filters and confirm each narrows the rendered list client-side.
 - Visit a targeted category/tag/date/author archive with pagination and confirm the shortened pagination block still links to `/archive/`.
 - Confirm the archive stylesheet and inline theme variables are present on the archive page and targeted archive listings.
+- Visit `/archive/unwanted-tail/` (any non-empty tail after the endpoint) and confirm a 301 to `/archive/` (or the configured `archive_url` override), never a blank page (ticket 612).
+- Switch the mode to Hybrid, save settings, publish a post, and confirm `/archive/` reflects the change immediately rather than after the 24-hour cache TTL (ticket 612 — `ArchiveCache::clear()` now clears every `Mode` case, including Hybrid).
+
+These two are flagged for automation in ticket 603 (real-WordPress integration rig); until that lands they remain manual checks.
 
 ## License
 

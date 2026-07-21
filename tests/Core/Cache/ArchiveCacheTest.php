@@ -55,17 +55,56 @@ class ArchiveCacheTest extends TestCase {
 		$this->assertSame( '<nav>news</nav>', $cache->get( $news_settings ) );
 	}
 
-	public function test_clear_removes_all_caches(): void {
-		$cache         = new ArchiveCache();
-		$blog_settings = new Settings( mode: Mode::Blog );
-		$news_settings = new Settings( mode: Mode::News );
+	/**
+	 * Every {@see Mode} case, including Hybrid, caches independently — driven
+	 * from the enum rather than a hand-maintained list of modes, so a future
+	 * mode is covered automatically.
+	 *
+	 * @return void
+	 */
+	public function test_every_mode_caches_independently(): void {
+		$cache = new ArchiveCache();
 
-		$cache->set( $blog_settings, 'blog-html' );
-		$cache->set( $news_settings, 'news-html' );
+		foreach ( Mode::cases() as $mode ) {
+			$cache->set( new Settings( mode: $mode ), '<nav>' . $mode->value . '</nav>' );
+		}
+
+		foreach ( Mode::cases() as $mode ) {
+			$this->assertSame( '<nav>' . $mode->value . '</nav>', $cache->get( new Settings( mode: $mode ) ) );
+		}
+	}
+
+	public function test_clear_removes_all_caches(): void {
+		$cache = new ArchiveCache();
+
+		$settings_by_mode = array();
+		foreach ( Mode::cases() as $mode ) {
+			$settings_by_mode[ $mode->value ] = new Settings( mode: $mode );
+			$cache->set( $settings_by_mode[ $mode->value ], $mode->value . '-html' );
+		}
 
 		$cache->clear();
 
-		$this->assertFalse( $cache->get( $blog_settings ) );
-		$this->assertFalse( $cache->get( $news_settings ) );
+		foreach ( $settings_by_mode as $settings ) {
+			$this->assertFalse( $cache->get( $settings ) );
+		}
+	}
+
+	/**
+	 * Hybrid mode specifically — the case ticket 612 found untested — is
+	 * cleared, not just Blog and News.
+	 *
+	 * @return void
+	 */
+	public function test_clear_removes_hybrid_cache(): void {
+		$cache           = new ArchiveCache();
+		$hybrid_settings = new Settings( mode: Mode::Hybrid );
+
+		$cache->set( $hybrid_settings, '<nav>hybrid</nav>' );
+		$this->assertSame( '<nav>hybrid</nav>', $cache->get( $hybrid_settings ) );
+
+		$cache->clear();
+
+		$this->assertFalse( $cache->get( $hybrid_settings ) );
 	}
 }

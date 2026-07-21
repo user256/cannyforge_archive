@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
+use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Seo\HeadTagBuilder;
 
 /**
@@ -54,20 +55,31 @@ final class SeoHead {
 	private string $archive_slug;
 
 	/**
+	 * Resolves the archive endpoint's canonical URL — the SEO canonical
+	 * fallback used when no `seo.canonical` override is configured.
+	 *
+	 * @var ArchiveUrlResolver
+	 */
+	private ArchiveUrlResolver $url_resolver;
+
+	/**
 	 * Construct the controller.
 	 *
 	 * @param SettingsRepositoryInterface $repository   Settings persistence.
 	 * @param HeadTagBuilder              $builder      Head-tag builder.
 	 * @param string                      $archive_slug Archive endpoint slug.
+	 * @param ArchiveUrlResolver|null     $url_resolver Archive URL resolver.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
 		HeadTagBuilder $builder,
-		string $archive_slug = ArchivePage::DEFAULT_SLUG
+		string $archive_slug = ArchivePage::DEFAULT_SLUG,
+		?ArchiveUrlResolver $url_resolver = null
 	) {
 		$this->repository   = $repository;
 		$this->builder      = $builder;
 		$this->archive_slug = '' !== $archive_slug ? $archive_slug : ArchivePage::DEFAULT_SLUG;
+		$this->url_resolver = $url_resolver ?? new ArchiveUrlResolver( $this->archive_slug );
 	}
 
 	/**
@@ -118,7 +130,7 @@ final class SeoHead {
 
 		$tags = $this->builder->build(
 			$this->repository->get()->seo(),
-			home_url( '/' . $this->archive_slug . '/' ),
+			$this->url_resolver->endpoint_url(),
 			false
 		);
 

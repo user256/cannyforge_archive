@@ -12,6 +12,7 @@ namespace CannyForge\Archive\Tests\Frontend;
 use CannyForge\Archive\Contracts\Settings\Mode;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
+use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Archive\FixtureEntryProvider;
 use CannyForge\Archive\Core\Cache\ArchiveCache;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
@@ -35,6 +36,7 @@ class ArchivePageTest extends TestCase {
 		HookSpy::reset();
 		OptionStore::reset();
 		TransientStore::reset();
+		unset( $GLOBALS['wp_query'] );
 	}
 
 	/**
@@ -137,5 +139,86 @@ class ArchivePageTest extends TestCase {
 
 		$this->assertTrue( HookSpy::has( 'do_action:cannyforge_archive_before_render' ) );
 		$this->assertTrue( HookSpy::has( 'do_action:cannyforge_archive_after_render' ) );
+	}
+
+	/**
+	 * With no explicit resolver, the page builds one seeded with its own slug —
+	 * so the redirect destination and the endpoint it redirects a stray tail
+	 * away from always agree.
+	 *
+	 * @return void
+	 */
+	public function test_default_resolver_uses_configured_slug(): void {
+		$page = $this->page( 'stories' );
+
+		$ref = new \ReflectionProperty( $page, 'url_resolver' );
+		$ref->setAccessible( true );
+		$resolver = $ref->getValue( $page );
+
+		$this->assertInstanceOf( ArchiveUrlResolver::class, $resolver );
+		$this->assertSame( 'http://example.test/stories/', $resolver->endpoint_url() );
+	}
+
+	/**
+	 * Ticket 612: with the real resolver and no `archive_url` override
+	 * configured (the default), the tail-redirect target resolves to the
+	 * archive endpoint URL — never an empty string. This is what the
+	 * pre-fix `maybe_render()` got wrong (it redirected straight to the
+	 * possibly-empty `archive_url` setting). Exercised at the resolver
+	 * boundary rather than through `maybe_render()`/`redirect_tail()`
+	 * directly, since a resolved (non-empty) target ends in `exit`, which is
+	 * impractical to run inside PHPUnit.
+	 *
+	 * @return void
+	 */
+	public function test_redirect_target_never_empty_for_default_settings(): void {
+		$page = $this->page();
+
+		$ref = new \ReflectionProperty( $page, 'url_resolver' );
+		$ref->setAccessible( true );
+		$resolver = $ref->getValue( $page );
+
+		$this->assertSame(
+			'http://example.test/archive/',
+			$resolver->destination_url( new Settings( mode: Mode::Blog ) )
+		);
+	}
+
+	/**
+	 * When the resolver produces no target at all, the endpoint fails closed
+	 * to a 404 instead of following an unconditional blank-page `exit` —
+	 * ticket 612's "redirect failure is handled explicitly" guarantee. A real
+	 * {@see ArchiveUrlResolver} can't actually return an empty destination (it
+	 * always falls back to the endpoint URL), so this substitutes a resolver
+	 * double to exercise the defensive branch directly.
+	 *
+	 * @return void
+	 */
+	public function test_non_empty_tail_falls_back_to_404_when_resolver_yields_no_target(): void {
+		$resolver = new class() extends ArchiveUrlResolver {
+			public function destination_url( Settings $settings ): string {
+				unset( $settings );
+				return '';
+			}
+		};
+
+		$page = new ArchivePage(
+			new OptionsSettingsRepository(),
+			new FixtureEntryProvider(),
+			new ArchiveRenderer(),
+			ArchivePage::DEFAULT_SLUG,
+			null,
+			null,
+			$resolver
+		);
+
+		$GLOBALS['wp_query'] = (object) array( // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			'query_vars' => array( ArchivePage::QUERY_VAR => 'unwanted-tail' ),
+		);
+
+		$page->maybe_render();
+
+		$this->assertTrue( HookSpy::has( 'status_header:404' ) );
+		$this->assertFalse( HookSpy::has( 'wp_safe_redirect' ) );
 	}
 }

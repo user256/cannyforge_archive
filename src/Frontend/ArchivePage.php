@@ -17,6 +17,7 @@ use CannyForge\Archive\Contracts\Archive\ArchiveEntryProviderInterface;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
+use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Archive\FilterOptionsProvider;
 use CannyForge\Archive\Core\Cache\ArchiveCache;
 
@@ -37,7 +38,7 @@ final class ArchivePage {
 	/**
 	 * The default URL slug for the archive endpoint.
 	 */
-	public const DEFAULT_SLUG = 'archive';
+	public const DEFAULT_SLUG = ArchiveUrlResolver::DEFAULT_SLUG;
 
 	/**
 	 * Settings persistence.
@@ -82,14 +83,23 @@ final class ArchivePage {
 	private FilterOptionsProvider $options;
 
 	/**
+	 * Resolves the canonical archive endpoint URL and the "View Archive"
+	 * destination for a non-canonical tail redirect.
+	 *
+	 * @var ArchiveUrlResolver
+	 */
+	private ArchiveUrlResolver $url_resolver;
+
+	/**
 	 * Construct the page.
 	 *
-	 * @param SettingsRepositoryInterface   $repository Settings persistence.
-	 * @param ArchiveEntryProviderInterface $provider   Entry source.
-	 * @param ArchiveRenderer               $renderer   HTML renderer.
-	 * @param string                        $slug       Endpoint slug.
-	 * @param ArchiveCache|null             $cache      HTML fragment cache.
-	 * @param FilterOptionsProvider|null    $options    Whole-database filter options.
+	 * @param SettingsRepositoryInterface   $repository   Settings persistence.
+	 * @param ArchiveEntryProviderInterface $provider     Entry source.
+	 * @param ArchiveRenderer               $renderer     HTML renderer.
+	 * @param string                        $slug         Endpoint slug.
+	 * @param ArchiveCache|null             $cache        HTML fragment cache.
+	 * @param FilterOptionsProvider|null    $options      Whole-database filter options.
+	 * @param ArchiveUrlResolver|null       $url_resolver Archive URL resolver.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -97,14 +107,16 @@ final class ArchivePage {
 		ArchiveRenderer $renderer,
 		string $slug = self::DEFAULT_SLUG,
 		?ArchiveCache $cache = null,
-		?FilterOptionsProvider $options = null
+		?FilterOptionsProvider $options = null,
+		?ArchiveUrlResolver $url_resolver = null
 	) {
-		$this->repository = $repository;
-		$this->provider   = $provider;
-		$this->renderer   = $renderer;
-		$this->slug       = '' !== $slug ? $slug : self::DEFAULT_SLUG;
-		$this->cache      = $cache ?? new ArchiveCache();
-		$this->options    = $options ?? new FilterOptionsProvider();
+		$this->repository   = $repository;
+		$this->provider     = $provider;
+		$this->renderer     = $renderer;
+		$this->slug         = '' !== $slug ? $slug : self::DEFAULT_SLUG;
+		$this->cache        = $cache ?? new ArchiveCache();
+		$this->options      = $options ?? new FilterOptionsProvider();
+		$this->url_resolver = $url_resolver ?? new ArchiveUrlResolver( $this->slug );
 	}
 
 	/**
@@ -145,10 +157,13 @@ final class ArchivePage {
 
 		$settings = $this->repository->get();
 
-		// Ticket 201: Canonical-tail rejection/redirect hardening.
+		// Ticket 201/612: Canonical-tail rejection/redirect hardening. A
+		// non-empty tail (e.g. `/archive/unwanted-tail/`) isn't a page this
+		// plugin renders, so send the visitor to the resolved archive
+		// destination instead of 200-ing an endpoint variant that doesn't exist.
 		if ( '' !== $wp_query->query_vars[ self::QUERY_VAR ] ) {
-			wp_safe_redirect( esc_url_raw( $settings->archive_url() ), 301 );
-			exit;
+			$this->redirect_tail( $settings );
+			return;
 		}
 
 		$html = $this->build_html( $settings );
@@ -164,6 +179,32 @@ final class ArchivePage {
 		echo '</main>';
 		get_footer();
 		exit;
+	}
+
+	/**
+	 * Redirect a non-canonical tail request to the resolved archive
+	 * destination — {@see ArchiveUrlResolver::destination_url()}, the
+	 * `archive_url` override when configured, otherwise this endpoint's own
+	 * canonical URL. Never redirects to an empty target: when the resolver
+	 * cannot produce one, the request fails closed to a 404 rather than an
+	 * unconditional blank-page `exit`.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return void
+	 */
+	private function redirect_tail( Settings $settings ): void {
+		$target = $this->url_resolver->destination_url( $settings );
+
+		if ( '' !== $target ) {
+			wp_safe_redirect( esc_url_raw( $target ), 301 );
+			exit;
+		}
+
+		global $wp_query;
+		if ( $wp_query instanceof \WP_Query ) {
+			$wp_query->is_404 = true;
+		}
+		status_header( 404 );
 	}
 
 	/**
