@@ -16,6 +16,10 @@ CannyForge Archive Generator gives news and blog sites a combined HTML sitemap a
 JavaScript-powered archive, and replaces WordPress's default taxonomy
 pagination with a shorter sequence that links out to that archive.
 
+CI runs the automated unit/static-analysis suite on every supported PHP
+version, 8.1 through 8.4, so the `Requires PHP` floor above is continuously
+verified rather than asserted.
+
 Default pagination wastes crawl budget and leaks PageRank into deep, low-value
 paginated pages. CannyForge Archive Generator shortens the visible pagination run and
 routes crawlers to a single rich archive page, helping sculpt PageRank toward

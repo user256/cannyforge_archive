@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 jobs:
-  qa:
-    name: Quality gates
+  static-analysis:
+    name: Static analysis (pinned PHP)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,8 +20,6 @@ jobs:
           php-version: '8.1'
           extensions: sodium, mbstring
           tools: composer:v2
-          # pcov so Infection (mutation testing) can generate coverage in CI.
-          coverage: pcov
 
       - name: Validate composer.json
         run: composer validate --strict --no-check-publish
@@ -30,6 +28,9 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       # Each gate runs as its own step so CI shows exactly which one failed.
+      # These gates are pinned to one PHP version (8.1) rather than matrixed —
+      # they check code style/types/architecture once, not runtime behaviour
+      # per-interpreter (ticket 607).
       - name: PHPCS / WPCS
         run: composer cs
 
@@ -48,13 +49,41 @@ jobs:
       - name: PHPMD (god-class budget — hard-fails on complexity/length/size)
         run: composer mess
 
+  test:
+    name: PHPUnit (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Requires PHP 8.1 (readme.txt) through the latest stable at the time
+        # of writing, 8.4 — ticket 607. Coverage/mutation testing only runs
+        # once, on the pinned version below, to keep CI time reasonable.
+        php-version: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: sodium, mbstring
+          tools: composer:v2
+          # pcov so Infection (mutation testing) can generate coverage in CI.
+          coverage: pcov
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
       - name: PHPUnit
         run: composer test
 
       # Report-only for now: prints the real MSI but does not fail the build
       # until we've seen the first measured number and set a threshold (ticket
-      # 201). Flip `continue-on-error` to false once minMsi is set.
+      # 201). Flip `continue-on-error` to false once minMsi is set. Only runs
+      # on the pinned PHP version — mutation testing is expensive and the
+      # result shouldn't vary meaningfully across PHP versions.
       - name: Infection (mutation testing — report only)
+        if: matrix.php-version == '8.1'
         continue-on-error: true
         run: composer infection
 
