@@ -1,8 +1,8 @@
 # Ticket 612: Fix archive-tail redirects and Hybrid cache invalidation
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In progress
+**Owner:** background-agent
 **Estimate:** M
 **Priority:** P0 — correctness
 
