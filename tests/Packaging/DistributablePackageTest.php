@@ -46,6 +46,7 @@ class DistributablePackageTest extends TestCase {
 		'autoload.php',
 		'cannyforge-archive.php',
 		'readme.txt',
+		'uninstall.php',
 	);
 
 	/**
@@ -92,6 +93,23 @@ class DistributablePackageTest extends TestCase {
 			array(),
 			$unexpected,
 			"Unexpected files leaked into the distributable ZIP:\n" . implode( "\n", $unexpected )
+		);
+	}
+
+	/**
+	 * Uninstall.php ships in the distributable ZIP (ticket 606): without it,
+	 * deleting the plugin through the Plugins screen leaves every option,
+	 * transient, and encrypted Google credential behind.
+	 *
+	 * @return void
+	 */
+	public function test_zip_ships_uninstall_php(): void {
+		$entries = $this->zip_entries( $this->built_zip_path() );
+
+		$this->assertContains(
+			'cannyforge-archive/uninstall.php',
+			$entries,
+			'uninstall.php did not ship in the distributable ZIP.'
 		);
 	}
 

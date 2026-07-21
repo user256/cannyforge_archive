@@ -74,6 +74,7 @@ How credentials are stored and removed:
 
 * The client secret, refresh token, and cached access token are encrypted at rest.
 * Clicking Disconnect makes a best-effort call to Google's token revocation endpoint before clearing the locally stored tokens and caches, so the connection is invalidated on Google's side as well as locally. If Google's revocation endpoint cannot be reached, the local credentials are still cleared and the admin is told the remote grant may need to be revoked manually.
+* Deleting the plugin (not just deactivating it) makes the same best-effort revocation call, then permanently removes every option, cache, and transient the plugin created, including the encrypted Google credentials. Deactivating the plugin never removes this data — only deleting it does.
 
 Service policies:
 

@@ -11,6 +11,7 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/src',
         __DIR__ . '/cannyforge-archive.php',
+        __DIR__ . '/uninstall.php',
     ])
     // Scoped to dead-code detection only (ticket 101): unused methods/properties,
     // dead assignments, redundant conditions. We deliberately do NOT enable the

@@ -23,3 +23,5 @@ require __DIR__ . '/wp-hooks-shim.php';
 require __DIR__ . '/wp-admin-post-shim.php';
 require __DIR__ . '/wp-admin-redirect-shim.php';
 require __DIR__ . '/wp-ajax-shim.php';
+require __DIR__ . '/wp-multisite-shim.php';
+require __DIR__ . '/wp-wpdb-shim.php';
