@@ -1,8 +1,8 @@
 # Ticket 617: Handle rejected archive-tail safe redirects
 
 **Sprint:** 6 — Trust & Scale
-**Status:** Not started
-**Owner:** unassigned
+**Status:** In review
+**Owner:** background-agent
 **Estimate:** S
 **Priority:** P0 — correctness
 
@@ -21,11 +21,11 @@ a blank response.
 
 ## Acceptance criteria
 
-- [ ] Check `wp_safe_redirect()`'s return value in the archive-tail path.
-- [ ] On rejection, use a documented safe local fallback or return a 404
+- [x] Check `wp_safe_redirect()`'s return value in the archive-tail path.
+- [x] On rejection, use a documented safe local fallback or return a 404
       without exiting.
-- [ ] Add a regression test that simulates a rejected redirect.
-- [ ] Preserve ticket 612's endpoint/destination/SEO-canonical contract.
+- [x] Add a regression test that simulates a rejected redirect.
+- [x] Preserve ticket 612's endpoint/destination/SEO-canonical contract.
 
 ## Dependencies
 
@@ -36,6 +36,11 @@ a blank response.
 
 - 2026-07-21 — Found during PR #2 review: the implementation checks only for
   an empty resolver value, not whether WordPress accepts the safe redirect.
+- 2026-07-21 — `ArchivePage::redirect_tail()` now checks the redirect result,
+  retries with the plugin-owned endpoint when a configured destination is
+  rejected, and returns a 404 if that local fallback is also rejected. The
+  regression test covers both rejected calls and confirms the 404 response;
+  the existing empty-target 404 contract remains unchanged.
 
 ---
 
