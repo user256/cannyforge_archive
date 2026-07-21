@@ -165,6 +165,11 @@ class SettingsViewTest extends TestCase {
 	/**
 	 * A preview link is rendered when a preview URL is supplied.
 	 *
+	 * The current header contract is a "Live Preview" toggle button plus an
+	 * "Open" link to the archive in a new tab, and the side preview panel's
+	 * iframe is pointed at the same URL (not the older single "Preview
+	 * Archive" link).
+	 *
 	 * @return void
 	 */
 	public function test_renders_preview_link(): void {
@@ -176,8 +181,21 @@ class SettingsViewTest extends TestCase {
 		);
 		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( 'Preview Archive', $html );
-		$this->assertStringContainsString( 'href="http://example.test/archive/"', $html );
-		$this->assertStringContainsString( 'target="_blank"', $html );
+		$this->assertStringContainsString( 'id="cf-preview-toggle"', $html );
+		$this->assertStringContainsString( 'Live Preview', $html );
+		$this->assertStringContainsString( 'href="http://example.test/archive/" target="_blank" rel="noopener noreferrer">Open', $html );
+		$this->assertStringContainsString( '<iframe src="http://example.test/archive/" title="Preview"></iframe>', $html );
+	}
+
+	/**
+	 * No preview toggle or "Open" link is rendered without a preview URL.
+	 *
+	 * @return void
+	 */
+	public function test_omits_preview_link_without_preview_url(): void {
+		$html = $this->render( new Settings() );
+
+		$this->assertStringNotContainsString( 'id="cf-preview-toggle"', $html );
+		$this->assertStringNotContainsString( 'Live Preview', $html );
 	}
 }

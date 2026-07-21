@@ -82,14 +82,19 @@ class SettingsTest extends TestCase {
 	}
 
 	/**
-	 * Export then import via the array form is lossless for nested objects.
+	 * Export then import via the array form is lossless for the link-types
+	 * and filters nested objects.
+	 *
+	 * Split from a single "nested" round-trip test (ticket 611) to keep each
+	 * test method under the PHPMD length budget; the nested groups are
+	 * independent so covering them in separate methods loses nothing.
 	 *
 	 * @return void
 	 */
-	public function test_round_trips_through_array_nested(): void {
+	public function test_round_trips_link_types_and_filters(): void {
 		$original = Settings::from_array(
 			array(
-				'link_types'        => array(
+				'link_types' => array(
 					'title'          => true,
 					'description'    => true,
 					'featured_image' => true,
@@ -98,26 +103,68 @@ class SettingsTest extends TestCase {
 					'author'         => false,
 					'published_date' => false,
 				),
-				'filters'           => array(
+				'filters'    => array(
 					'search'     => false,
 					'category'   => true,
 					'tag'        => false,
 					'month_year' => true,
 					'author'     => true,
 				),
-				'targeting'         => array(
+			)
+		);
+
+		$restored = Settings::from_array( $original->to_array() );
+
+		$this->assertTrue( $restored->link_types()->description() );
+		$this->assertFalse( $restored->link_types()->categories() );
+		$this->assertTrue( $restored->link_types()->tags() );
+		$this->assertFalse( $restored->link_types()->author() );
+		$this->assertFalse( $restored->link_types()->published_date() );
+		$this->assertTrue( $restored->filters()->author() );
+	}
+
+	/**
+	 * Export then import via the array form is lossless for the targeting
+	 * and SEO nested objects.
+	 *
+	 * @return void
+	 */
+	public function test_round_trips_targeting_and_seo(): void {
+		$original = Settings::from_array(
+			array(
+				'targeting' => array(
 					'category' => false,
 					'tag'      => true,
 					'author'   => true,
 					'date'     => true,
 				),
-				'seo'               => array(
+				'seo'       => array(
 					'title'            => 'Archive',
 					'meta_description' => 'All our stories.',
 					'index'            => false,
 					'follow'           => true,
 					'canonical'        => 'https://example.com/canonical/',
 				),
+			)
+		);
+
+		$restored = Settings::from_array( $original->to_array() );
+
+		$this->assertFalse( $restored->targeting()->category() );
+		$this->assertTrue( $restored->targeting()->author() );
+		$this->assertSame( 'noindex,follow', $restored->seo()->robots() );
+		$this->assertSame( 'https://example.com/canonical/', $restored->seo()->canonical() );
+	}
+
+	/**
+	 * Export then import via the array form is lossless for the theme and
+	 * content-selection nested objects.
+	 *
+	 * @return void
+	 */
+	public function test_round_trips_theme_and_content_selection(): void {
+		$original = Settings::from_array(
+			array(
 				'theme'             => array(
 					'layout'        => 'list',
 					'accent_color'  => '#112233',
@@ -136,16 +183,6 @@ class SettingsTest extends TestCase {
 
 		$restored = Settings::from_array( $original->to_array() );
 
-		$this->assertTrue( $restored->link_types()->description() );
-		$this->assertFalse( $restored->link_types()->categories() );
-		$this->assertTrue( $restored->link_types()->tags() );
-		$this->assertFalse( $restored->link_types()->author() );
-		$this->assertFalse( $restored->link_types()->published_date() );
-		$this->assertTrue( $restored->filters()->author() );
-		$this->assertFalse( $restored->targeting()->category() );
-		$this->assertTrue( $restored->targeting()->author() );
-		$this->assertSame( 'noindex,follow', $restored->seo()->robots() );
-		$this->assertSame( 'https://example.com/canonical/', $restored->seo()->canonical() );
 		$this->assertSame( Theme::LAYOUT_LIST, $restored->theme()->layout() );
 		$this->assertSame( '#112233', $restored->theme()->accent_color() );
 		$this->assertSame( array( 'News' ), $restored->content_selection()->include_categories() );
