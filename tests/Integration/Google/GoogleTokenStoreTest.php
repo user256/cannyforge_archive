@@ -90,6 +90,47 @@ class GoogleTokenStoreTest extends TestCase {
 	}
 
 	/**
+	 * A stored refresh token that fails to authenticate/decrypt (e.g. after a
+	 * WordPress salt rotation changed the derived key, ticket 605) surfaces
+	 * as the distinct "needs re-authorising" condition, and reads back as ''
+	 * rather than a decryption error leaking through.
+	 *
+	 * @return void
+	 */
+	public function test_connection_needs_reauthorising_when_stored_token_is_undecryptable(): void {
+		OptionStore::set( 'cannyforge_archive_google_refresh_token', 'enc2:not-a-valid-payload!!' );
+
+		$store = new GoogleTokenStore( new SecretCipher( 'test-salt' ) );
+
+		$this->assertTrue( $store->connection_needs_reauthorising() );
+		$this->assertSame( '', $store->refresh_token() );
+	}
+
+	/**
+	 * With no refresh token stored at all, there is nothing to re-authorise —
+	 * this must stay false, not be confused with the undecryptable case.
+	 *
+	 * @return void
+	 */
+	public function test_connection_does_not_need_reauthorising_with_no_token_stored(): void {
+		$store = new GoogleTokenStore( new SecretCipher( 'test-salt' ) );
+
+		$this->assertFalse( $store->connection_needs_reauthorising() );
+	}
+
+	/**
+	 * A validly stored, decryptable refresh token never needs re-authorising.
+	 *
+	 * @return void
+	 */
+	public function test_connection_does_not_need_reauthorising_when_token_is_valid(): void {
+		$store = new GoogleTokenStore( new SecretCipher( 'test-salt' ) );
+		$store->save_refresh_token( 'refresh-token-value' );
+
+		$this->assertFalse( $store->connection_needs_reauthorising() );
+	}
+
+	/**
 	 * Clearing the token store removes the active connection state.
 	 *
 	 * @return void

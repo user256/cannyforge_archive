@@ -260,7 +260,7 @@ final class ModeSettingsPanelView {
 		);
 		$this->render_google_summary_item(
 			__( 'Google account', 'cannyforge-archive' ),
-			ucfirst( $status ),
+			GoogleTokenStore::status_label( $status ),
 			GoogleTokenStore::STATUS_CONNECTED === $status
 		);
 		$this->render_google_summary_item(

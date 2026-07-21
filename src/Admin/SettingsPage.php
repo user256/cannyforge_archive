@@ -22,6 +22,7 @@ use CannyForge\Archive\Integration\Google\GoogleSettings;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
+use CannyForge\Archive\Integration\Google\SecretCipher;
 
 /**
  * Registers and renders the CannyForge Archive settings page.
@@ -211,13 +212,19 @@ final class SettingsPage {
 			echo '</p></div>';
 		}
 
+		if ( ! SecretCipher::backend_available() ) {
+			echo '<div class="notice notice-error"><p>';
+			echo esc_html__( 'No authenticated-encryption backend is available on this server (the PHP sodium extension, or OpenSSL with AES-256-GCM). Google secrets cannot be encrypted at rest, so new Client Secrets and connection tokens will not be saved until this is fixed — ask your host to enable the sodium PHP extension.', 'cannyforge-archive' );
+			echo '</p></div>';
+		}
+
 		$action_url = esc_url_raw( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
 		$this->view->render(
 			$this->repository->get(),
 			$action_url,
 			$this->preview_url(),
 			$this->google_settings->get(),
-			$this->google_tokens->status(),
+			$this->google_connection_status(),
 			$this->google_settings->has_client_secret(),
 			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_CONNECT ) ),
 			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_DISCONNECT ) ),
@@ -234,6 +241,21 @@ final class SettingsPage {
 	 */
 	private function preview_url(): string {
 		return $this->url_resolver->destination_url( $this->repository->get() );
+	}
+
+	/**
+	 * The Google connection status to render, substituting the distinct
+	 * "needs re-authorising" pseudo-status (ticket 605) whenever the stored
+	 * refresh token fails to authenticate/decrypt — so a salt rotation (or
+	 * other key change) surfaces as an actionable state on the settings
+	 * panel instead of silently reading as blank/disconnected.
+	 *
+	 * @return string
+	 */
+	private function google_connection_status(): string {
+		return $this->google_tokens->connection_needs_reauthorising()
+			? GoogleTokenStore::STATUS_NEEDS_REAUTH
+			: $this->google_tokens->status();
 	}
 
 	/**
