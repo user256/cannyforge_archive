@@ -5,11 +5,12 @@
  * wp_die), so its scope-selection, CSRF-state, and revocation behaviour can be
  * unit tested without a full WordPress runtime.
  *
- * This is deliberately scoped to ticket 614's controller behaviour, not a
- * general admin-post test harness — see ticket 602 for that. Redirect/die
- * calls throw instead of terminating the process, so a test can assert on the
- * outcome instead of the process exiting mid-test. Each is guarded so a real
- * WordPress environment takes precedence.
+ * `wp_redirect()`/`wp_die()` throw instead of terminating the process, so a
+ * test can assert on the outcome instead of the process exiting mid-test.
+ * `wp_safe_redirect()` is intentionally NOT declared here — see the note next
+ * to its `function_exists` guard below — it has one canonical, equally
+ * throwing definition in wp-hooks-shim.php (loaded first by bootstrap.php).
+ * Each function is guarded so a real WordPress environment takes precedence.
  *
  * @package CannyForge\Archive
  */
@@ -47,9 +48,10 @@ if ( ! function_exists( 'get_current_user_id' ) ) {
 
 if ( ! function_exists( 'check_admin_referer' ) ) {
 	/**
-	 * In-memory check_admin_referer: always accepts in the test runtime, since
-	 * nonce verification is a WordPress-runtime concern outside this ticket's
-	 * scope (the CSRF surface this ticket covers is the OAuth state transient).
+	 * In-memory check_admin_referer: accepts by default (override via the
+	 * `cannyforge_test_admin_referer_valid` global to simulate a missing or
+	 * invalid nonce for a specific test). Mirrors real WordPress: an invalid
+	 * nonce calls `wp_die()` rather than returning falsy.
 	 *
 	 * @param int|string $action    Nonce action.
 	 * @param string     $query_arg Nonce field name.
@@ -57,7 +59,28 @@ if ( ! function_exists( 'check_admin_referer' ) ) {
 	 */
 	function check_admin_referer( $action = -1, string $query_arg = '_wpnonce' ) {
 		unset( $action, $query_arg );
+		if ( ! ( $GLOBALS['cannyforge_test_admin_referer_valid'] ?? true ) ) {
+			wp_die( esc_html__( 'Are you sure you want to do this?', 'cannyforge-archive' ) );
+		}
+
 		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+	/**
+	 * In-memory wp_verify_nonce: valid exactly when the nonce matches what
+	 * the `wp_create_nonce()`/`wp_nonce_field()` shims produce for the given
+	 * action (`test-nonce-{$action}`), mirroring real WordPress's
+	 * int-on-valid/false-on-invalid contract closely enough for truthiness
+	 * checks.
+	 *
+	 * @param string     $nonce  Nonce value to verify.
+	 * @param int|string $action Nonce action.
+	 * @return int|false
+	 */
+	function wp_verify_nonce( string $nonce, $action = -1 ) {
+		return 'test-nonce-' . $action === $nonce ? 1 : false;
 	}
 }
 
@@ -143,17 +166,10 @@ if ( ! function_exists( 'wp_redirect' ) ) {
 	}
 }
 
-if ( ! function_exists( 'wp_safe_redirect' ) ) {
-	/**
-	 * In-memory wp_safe_redirect: throws instead of sending headers + exiting.
-	 *
-	 * @param string $location Redirect target.
-	 * @param int    $status   HTTP status (ignored).
-	 * @return never
-	 * @throws WpRedirectException Always, in place of a real redirect + exit.
-	 */
-	function wp_safe_redirect( string $location, int $status = 302 ): never {
-		unset( $status );
-		throw new WpRedirectException( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- test-only control-flow signal, never rendered as output.
-	}
-}
+// `wp_safe_redirect()` is deliberately NOT (re)defined here: it already has a
+// single canonical definition in wp-hooks-shim.php (loaded earlier by
+// bootstrap.php), which throws WpRedirectException under the same conditions
+// real WordPress would return true (see that file for why a second,
+// `function_exists`-guarded definition here would silently never install and
+// leave every `wp_safe_redirect(...); exit;` call site in this codebase
+// falling through into a real, test-process-killing `exit`).

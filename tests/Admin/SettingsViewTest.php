@@ -162,6 +162,71 @@ class SettingsViewTest extends TestCase {
 
 
 	/**
+	 * Current values from the Pagination, SEO, and Display accordions (the
+	 * regions delegated to {@see \CannyForge\Archive\Admin\SettingsSectionsView}
+	 * that were previously only checked for field *names*, not values) show
+	 * up in the rendered output.
+	 *
+	 * @return void
+	 */
+	public function test_renders_current_values_from_accordion_sections(): void {
+		$html = $this->render(
+			Settings::from_array(
+				array(
+					'pagination_limit' => 3,
+					'archive_url'      => 'https://example.test/custom-archive/',
+					'seo'              => array(
+						'title'            => 'Custom Archive Title',
+						'meta_description' => 'A custom meta description.',
+						'canonical'        => 'https://example.test/canonical/',
+					),
+					'theme'            => array(
+						'accent_color' => '#123456',
+					),
+				)
+			)
+		);
+
+		$this->assertStringContainsString( 'name="pagination_limit" value="3"', $html );
+		$this->assertStringContainsString( 'name="archive_url" value="https://example.test/custom-archive/"', $html );
+		$this->assertStringContainsString( 'name="seo_title" value="Custom Archive Title"', $html );
+		$this->assertStringContainsString( 'A custom meta description.', $html );
+		$this->assertStringContainsString( 'name="seo_canonical" value="https://example.test/canonical/"', $html );
+		$this->assertStringContainsString( 'name="theme_accent_color" value="#123456"', $html );
+	}
+
+	/**
+	 * User-controlled free-text values rendered by the accordion sections —
+	 * SEO title/description/canonical and the "View Archive" URL — are
+	 * entity-encoded, never echoed as literal, executable markup.
+	 *
+	 * @return void
+	 */
+	public function test_escapes_accordion_section_values_against_xss(): void {
+		$html = $this->render(
+			Settings::from_array(
+				array(
+					'archive_url' => '"><script>alert(1)</script>',
+					'seo'         => array(
+						'title'            => '<script>alert(2)</script>',
+						'meta_description' => '<script>alert(3)</script>',
+						'canonical'        => '<script>alert(4)</script>',
+					),
+				)
+			)
+		);
+
+		$this->assertStringNotContainsString( '<script>alert(1)</script>', $html );
+		$this->assertStringNotContainsString( '<script>alert(2)</script>', $html );
+		$this->assertStringNotContainsString( '<script>alert(3)</script>', $html );
+		$this->assertStringNotContainsString( '<script>alert(4)</script>', $html );
+		$this->assertStringContainsString( '&lt;script&gt;alert(1)&lt;/script&gt;', $html );
+		$this->assertStringContainsString( '&lt;script&gt;alert(2)&lt;/script&gt;', $html );
+		$this->assertStringContainsString( '&lt;script&gt;alert(3)&lt;/script&gt;', $html );
+		$this->assertStringContainsString( '&lt;script&gt;alert(4)&lt;/script&gt;', $html );
+	}
+
+	/**
 	 * The page is renamed to "CannyForge Archive Generator" (not "HTML Sitemap Generator").
 	 *
 	 * @return void
@@ -189,10 +254,10 @@ class SettingsViewTest extends TestCase {
 	/**
 	 * A preview link is rendered when a preview URL is supplied.
 	 *
-	 * The current header contract is a "Live Preview" toggle button plus an
-	 * "Open" link to the archive in a new tab, and the side preview panel's
-	 * iframe is pointed at the same URL (not the older single "Preview
-	 * Archive" link).
+	 * The current header contract is a "Live Preview" toggle button plus a
+	 * "Preview Archive" link that opens the archive in a new tab (ticket
+	 * 613's copy pass), and the side preview panel's iframe is pointed at
+	 * the same URL.
 	 *
 	 * @return void
 	 */
@@ -207,8 +272,8 @@ class SettingsViewTest extends TestCase {
 
 		$this->assertStringContainsString( 'id="cf-preview-toggle"', $html );
 		$this->assertStringContainsString( 'Live Preview', $html );
-		$this->assertStringContainsString( 'href="http://example.test/archive/" target="_blank" rel="noopener noreferrer">Open', $html );
-		$this->assertStringContainsString( '<iframe src="http://example.test/archive/" title="Preview"></iframe>', $html );
+		$this->assertStringContainsString( 'href="http://example.test/archive/" target="_blank" rel="noopener noreferrer">Preview Archive', $html );
+		$this->assertStringContainsString( '<iframe src="http://example.test/archive/" title="Archive preview"></iframe>', $html );
 	}
 
 	/**

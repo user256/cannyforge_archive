@@ -220,21 +220,38 @@ if ( ! function_exists( 'home_url' ) ) {
 
 if ( ! function_exists( 'wp_safe_redirect' ) ) {
 	/**
-	 * Record a redirect that would be sent (recorded for inspection; sends no
-	 * real Location header in the test runtime). Callers still must `exit`
-	 * themselves afterwards, exactly as in production — this shim does not.
+	 * Record a redirect that would be sent, mirroring real WordPress's
+	 * boolean result (true when the redirect is accepted, false when the
+	 * target is rejected, e.g. an external host not on the safe-redirect
+	 * allow-list).
+	 *
+	 * This is the single, canonical `wp_safe_redirect()` definition for the
+	 * whole suite (deliberately not re-declared in wp-admin-post-shim.php —
+	 * see the note there): every call site in this codebase follows a truthy
+	 * result with an immediate `exit`, so a truthy result here throws
+	 * {@see \CannyForge\Archive\Tests\WpRedirectException} to simulate that
+	 * `exit` without killing the test process, letting a test catch it and
+	 * assert on the redirect target. A falsy (rejected) result returns
+	 * `false` and lets execution continue, exactly as production code's own
+	 * `if ( wp_safe_redirect( ... ) ) { exit; }` guard expects.
 	 *
 	 * @param string $location Redirect target.
 	 * @param int    $status   HTTP status code.
 	 * @return bool
+	 * @throws \CannyForge\Archive\Tests\WpRedirectException When the redirect would succeed.
 	 */
 	function wp_safe_redirect( string $location, int $status = 302 ): bool {
 		\CannyForge\Archive\Tests\HookSpy::record( 'wp_safe_redirect', static fn () => array( $location, $status ) );
-		if ( array_key_exists( 'cannyforge_test_safe_redirect_result', $GLOBALS ) ) {
-			return (bool) $GLOBALS['cannyforge_test_safe_redirect_result'];
+
+		$result = array_key_exists( 'cannyforge_test_safe_redirect_result', $GLOBALS )
+			? (bool) $GLOBALS['cannyforge_test_safe_redirect_result']
+			: '' !== $location;
+
+		if ( $result ) {
+			throw new \CannyForge\Archive\Tests\WpRedirectException( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- test-only control-flow signal, never rendered as output.
 		}
 
-		return '' !== $location;
+		return false;
 	}
 }
 
