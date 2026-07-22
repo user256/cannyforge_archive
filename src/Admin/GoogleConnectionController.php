@@ -20,6 +20,8 @@ use CannyForge\Archive\Integration\Google\GoogleRevocationService;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
+use CannyForge\Archive\Integration\Google\SearchConsolePropertyClient;
+use CannyForge\Archive\Integration\Google\SearchConsolePropertyStore;
 
 /**
  * Owns the Google connect / callback / disconnect admin-post flow.
@@ -134,26 +136,46 @@ final class GoogleConnectionController {
 	private GoogleRevocationService $revocation;
 
 	/**
+	 * Search Console property client.
+	 *
+	 * @var SearchConsolePropertyClient
+	 */
+	private SearchConsolePropertyClient $property_client;
+
+	/**
+	 * Cached Search Console properties.
+	 *
+	 * @var SearchConsolePropertyStore
+	 */
+	private SearchConsolePropertyStore $property_store;
+
+	/**
 	 * Construct the controller.
 	 *
-	 * @param GoogleSettingsStore          $settings     Google settings store.
-	 * @param GoogleTokenStore             $tokens       Google token store.
-	 * @param SearchConsoleCacheStore      $search_cache Search Console cache store.
-	 * @param Ga4CacheStore|null           $ga4_cache    GA4 cache store.
-	 * @param GoogleRevocationService|null $revocation   Token revocation service.
+	 * @param GoogleSettingsStore              $settings     Google settings store.
+	 * @param GoogleTokenStore                 $tokens       Google token store.
+	 * @param SearchConsoleCacheStore          $search_cache Search Console cache store.
+	 * @param Ga4CacheStore|null               $ga4_cache    GA4 cache store.
+	 * @param GoogleRevocationService|null     $revocation   Token revocation service.
+	 * @param SearchConsolePropertyClient|null $property_client Property list client.
+	 * @param SearchConsolePropertyStore|null  $property_store  Property cache.
 	 */
 	public function __construct(
 		GoogleSettingsStore $settings,
 		GoogleTokenStore $tokens,
 		SearchConsoleCacheStore $search_cache,
 		?Ga4CacheStore $ga4_cache = null,
-		?GoogleRevocationService $revocation = null
+		?GoogleRevocationService $revocation = null,
+		?SearchConsolePropertyClient $property_client = null,
+		?SearchConsolePropertyStore $property_store = null
 	) {
-		$this->settings     = $settings;
-		$this->tokens       = $tokens;
-		$this->search_cache = $search_cache;
-		$this->ga4_cache    = $ga4_cache ?? new Ga4CacheStore();
-		$this->revocation   = $revocation ?? new GoogleRevocationService( $tokens );
+		$this->settings        = $settings;
+		$this->tokens          = $tokens;
+		$this->search_cache    = $search_cache;
+		$this->ga4_cache       = $ga4_cache ?? new Ga4CacheStore();
+		$this->revocation      = $revocation ?? new GoogleRevocationService( $tokens );
+		$this->property_client = $property_client ?? new SearchConsolePropertyClient( $this->oauth_client() );
+		$this->property_store  = $property_store ?? new SearchConsolePropertyStore();
 	}
 
 	/**
@@ -234,8 +256,16 @@ final class GoogleConnectionController {
 			);
 		}
 
+		$this->property_store->clear();
+		$properties = $this->property_client->list_properties();
+		if ( array() !== $properties ) {
+			$this->property_store->save( $properties );
+		}
+
 		$this->redirect_to_settings(
-			__( 'Google connected.', 'cannyforge-archive' ),
+			array() !== $properties
+				? __( 'Google connected. Choose a Search Console property below.', 'cannyforge-archive' )
+			: __( 'Google connected. Load Search Console properties below to choose a property.', 'cannyforge-archive' ),
 			self::NOTICE_SUCCESS
 		);
 	}
@@ -257,6 +287,7 @@ final class GoogleConnectionController {
 		$revoked = $this->revocation->revoke_and_clear();
 		$this->search_cache->clear();
 		$this->ga4_cache->clear();
+		$this->property_store->clear();
 
 		$this->redirect_to_settings(
 			$revoked

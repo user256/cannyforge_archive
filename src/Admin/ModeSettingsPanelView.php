@@ -53,14 +53,16 @@ final class ModeSettingsPanelView {
 	/**
 	 * Render the mode-dependent settings panels.
 	 *
-	 * @param Settings       $settings              Current settings.
-	 * @param GoogleSettings $google_settings       Current Google settings.
-	 * @param string         $google_status         Current Google connection status.
-	 * @param bool           $google_secret_saved   Whether a client secret is already stored.
-	 * @param string         $google_connect_url    Connect action URL.
-	 * @param string         $google_disconnect_url Disconnect action URL.
-	 * @param string         $google_notice         One-shot Google notice text.
-	 * @param string         $google_notice_type    One-shot Google notice type.
+	 * @param Settings                                                $settings              Current settings.
+	 * @param GoogleSettings                                          $google_settings       Current Google settings.
+	 * @param string                                                  $google_status         Current Google connection status.
+	 * @param bool                                                    $google_secret_saved   Whether a client secret is already stored.
+	 * @param string                                                  $google_connect_url    Connect action URL.
+	 * @param string                                                  $google_disconnect_url Disconnect action URL.
+	 * @param string                                                  $google_notice         One-shot Google notice text.
+	 * @param string                                                  $google_notice_type    One-shot Google notice type.
+	 * @param array<int, array{site_url: string, permission: string}> $google_properties Cached properties.
+	 * @param string                                                  $property_refresh_url  Property refresh action URL.
 	 * @return void
 	 */
 	public function render(
@@ -71,7 +73,9 @@ final class ModeSettingsPanelView {
 		string $google_connect_url,
 		string $google_disconnect_url,
 		string $google_notice,
-		string $google_notice_type
+		string $google_notice_type,
+		array $google_properties = array(),
+		string $property_refresh_url = ''
 	): void {
 		$this->render_news_panel( $settings );
 		$this->render_blog_panel(
@@ -82,7 +86,9 @@ final class ModeSettingsPanelView {
 			$google_connect_url,
 			$google_disconnect_url,
 			$google_notice,
-			$google_notice_type
+			$google_notice_type,
+			$google_properties,
+			$property_refresh_url
 		);
 	}
 
@@ -117,14 +123,16 @@ final class ModeSettingsPanelView {
 	/**
 	 * Render the Blog mode controls and Google panel.
 	 *
-	 * @param Settings       $settings              Current settings.
-	 * @param GoogleSettings $google_settings       Current Google settings.
-	 * @param string         $google_status         Current Google connection status.
-	 * @param bool           $google_secret_saved   Whether a client secret is already stored.
-	 * @param string         $google_connect_url    Connect action URL.
-	 * @param string         $google_disconnect_url Disconnect action URL.
-	 * @param string         $google_notice         One-shot Google notice text.
-	 * @param string         $google_notice_type    One-shot Google notice type.
+	 * @param Settings                                                $settings              Current settings.
+	 * @param GoogleSettings                                          $google_settings       Current Google settings.
+	 * @param string                                                  $google_status         Current Google connection status.
+	 * @param bool                                                    $google_secret_saved   Whether a client secret is already stored.
+	 * @param string                                                  $google_connect_url    Connect action URL.
+	 * @param string                                                  $google_disconnect_url Disconnect action URL.
+	 * @param string                                                  $google_notice         One-shot Google notice text.
+	 * @param string                                                  $google_notice_type    One-shot Google notice type.
+	 * @param array<int, array{site_url: string, permission: string}> $google_properties Cached properties.
+	 * @param string                                                  $property_refresh_url  Property refresh action URL.
 	 * @return void
 	 */
 	private function render_blog_panel(
@@ -135,7 +143,9 @@ final class ModeSettingsPanelView {
 		string $google_connect_url,
 		string $google_disconnect_url,
 		string $google_notice,
-		string $google_notice_type
+		string $google_notice_type,
+		array $google_properties = array(),
+		string $property_refresh_url = ''
 	): void {
 		echo '<div class="cf-panel-blog" style="margin-top: 1rem; border-top: 1px solid var(--cf-border); padding-top: 1rem;">';
 		echo '<h2>' . esc_html__( 'Top Articles', 'cannyforge-archive' ) . '</h2>';
@@ -168,7 +178,9 @@ final class ModeSettingsPanelView {
 			$google_connect_url,
 			$google_disconnect_url,
 			$google_notice,
-			$google_notice_type
+			$google_notice_type,
+			$google_properties,
+			$property_refresh_url
 		);
 		echo '</div>';
 	}
@@ -176,13 +188,15 @@ final class ModeSettingsPanelView {
 	/**
 	 * Render the Google connect/configuration controls for Blog mode.
 	 *
-	 * @param GoogleSettings $settings       Current Google settings.
-	 * @param string         $status         Connection status.
-	 * @param bool           $secret_saved   Whether a client secret is already stored.
-	 * @param string         $connect_url    Connect action URL.
-	 * @param string         $disconnect_url Disconnect action URL.
-	 * @param string         $notice         One-shot notice text.
-	 * @param string         $notice_type    Notice type.
+	 * @param GoogleSettings                                          $settings       Current Google settings.
+	 * @param string                                                  $status         Connection status.
+	 * @param bool                                                    $secret_saved   Whether a client secret is already stored.
+	 * @param string                                                  $connect_url    Connect action URL.
+	 * @param string                                                  $disconnect_url Disconnect action URL.
+	 * @param string                                                  $notice         One-shot notice text.
+	 * @param string                                                  $notice_type    Notice type.
+	 * @param array<int, array{site_url: string, permission: string}> $google_properties Cached properties.
+	 * @param string                                                  $property_refresh_url Property refresh action URL.
 	 * @return void
 	 */
 	private function render_google_panel(
@@ -192,7 +206,9 @@ final class ModeSettingsPanelView {
 		string $connect_url,
 		string $disconnect_url,
 		string $notice,
-		string $notice_type
+		string $notice_type,
+		array $google_properties,
+		string $property_refresh_url
 	): void {
 		echo '<div class="cannyforge-google-wizard">';
 		echo '<h3 class="cannyforge-google-wizard__title">' . esc_html__( 'Google Top Content', 'cannyforge-archive' ) . '</h3>';
@@ -215,7 +231,9 @@ final class ModeSettingsPanelView {
 			$secret_saved,
 			$connect_url,
 			$disconnect_url,
-			$notice
+			$notice,
+			$google_properties,
+			$property_refresh_url
 		);
 		echo '</div>';
 	}

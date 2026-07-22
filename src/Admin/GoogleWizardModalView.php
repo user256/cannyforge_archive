@@ -28,12 +28,14 @@ final class GoogleWizardModalView {
 	/**
 	 * Render the guided Google setup modal.
 	 *
-	 * @param GoogleSettings $settings       Current Google settings.
-	 * @param string         $status         Connection status.
-	 * @param bool           $secret_saved   Whether a client secret is already stored.
-	 * @param string         $connect_url    Connect action URL.
-	 * @param string         $disconnect_url Disconnect action URL.
-	 * @param string         $notice         One-shot notice text.
+	 * @param GoogleSettings                                          $settings       Current Google settings.
+	 * @param string                                                  $status         Connection status.
+	 * @param bool                                                    $secret_saved   Whether a client secret is already stored.
+	 * @param string                                                  $connect_url    Connect action URL.
+	 * @param string                                                  $disconnect_url Disconnect action URL.
+	 * @param string                                                  $notice         One-shot notice text.
+	 * @param array<int, array{site_url: string, permission: string}> $properties Cached properties available to the connected account.
+	 * @param string                                                  $property_refresh_url Property refresh action URL.
 	 * @return void
 	 */
 	public function render(
@@ -42,7 +44,9 @@ final class GoogleWizardModalView {
 		bool $secret_saved,
 		string $connect_url,
 		string $disconnect_url,
-		string $notice
+		string $notice,
+		array $properties = array(),
+		string $property_refresh_url = ''
 	): void {
 		$ga4_enabled = '' !== $settings->ga4_property_id();
 
@@ -59,9 +63,9 @@ final class GoogleWizardModalView {
 		$this->render_step_oauth_client();
 		$this->render_step_redirect_uri();
 		$this->render_step_properties();
-		$this->render_step_save_details( $settings, $secret_saved, $status );
+		$this->render_step_save_details( $settings, $secret_saved, $status, $properties, $property_refresh_url );
 		$this->render_step_ga4_optional( $settings, $ga4_enabled );
-		$this->render_step_connect( $settings, $connect_url, $disconnect_url );
+		$this->render_step_connect( $settings, $connect_url, $disconnect_url, $property_refresh_url );
 		echo '</ol>';
 
 		echo '<p class="submit"><button type="submit" class="button button-primary">' . esc_html__( 'Save Google details', 'cannyforge-archive' ) . '</button></p>';
@@ -142,29 +146,31 @@ final class GoogleWizardModalView {
 	 */
 	private function render_step_properties(): void {
 		echo '<li>';
-		echo '<strong>' . esc_html__( 'Prepare the properties you want to read', 'cannyforge-archive' ) . '</strong>';
-		echo '<p>' . esc_html__( 'In Search Console, use the property selector in the top-left and choose + Add property if this site is not there yet. Use Domain property if you control DNS; otherwise use a URL-prefix property. The Google account you connect here must already have access to that property.', 'cannyforge-archive' ) . '</p>';
+		echo '<strong>' . esc_html__( 'Make sure the property is available', 'cannyforge-archive' ) . '</strong>';
+		echo '<p>' . esc_html__( 'The Google account you connect must already have access to the Search Console property. If this site is not listed in Search Console, add it there first; the plugin will load the available properties for you after connection.', 'cannyforge-archive' ) . '</p>';
 		echo '<p>';
 		echo '<a class="button button-secondary" href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open Search Console', 'cannyforge-archive' ) . '</a> ';
 		echo '<a class="button button-secondary" href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Open GA4 Admin', 'cannyforge-archive' ) . '</a>';
 		echo '</p>';
-		echo '<p class="description">' . esc_html__( 'For the Search Console field below, use either `sc-domain:example.com` for a Domain property or the full URL such as `https://example.com/` for a URL-prefix property.', 'cannyforge-archive' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'You will select the property from the connected account below; there is no property identifier to copy manually.', 'cannyforge-archive' ) . '</p>';
 		echo '</li>';
 	}
 
 	/**
 	 * Render wizard step 6: save the Google credential fields.
 	 *
-	 * @param GoogleSettings $settings     Current Google settings.
-	 * @param bool           $secret_saved Whether a client secret is already stored.
-	 * @param string         $status       Connection status.
+	 * @param GoogleSettings                                          $settings     Current Google settings.
+	 * @param bool                                                    $secret_saved Whether a client secret is already stored.
+	 * @param string                                                  $status       Connection status.
+	 * @param array<int, array{site_url: string, permission: string}> $properties Cached properties available to the connected account.
+	 * @param string                                                  $property_refresh_url Property refresh action URL.
 	 * @return void
 	 */
-	private function render_step_save_details( GoogleSettings $settings, bool $secret_saved, string $status ): void {
+	private function render_step_save_details( GoogleSettings $settings, bool $secret_saved, string $status, array $properties, string $property_refresh_url ): void {
 		echo '<li>';
 		echo '<strong>' . esc_html__( 'Save the Google details', 'cannyforge-archive' ) . '</strong>';
-		echo '<p>' . esc_html__( 'Either paste the Client ID and Client Secret from the Clients page, or download the OAuth client JSON from Google and import it here. Then enter the Search Console property you prepared above.', 'cannyforge-archive' ) . '</p>';
-		$this->render_google_fields( $settings, $secret_saved, $status );
+		echo '<p>' . esc_html__( 'Either paste the Client ID and Client Secret from the Clients page, or download the OAuth client JSON from Google and import it here. After connecting, choose the Search Console property from the account list.', 'cannyforge-archive' ) . '</p>';
+		$this->render_google_fields( $settings, $secret_saved, $status, $properties, $property_refresh_url );
 		echo '</li>';
 	}
 
@@ -195,15 +201,16 @@ final class GoogleWizardModalView {
 	 *
 	 * @param GoogleSettings $settings       Current Google settings.
 	 * @param string         $connect_url    Connect action URL.
-	 * @param string         $disconnect_url Disconnect action URL.
+	 * @param string         $disconnect_url     Disconnect action URL.
+	 * @param string         $property_refresh_url Property refresh action URL.
 	 * @return void
 	 */
-	private function render_step_connect( GoogleSettings $settings, string $connect_url, string $disconnect_url ): void {
+	private function render_step_connect( GoogleSettings $settings, string $connect_url, string $disconnect_url, string $property_refresh_url ): void {
 		echo '<li>';
 		echo '<strong>' . esc_html__( 'Connect Google and refresh the cache', 'cannyforge-archive' ) . '</strong>';
-		echo '<p>' . esc_html__( 'After saving the details, connect the Google account that has Search Console access and GA4 access if you enabled the fallback. Then refresh Search Console and optionally GA4 to populate the archive cache.', 'cannyforge-archive' ) . '</p>';
+		echo '<p>' . esc_html__( 'After saving the details, connect the Google account that has Search Console access and GA4 access if you enabled the fallback. The available Search Console properties will load automatically; choose one from the dropdown, or use Load Search Console properties to refresh the list.', 'cannyforge-archive' ) . '</p>';
 		$this->render_google_consent_copy( $settings );
-		$this->render_google_actions( $connect_url, $disconnect_url );
+		$this->render_google_actions( $connect_url, $disconnect_url, $property_refresh_url );
 		echo '</li>';
 	}
 
@@ -228,7 +235,7 @@ final class GoogleWizardModalView {
 
 		echo '<p class="description" data-cf-google-consent-copy>';
 		printf(
-			/* translators: %s: comma-separated list of read-only Google scopes, e.g. "Search Console (read-only), Google Analytics 4 (read-only)". */
+		/* translators: %s: comma-separated list of read-only Google scopes, e.g. "Search Console (read-only), Google Analytics 4 (read-only)". */
 			esc_html__( 'Connecting will ask Google to grant read-only access to: %s.', 'cannyforge-archive' ),
 			esc_html( implode( ', ', $scope_labels ) )
 		);
@@ -238,20 +245,21 @@ final class GoogleWizardModalView {
 	/**
 	 * Render the Google configuration fields and status copy.
 	 *
-	 * @param GoogleSettings $settings     Current Google settings.
-	 * @param bool           $secret_saved Whether a client secret is already stored.
-	 * @param string         $status       Connection status.
+	 * @param GoogleSettings                                          $settings     Current Google settings.
+	 * @param bool                                                    $secret_saved Whether a client secret is already stored.
+	 * @param string                                                  $status       Connection status.
+	 * @param array<int, array{site_url: string, permission: string}> $properties Cached properties available to the connected account.
+	 * @param string                                                  $property_refresh_url Property refresh action URL.
 	 * @return void
 	 */
-	private function render_google_fields( GoogleSettings $settings, bool $secret_saved, string $status ): void {
+	private function render_google_fields( GoogleSettings $settings, bool $secret_saved, string $status, array $properties, string $property_refresh_url ): void {
 		$secret_placeholder = $secret_saved
-			? esc_attr__( 'Saved. Leave blank to keep it.', 'cannyforge-archive' )
-			: esc_attr__( 'Paste the client secret, then save settings.', 'cannyforge-archive' );
-
+		? esc_attr__( 'Saved. Leave blank to keep it.', 'cannyforge-archive' )
+		: esc_attr__( 'Paste the client secret, then save settings.', 'cannyforge-archive' );
 		echo '<p><label>' . esc_html__( 'Import OAuth client JSON (optional)', 'cannyforge-archive' ) . '<br>';
 		echo '<input type="file" name="google_client_json" accept=".json,application/json"></label></p>';
 		echo '<p class="description">';
-		echo esc_html__( 'In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file here to import the Client ID and Client Secret automatically on save.', 'cannyforge-archive' );
+		echo esc_html__( 'In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file and save these details; the Client ID and Secret will be imported securely on the server.', 'cannyforge-archive' );
 		echo '</p>';
 		printf(
 			'<p><label>%s <input type="text" name="google_client_id" value="%s" autocomplete="off" style="width:100%%;"></label></p>',
@@ -263,12 +271,7 @@ final class GoogleWizardModalView {
 			esc_html__( 'Google Client Secret', 'cannyforge-archive' ),
 			esc_attr( $secret_placeholder )
 		);
-		printf(
-			'<p><label>%s <input type="text" name="google_search_console_site_url" value="%s" placeholder="%s" style="width:100%%;"></label></p>',
-			esc_html__( 'Search Console Site URL', 'cannyforge-archive' ),
-			esc_attr( $settings->search_console_site_url() ),
-			esc_attr__( 'sc-domain:example.com or https://example.com/', 'cannyforge-archive' )
-		);
+		( new GooglePropertySelectorView() )->render( $settings, $properties, $property_refresh_url );
 		printf(
 			'<p><label>%s <input type="number" min="1" max="365" step="1" name="google_report_window_days" value="%d"></label></p>',
 			esc_html__( 'Report window (days)', 'cannyforge-archive' ),
@@ -306,13 +309,17 @@ final class GoogleWizardModalView {
 	 *
 	 * @param string $connect_url    Connect action URL.
 	 * @param string $disconnect_url Disconnect action URL.
+	 * @param string $property_refresh_url Property refresh action URL.
 	 * @return void
 	 */
-	private function render_google_actions( string $connect_url, string $disconnect_url ): void {
+	private function render_google_actions( string $connect_url, string $disconnect_url, string $property_refresh_url = '' ): void {
 		wp_nonce_field( GoogleConnectionController::CONNECT_NONCE_ACTION, GoogleConnectionController::CONNECT_NONCE_FIELD );
 		wp_nonce_field( GoogleConnectionController::DISCONNECT_NONCE_ACTION, GoogleConnectionController::DISCONNECT_NONCE_FIELD );
 		wp_nonce_field( SearchConsoleRefreshController::REFRESH_NONCE_ACTION, SearchConsoleRefreshController::REFRESH_NONCE_FIELD );
 		wp_nonce_field( Ga4RefreshController::REFRESH_NONCE_ACTION, Ga4RefreshController::REFRESH_NONCE_FIELD );
+		if ( '' !== $property_refresh_url ) {
+			wp_nonce_field( SearchConsolePropertyController::NONCE_ACTION, SearchConsolePropertyController::NONCE_FIELD );
+		}
 		echo '<p style="display:flex;gap:0.75rem;flex-wrap:wrap;">';
 		printf(
 			'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
@@ -329,6 +336,13 @@ final class GoogleWizardModalView {
 			esc_url( $this->refresh_action_url( SearchConsoleRefreshController::ACTION_REFRESH ) ),
 			esc_html__( 'Refresh Search Console', 'cannyforge-archive' )
 		);
+		if ( '' !== $property_refresh_url ) {
+			printf(
+				'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
+				esc_url( $property_refresh_url ),
+				esc_html__( 'Load Search Console properties', 'cannyforge-archive' )
+			);
+		}
 		printf(
 			'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
 			esc_url( $this->refresh_action_url( Ga4RefreshController::ACTION_REFRESH ) ),

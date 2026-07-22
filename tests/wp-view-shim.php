@@ -211,6 +211,21 @@ if ( ! function_exists( 'wp_nonce_field' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_nonce_url' ) ) {
+	/**
+	 * Add a representative nonce query parameter to a URL.
+	 *
+	 * @param string $actionurl URL to protect.
+	 * @param string $action    Nonce action.
+	 * @param string $name      Nonce query parameter name.
+	 * @return string
+	 */
+	function wp_nonce_url( string $actionurl, string $action = '-1', string $name = '_wpnonce' ): string {
+		$separator = str_contains( $actionurl, '?' ) ? '&' : '?';
+		return $actionurl . $separator . rawurlencode( $name ) . '=test-nonce-' . rawurlencode( $action );
+	}
+}
+
 if ( ! function_exists( 'submit_button' ) ) {
 	/**
 	 * Emit a representative submit button.

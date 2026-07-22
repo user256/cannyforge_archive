@@ -17,6 +17,7 @@ use CannyForge\Archive\Admin\AdminAssets;
 use CannyForge\Archive\Admin\Ga4RefreshController;
 use CannyForge\Archive\Admin\GoogleConnectionController;
 use CannyForge\Archive\Admin\SearchConsoleRefreshController;
+use CannyForge\Archive\Admin\SearchConsolePropertyController;
 use CannyForge\Archive\Admin\SettingsFormParser;
 use CannyForge\Archive\Admin\SettingsPage;
 use CannyForge\Archive\Admin\SettingsView;
@@ -54,6 +55,8 @@ use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCachedPopularPostsSource;
 use CannyForge\Archive\Integration\Google\SearchConsoleClient;
+use CannyForge\Archive\Integration\Google\SearchConsolePropertyClient;
+use CannyForge\Archive\Integration\Google\SearchConsolePropertyStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleTopContentRefresher;
 
 /**
@@ -84,20 +87,23 @@ class Plugin {
 		$google_settings = new GoogleSettingsStore();
 		$google_tokens   = new GoogleTokenStore();
 		$search_cache    = new SearchConsoleCacheStore();
+		$property_store  = new SearchConsolePropertyStore();
+		$property_client = new SearchConsolePropertyClient( $this->google_oauth( $google_settings, $google_tokens ) );
 
-		$page = new SettingsPage(
-			$repository,
-			new SettingsFormParser(),
-			new SettingsView(),
-			null,
+		$this->register_settings_page( $repository, $google_settings, $google_tokens, $search_cache, $property_store );
+
+		$google = new GoogleConnectionController(
 			$google_settings,
 			$google_tokens,
-			$search_cache
+			$search_cache,
+			null,
+			null,
+			$property_client,
+			$property_store
 		);
-		$page->register();
-
-		$google = new GoogleConnectionController( $google_settings, $google_tokens, $search_cache );
 		$google->register();
+
+		$this->register_property_controller( $google_tokens, $property_client, $property_store );
 
 		$refresh = new SearchConsoleRefreshController(
 			$repository,
@@ -123,8 +129,57 @@ class Plugin {
 		);
 		$ga4_refresh->register();
 
+		$this->register_admin_assets();
+	}
+
+	/**
+	 * Wire and register the admin settings page.
+	 *
+	 * @param OptionsSettingsRepository  $repository      Settings repository.
+	 * @param GoogleSettingsStore        $google_settings Google settings store.
+	 * @param GoogleTokenStore           $google_tokens   Google token store.
+	 * @param SearchConsoleCacheStore    $search_cache    Search Console cache.
+	 * @param SearchConsolePropertyStore $property_store  Property cache.
+	 * @return void
+	 */
+	private function register_settings_page( OptionsSettingsRepository $repository, GoogleSettingsStore $google_settings, GoogleTokenStore $google_tokens, SearchConsoleCacheStore $search_cache, SearchConsolePropertyStore $property_store ): void {
+		$page = new SettingsPage(
+			$repository,
+			new SettingsFormParser(),
+			new SettingsView(),
+			null,
+			$google_settings,
+			$google_tokens,
+			$search_cache,
+			null,
+			null,
+			null,
+			$property_store
+		);
+		$page->register();
+	}
+
+	/**
+	 * Register admin assets.
+	 *
+	 * @return void
+	 */
+	private function register_admin_assets(): void {
 		$assets = new AdminAssets( $this->base_url(), $this->version() );
 		$assets->register();
+	}
+
+	/**
+	 * Wire the admin action that loads Search Console properties.
+	 *
+	 * @param GoogleTokenStore            $tokens   Google token store.
+	 * @param SearchConsolePropertyClient $client   Property list client.
+	 * @param SearchConsolePropertyStore  $store    Property cache.
+	 * @return void
+	 */
+	private function register_property_controller( GoogleTokenStore $tokens, SearchConsolePropertyClient $client, SearchConsolePropertyStore $store ): void {
+		$properties = new SearchConsolePropertyController( $tokens, $client, $store );
+		$properties->register();
 	}
 
 	/**

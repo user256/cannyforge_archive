@@ -22,6 +22,7 @@ use CannyForge\Archive\Integration\Google\GoogleSettings;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
+use CannyForge\Archive\Integration\Google\SearchConsolePropertyStore;
 use CannyForge\Archive\Integration\Google\SecretCipher;
 
 /**
@@ -106,6 +107,13 @@ final class SettingsPage {
 	private GoogleClientConfigImporter $google_client_importer;
 
 	/**
+	 * Short-lived Search Console property list.
+	 *
+	 * @var SearchConsolePropertyStore
+	 */
+	private SearchConsolePropertyStore $property_store;
+
+	/**
 	 * Resolves the "View Archive" preview link: the `archive_url` override, or
 	 * the archive endpoint URL. Shared with the front-end pagination link and
 	 * the endpoint's own tail redirect (ticket 612) so all three destinations
@@ -138,6 +146,7 @@ final class SettingsPage {
 	 * @param Ga4CacheStore|null              $ga4_cache              GA4 cache store.
 	 * @param GoogleClientConfigImporter|null $google_client_importer Google client JSON importer.
 	 * @param ArchiveUrlResolver|null         $url_resolver           Archive URL resolver.
+	 * @param SearchConsolePropertyStore|null $property_store         Property cache.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -149,7 +158,8 @@ final class SettingsPage {
 		?SearchConsoleCacheStore $search_cache = null,
 		?Ga4CacheStore $ga4_cache = null,
 		?GoogleClientConfigImporter $google_client_importer = null,
-		?ArchiveUrlResolver $url_resolver = null
+		?ArchiveUrlResolver $url_resolver = null,
+		?SearchConsolePropertyStore $property_store = null
 	) {
 		$this->repository             = $repository;
 		$this->parser                 = $parser;
@@ -161,6 +171,7 @@ final class SettingsPage {
 		$this->ga4_cache              = $ga4_cache ?? new Ga4CacheStore();
 		$this->google_client_importer = $google_client_importer ?? new GoogleClientConfigImporter();
 		$this->url_resolver           = $url_resolver ?? new ArchiveUrlResolver();
+		$this->property_store         = $property_store ?? new SearchConsolePropertyStore();
 	}
 
 	/**
@@ -229,7 +240,22 @@ final class SettingsPage {
 			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_CONNECT ) ),
 			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_DISCONNECT ) ),
 			$this->google_notice(),
-			$this->google_notice_type()
+			$this->google_notice_type(),
+			$this->property_store->get(),
+			$this->property_refresh_url()
+		);
+	}
+
+	/**
+	 * Build the nonce-protected property-list refresh URL.
+	 *
+	 * @return string
+	 */
+	private function property_refresh_url(): string {
+		return wp_nonce_url(
+			admin_url( 'admin-post.php?action=' . SearchConsolePropertyController::ACTION_REFRESH ),
+			SearchConsolePropertyController::NONCE_ACTION,
+			SearchConsolePropertyController::NONCE_FIELD
 		);
 	}
 

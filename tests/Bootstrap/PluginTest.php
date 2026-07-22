@@ -60,5 +60,6 @@ class PluginTest extends TestCase {
 		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_callback' ) );
 		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_disconnect' ) );
 		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_refresh' ) );
+		$this->assertTrue( HookSpy::has( 'admin_post_cannyforge_archive_google_properties' ) );
 	}
 }

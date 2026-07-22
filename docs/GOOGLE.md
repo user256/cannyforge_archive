@@ -60,9 +60,13 @@ always matches what's configured, not what the plugin could theoretically use.
 
 ## Search Console configuration
 
-- **Search Console Site URL** — the property identifier, e.g.
-  `sc-domain:example.com` (domain property) or `https://example.com/` (URL-prefix
-  property). It must match a property your connected account can read.
+- Connect Google first. The plugin calls the Search Console sites endpoint and
+  lists the properties available to that Google account in the **Search Console
+  property** dropdown. Select one and save the settings; no property identifier
+  needs to be copied manually.
+- Use **Load Search Console properties** to refresh the dropdown after changing
+  accounts or permissions. If a previously saved property is no longer returned,
+  it remains visible as a saved value until you choose another one.
 - Click **Refresh Search Console** to fetch the top pages for the configured
   report window, map them to local published posts, and cache the result.
 
