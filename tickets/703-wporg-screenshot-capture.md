@@ -99,6 +99,15 @@ the captions already reserved in `readme.txt`'s `== Screenshots ==` section.
 - 2026-07-21 — Filed during ticket 610. Confirmed headless screenshot
   tooling (chromium-browser) works on the sandbox; the blocker is a clean,
   exclusively-owned WordPress instance, not tooling availability.
+- 2026-07-22 — Rebuilt ticket 603's wp-env rig, activated the plugin, switched
+  to a default theme, flushed pretty permalinks, and seeded historic content.
+  Genuine browser captures now exist at `.wordpress-org/screenshot-1.png`
+  (logged-in settings), `screenshot-2.png` (archive/filter controls), and
+  `screenshot-3.png` (Evergreen Guides category listing). The third capture
+  still needs the shortened `View Archive` pagination block: block themes emit
+  `wp-block-query-pagination`, while the shipped interceptor targets classic
+  `navigation_markup_template` pagination. The readme reviewer note remains
+  until that exact acceptance item is captured.
 
 ---
 
