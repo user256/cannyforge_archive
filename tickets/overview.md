@@ -130,7 +130,7 @@ priority.
 - [x] [605 — SecretCipher hardening (AEAD, fail-loud, key rotation)](completed/605-secretcipher-hardening.md)
 - [x] [606 — uninstall.php: options, transients, token revocation](completed/606-uninstall-cleanup.md)
 - [x] [607 — CI version matrix + repo hygiene](completed/607-ci-matrix-repo-hygiene.md)
-- [ ] [608 — Performance at scale (bounded queries, caching, throttle)](608-performance-at-scale.md)
+- [x] [608 — Performance at scale (bounded queries, caching, throttle)](completed/608-performance-at-scale.md)
 - [x] [609 — Archive accessibility pass (WCAG 2.2 AA)](completed/609-archive-accessibility.md) (follow-up: 702)
 - [x] [610 — i18n completeness + wp.org listing assets](completed/610-i18n-wporg-listing.md) (follow-up: 703)
 - [x] [611 — Restore release gate + runtime-only package](completed/611-release-branch-stabilisation.md) (follow-up: 616)
