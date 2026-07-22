@@ -48,9 +48,11 @@ final class GooglePropertyDropdownViewTest extends TestCase {
 		);
 		$html = (string) ob_get_clean();
 
-		$this->assertStringContainsString( '<select name="google_search_console_site_url"', $html );
+		$this->assertStringContainsString( '<input type="text" id="cannyforge-search-console-property" name="google_search_console_site_url"', $html );
 		$this->assertStringContainsString( 'https://example.com/ (siteOwner)', $html );
 		$this->assertStringContainsString( 'sc-domain:example.com (saved)', $html );
+		$this->assertStringContainsString( 'Properties returned by Google', $html );
+		$this->assertStringContainsString( 'data-cf-google-property-option', $html );
 		$this->assertStringContainsString( 'Load Search Console properties', $html );
 		$this->assertStringContainsString( 'Save property and continue', $html );
 		$this->assertStringContainsString( 'Save credentials and continue', $html );

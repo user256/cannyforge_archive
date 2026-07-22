@@ -223,6 +223,8 @@
 			var ga4Input = ga4Panel ? ga4Panel.querySelector('input[name="google_ga4_property_id"]') : null;
 			var copyButton = dialog.querySelector('[data-cf-google-copy-callback]');
 			var callbackCode = dialog.querySelector('[data-cf-google-callback-url]');
+			var propertyInput = dialog.querySelector('[data-cf-google-property-input]');
+			var propertyOptions = Array.prototype.slice.call(dialog.querySelectorAll('[data-cf-google-property-option]'));
 
 			var syncGa4 = function () {
 				if (!ga4Toggle || !ga4Panel || !ga4Input) {
@@ -239,6 +241,17 @@
 			};
 
 			wireDialog(dialog, openers, closers);
+
+			propertyOptions.forEach(function (option) {
+				option.addEventListener('click', function () {
+					if (!propertyInput) {
+						return;
+					}
+
+					propertyInput.value = option.getAttribute('data-property-value') || '';
+					propertyInput.focus();
+				});
+			});
 
 			if (ga4Toggle) {
 				ga4Toggle.addEventListener('change', syncGa4);
