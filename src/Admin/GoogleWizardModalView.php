@@ -56,6 +56,7 @@ final class GoogleWizardModalView {
 		echo '<p class="description">';
 		echo esc_html__( 'This wizard walks through the whole setup in order: choose your signal, create the Google app, save credentials, connect the account, and refresh the cache.', 'cannyforge-archive' );
 		echo '</p>';
+		( new GoogleWizardProgressView() )->render( $settings, $status, $secret_saved, $properties );
 
 		echo '<ol class="cannyforge-google-wizard__steps">';
 		$this->render_step_signal( $ga4_enabled );
@@ -168,7 +169,7 @@ final class GoogleWizardModalView {
 	 */
 	private function render_step_save_details( GoogleSettings $settings, bool $secret_saved, string $status, array $properties, string $property_refresh_url ): void {
 		echo '<li>';
-		echo '<strong>' . esc_html__( 'Save the Google details', 'cannyforge-archive' ) . '</strong>';
+		echo '<strong>' . esc_html__( 'Add your Google credentials', 'cannyforge-archive' ) . '</strong>';
 		echo '<p>' . esc_html__( 'Either paste the Client ID and Client Secret from the Clients page, or download the OAuth client JSON from Google and import it here. After connecting, choose the Search Console property from the account list.', 'cannyforge-archive' ) . '</p>';
 		$this->render_google_fields( $settings, $secret_saved, $status, $properties, $property_refresh_url );
 		echo '</li>';
@@ -260,6 +261,9 @@ final class GoogleWizardModalView {
 		echo '<input type="file" name="google_client_json" accept=".json,application/json"></label></p>';
 		echo '<p class="description">';
 		echo esc_html__( 'In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file and save these details; the Client ID and Secret will be imported securely on the server.', 'cannyforge-archive' );
+		echo '</p>';
+		echo '<p class="cannyforge-google-wizard__inline-action">';
+		echo '<button type="submit" class="button button-primary">' . esc_html__( 'Save credentials and continue', 'cannyforge-archive' ) . '</button>';
 		echo '</p>';
 		printf(
 			'<p><label>%s <input type="text" name="google_client_id" value="%s" autocomplete="off" style="width:100%%;"></label></p>',

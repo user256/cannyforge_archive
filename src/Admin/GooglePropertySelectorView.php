@@ -45,6 +45,16 @@ final class GooglePropertySelectorView {
 			printf( '<option value="%s" selected>%s</option>', esc_attr( $settings->search_console_site_url() ), esc_html( $settings->search_console_site_url() . ' (saved)' ) );
 		}
 		echo '</select></label></p>';
+		echo '<p class="cannyforge-google-wizard__inline-action">';
+		echo '<button type="submit" class="button button-primary">' . esc_html__( 'Save property and continue', 'cannyforge-archive' ) . '</button>';
+		if ( '' !== $property_refresh_url ) {
+			printf(
+				'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',
+				esc_url( $property_refresh_url ),
+				esc_html__( 'Load properties', 'cannyforge-archive' )
+			);
+		}
+		echo '</p>';
 		if ( '' !== $property_refresh_url ) {
 			echo '<p class="description">' . esc_html__( 'Connect Google first, then load the properties available to that account and choose one here.', 'cannyforge-archive' ) . '</p>';
 		}
