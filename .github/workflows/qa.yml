@@ -77,14 +77,10 @@ jobs:
       - name: PHPUnit
         run: composer test
 
-      # Report-only for now: prints the real MSI but does not fail the build
-      # until we've seen the first measured number and set a threshold (ticket
-      # 201). Flip `continue-on-error` to false once minMsi is set. Only runs
-      # on the pinned PHP version — mutation testing is expensive and the
-      # result shouldn't vary meaningfully across PHP versions.
-      - name: Infection (mutation testing — report only)
+      # Only runs on the pinned PHP version — mutation testing is expensive and
+      # the result shouldn't vary meaningfully across PHP versions.
+      - name: Infection (mutation testing — merge gate)
         if: matrix.php-version == '8.1'
-        continue-on-error: true
         run: composer infection
 
   js-tests:

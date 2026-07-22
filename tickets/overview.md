@@ -126,7 +126,7 @@ priority.
 - [x] [601 — Unit tests for ArchiveSearchEndpoint](completed/601-archive-search-endpoint-tests.md)
 - [x] [602 — Unit tests for Google admin controllers & settings surface](completed/602-google-admin-controller-tests.md)
 - [x] [603 — Real-WordPress integration test rig](completed/603-real-wordpress-integration-rig.md) (follow-up: 704)
-- [ ] [604 — Infection minMsi threshold as a merge gate](604-infection-msi-gate.md)
+- [x] [604 — Infection minMsi threshold as a merge gate](completed/604-infection-msi-gate.md)
 - [x] [605 — SecretCipher hardening (AEAD, fail-loud, key rotation)](completed/605-secretcipher-hardening.md)
 - [x] [606 — uninstall.php: options, transients, token revocation](completed/606-uninstall-cleanup.md)
 - [x] [607 — CI version matrix + repo hygiene](completed/607-ci-matrix-repo-hygiene.md)

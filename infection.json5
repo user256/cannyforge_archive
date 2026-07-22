@@ -1,5 +1,5 @@
 {
-    // Mutation testing config (ticket 201). Infection mutates src/ and re-runs
+    // Mutation testing config (ticket 604). Infection mutates src/ and re-runs
     // the PHPUnit suite; a mutation that no test catches is an "escaped mutant"
     // and reveals a gap in test strength (coverage % alone lies — a suite can
     // cover a line without asserting its behaviour). The MSI (mutation score
@@ -22,10 +22,12 @@
     "logs": {
         "text": "infection.log"
     },
-    // NOTE: no minMsi gate yet — on purpose. We have not measured the real MSI
-    // locally (no coverage driver on the dev box), so gating on a guessed number
-    // would be dishonest. Infection runs REPORT-ONLY in CI first; once the first
-    // run prints the actual MSI, set minMsi/minCoveredMsi to just under it and
-    // ratchet up as the engine + its tests grow (ticket 201).
+    // Direct-file guards in the distributable PHP files exit when ABSPATH is not
+    // defined. Infection reflects the classes while collecting mutations, so it
+    // needs the same bootstrap as PHPUnit to make those classes load safely.
+    "bootstrap": "tests/bootstrap.php",
+    "testFrameworkOptions": "--order-by=default",
+    "minMsi": 48,
+    "minCoveredMsi": 55,
     "timeout": 30
 }
