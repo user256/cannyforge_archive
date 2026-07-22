@@ -15,7 +15,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
 | **Sprint 4 — Resilience & empty-state fallbacks** | Done | 401–406 implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), optional GA4 source (406). 499 = GO (qa green, 192 tests); live Google smoke deferred (needs real credentials). |
 | **Sprint 5 — wp.org submission compliance** | Done | 501 completed: runtime-only packaging, direct-file guards, branded naming, and external-services readme disclosure. |
-| **Sprint 6 — Trust & Scale** | In progress | 611–617 merged; 601–610 still outstanding before the 699 review gate. |
+| **Sprint 6 — Trust & Scale** | In progress | 601–617 are merged/completed in the roadmap; 699 remains No-Go pending its local integration evidence and live review items. |
 
 ## Sprint 1 — Settings & MVP
 
@@ -156,4 +156,5 @@ and Playwright candidates also expected to land here.
 
 - [ ] [701 — PHPUnit 10/11 and PHPStan 2.x toolchain modernisation](701-phpunit-phpstan-toolchain-modernisation.md)
 - [ ] [702 — Non-text (UI component) contrast for the front-end theme's border colour](702-archive-theme-non-text-contrast.md)
-- [ ] [703 — Capture wp.org listing screenshots](703-wporg-screenshot-capture.md)
+- [x] [703 — Capture wp.org listing screenshots](completed/703-wporg-screenshot-capture.md)
+- [x] [706 — Make the disposable integration rig rebuild-safe](completed/706-integration-rig-build-order.md)

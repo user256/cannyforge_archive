@@ -33,6 +33,7 @@
         }
     },
     "config": {
+        "process-timeout": 900,
         "optimize-autoloader": true,
         "sort-packages": true,
         "platform": {
@@ -60,6 +61,7 @@
         "infection": "infection --threads=max --no-progress --no-interaction",
         "test": "phpunit",
         "test:integration": [
+            "bash -lc 'npx wp-env stop >/dev/null 2>&1 || true'",
             "@dist",
             "bash scripts/run-integration-tests.sh"
         ],

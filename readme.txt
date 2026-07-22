@@ -136,12 +136,6 @@ on the next invalidating event or once the 24-hour TTL expires.
 2. The generated archive / HTML sitemap page, with the client-side search and category / tag / month / author filters.
 3. The shortened pagination block ("1, 2, 3 … View Archive") replacing a theme's default deep pagination run on a targeted archive listing.
 
-Note for reviewers: the numbered captions above are reserved, but the
-screenshot image files themselves are not yet included in this submission —
-see the plugin's ticket 610 decisions log for why (capturing them needs a
-real rendered WordPress site, not available at generation time) and ticket
-618 for the follow-up to capture and add them before this listing goes live.
-
 == Changelog ==
 
 = 0.1.1 =
