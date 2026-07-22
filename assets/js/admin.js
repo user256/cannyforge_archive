@@ -223,8 +223,6 @@
 			var ga4Input = ga4Panel ? ga4Panel.querySelector('input[name="google_ga4_property_id"]') : null;
 			var copyButton = dialog.querySelector('[data-cf-google-copy-callback]');
 			var callbackCode = dialog.querySelector('[data-cf-google-callback-url]');
-			var propertyInput = dialog.querySelector('[data-cf-google-property-input]');
-			var propertyOptions = Array.prototype.slice.call(dialog.querySelectorAll('[data-cf-google-property-option]'));
 			var saveDetailsButton = dialog.querySelector('[data-cf-google-save-details]');
 			var saveStatus = dialog.querySelector('[data-cf-google-save-status]');
 			var wizardForm = dialog.closest('form');
@@ -246,17 +244,6 @@
 			};
 
 			wireDialog(dialog, openers, closers);
-
-			propertyOptions.forEach(function (option) {
-				option.addEventListener('click', function () {
-					if (!propertyInput) {
-						return;
-					}
-
-					propertyInput.value = option.getAttribute('data-property-value') || '';
-					propertyInput.focus();
-				});
-			});
 
 			if (saveDetailsButton && saveStatus && wizardForm && window.fetch && window.FormData) {
 				saveDetailsButton.addEventListener('click', function (event) {

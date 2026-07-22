@@ -688,44 +688,6 @@
 .cannyforge-google-wizard__save-status.is-error {
 	color: #b42318;
 }
-.cannyforge-google-wizard__property-list {
-	margin: 12px 0 0;
-	padding: 12px 14px;
-	border: 1px solid var(--cf-border);
-	border-radius: 8px;
-	background: var(--cf-bg);
-}
-.cannyforge-google-wizard__property-list strong {
-	font-size: 13px;
-}
-.cannyforge-google-wizard__property-list p {
-	margin: 4px 0 8px;
-	font-size: 12px;
-}
-.cannyforge-google-wizard__property-list ul {
-	display: flex;
-	gap: 6px;
-	flex-wrap: wrap;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-.cannyforge-google-wizard__property-list li {
-	position: static;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	background: transparent;
-}
-.cannyforge-google-wizard__property-list li::before {
-	display: none;
-	content: none;
-}
-.cannyforge-google-wizard__property-list .button-secondary {
-	margin: 0;
-	padding: 5px 9px;
-	font-size: 12px;
-}
 .cannyforge-wizard-code {
 	display: inline-block;
 	background: var(--cf-bg);
