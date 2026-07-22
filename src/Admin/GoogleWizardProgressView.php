@@ -53,8 +53,8 @@ final class GoogleWizardProgressView {
 
 		echo '<div class="cannyforge-google-wizard__progress" role="status">';
 		echo '<span class="cannyforge-google-wizard__progress-kicker">' . esc_html__( 'Setup progress', 'cannyforge-archive' ) . '</span>';
-		echo '<strong>' . esc_html( $title ) . '</strong>';
-		echo '<span>' . esc_html( $message ) . '</span>';
+		echo '<strong data-cf-google-wizard-progress-title>' . esc_html( $title ) . '</strong>';
+		echo '<span data-cf-google-wizard-progress-message>' . esc_html( $message ) . '</span>';
 		echo '</div>';
 	}
 }

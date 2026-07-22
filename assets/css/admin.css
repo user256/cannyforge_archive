@@ -675,6 +675,19 @@
 	flex-wrap: wrap;
 	margin-top: 16px;
 }
+.cannyforge-google-wizard__save-status {
+	align-self: center;
+	font-size: 13px;
+}
+.cannyforge-google-wizard__save-status.is-saving {
+	color: var(--cf-text-muted);
+}
+.cannyforge-google-wizard__save-status.is-success {
+	color: var(--cf-success);
+}
+.cannyforge-google-wizard__save-status.is-error {
+	color: #b42318;
+}
 .cannyforge-google-wizard__property-list {
 	margin: 12px 0 0;
 	padding: 12px 14px;

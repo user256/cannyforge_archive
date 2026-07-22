@@ -225,6 +225,11 @@
 			var callbackCode = dialog.querySelector('[data-cf-google-callback-url]');
 			var propertyInput = dialog.querySelector('[data-cf-google-property-input]');
 			var propertyOptions = Array.prototype.slice.call(dialog.querySelectorAll('[data-cf-google-property-option]'));
+			var saveDetailsButton = dialog.querySelector('[data-cf-google-save-details]');
+			var saveStatus = dialog.querySelector('[data-cf-google-save-status]');
+			var wizardForm = dialog.closest('form');
+			var progressTitle = dialog.querySelector('[data-cf-google-wizard-progress-title]');
+			var progressMessage = dialog.querySelector('[data-cf-google-wizard-progress-message]');
 
 			var syncGa4 = function () {
 				if (!ga4Toggle || !ga4Panel || !ga4Input) {
@@ -252,6 +257,54 @@
 					propertyInput.focus();
 				});
 			});
+
+			if (saveDetailsButton && saveStatus && wizardForm && window.fetch && window.FormData) {
+				saveDetailsButton.addEventListener('click', function (event) {
+					event.preventDefault();
+					if (saveDetailsButton.disabled) {
+						return;
+					}
+
+					var defaultLabel = saveDetailsButton.textContent;
+					saveDetailsButton.disabled = true;
+					saveDetailsButton.textContent = 'Saving…';
+					saveStatus.hidden = false;
+					saveStatus.className = 'cannyforge-google-wizard__save-status is-saving';
+					saveStatus.textContent = 'Saving credentials…';
+
+					window.fetch(wizardForm.action, {
+						method: 'POST',
+						body: new window.FormData(wizardForm),
+						credentials: 'same-origin',
+						headers: { 'X-Requested-With': 'XMLHttpRequest' },
+					})
+						.then(function (response) {
+							return response.text().then(function (html) {
+								return { ok: response.ok, html: html };
+							});
+						})
+						.then(function (result) {
+							if (!result.ok || result.html.indexOf('Google OAuth client JSON was not imported') !== -1) {
+								throw new Error('save-failed');
+							}
+
+							saveStatus.className = 'cannyforge-google-wizard__save-status is-success';
+							saveStatus.textContent = 'Credentials saved. The wizard is still open.';
+							if (progressTitle && progressMessage) {
+								progressTitle.textContent = 'Next: connect your Google account';
+								progressMessage.textContent = 'Click Connect Google below and approve read-only access in Google.';
+							}
+						})
+						.catch(function () {
+							saveStatus.className = 'cannyforge-google-wizard__save-status is-error';
+							saveStatus.textContent = 'Credentials could not be saved. Check the file and try again.';
+						})
+						.finally(function () {
+							saveDetailsButton.disabled = false;
+							saveDetailsButton.textContent = defaultLabel;
+						});
+				});
+			}
 
 			if (ga4Toggle) {
 				ga4Toggle.addEventListener('change', syncGa4);

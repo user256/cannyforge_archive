@@ -56,6 +56,8 @@ final class GooglePropertyDropdownViewTest extends TestCase {
 		$this->assertStringContainsString( 'Load Search Console properties', $html );
 		$this->assertStringContainsString( 'Save property and continue', $html );
 		$this->assertStringContainsString( 'Save credentials and continue', $html );
+		$this->assertStringContainsString( 'data-cf-google-save-details', $html );
+		$this->assertStringContainsString( 'data-cf-google-save-status', $html );
 		$this->assertStringContainsString( 'Next: refresh Search Console data', $html );
 	}
 }

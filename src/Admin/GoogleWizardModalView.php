@@ -263,7 +263,8 @@ final class GoogleWizardModalView {
 		echo esc_html__( 'In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file and save these details; the Client ID and Secret will be imported securely on the server.', 'cannyforge-archive' );
 		echo '</p>';
 		echo '<p class="cannyforge-google-wizard__inline-action">';
-		echo '<button type="submit" class="button button-primary">' . esc_html__( 'Save credentials and continue', 'cannyforge-archive' ) . '</button>';
+		echo '<button type="submit" class="button button-primary" data-cf-google-save-details>' . esc_html__( 'Save credentials and continue', 'cannyforge-archive' ) . '</button>';
+		echo '<span class="cannyforge-google-wizard__save-status" data-cf-google-save-status role="status" aria-live="polite" hidden></span>';
 		echo '</p>';
 		printf(
 			'<p><label>%s <input type="text" name="google_client_id" value="%s" autocomplete="off" style="width:100%%;"></label></p>',
