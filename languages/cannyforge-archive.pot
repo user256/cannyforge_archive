@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-23T16:53:11+00:00\n"
+"POT-Creation-Date: 2026-07-23T18:06:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: cannyforge-archive\n"
@@ -73,27 +73,39 @@ msgstr ""
 msgid "Review the page paths returned by GA4 and confirm whether they resolve to published posts on this WordPress install."
 msgstr ""
 
-#: src/Admin/Ga4DiagnosticsView.php:100
+#: src/Admin/Ga4DiagnosticsView.php:79
+msgid "Matched local content"
+msgstr ""
+
+#: src/Admin/Ga4DiagnosticsView.php:83
+msgid "None of these paths matched a published post on this WordPress install. This is expected when testing production data on local or staging content."
+msgstr ""
+
+#: src/Admin/Ga4DiagnosticsView.php:108
 #: src/Admin/ModeSettingsPanelView.php:222
 msgid "(Untitled post)"
 msgstr ""
 
-#: src/Admin/Ga4DiagnosticsView.php:121
+#: src/Admin/Ga4DiagnosticsView.php:129
 #: src/Admin/ModeSettingsPanelView.php:240
 msgid "View"
 msgstr ""
 
-#: src/Admin/Ga4DiagnosticsView.php:136
+#: src/Admin/Ga4DiagnosticsView.php:142
 msgid "No cached GA4 pages are available yet. Refresh GA4 in the Google setup wizard to load them here."
 msgstr ""
 
-#. translators: %d: number of page paths returned by GA4.
-#: src/Admin/Ga4DiagnosticsView.php:143
-#, php-format
-msgid "GA4 returned %d page paths, but none matched published posts on this WordPress install. This is expected when testing production data on local or staging content."
+#: src/Admin/Ga4DiagnosticsView.php:154
+msgid "Raw GA4 page paths"
 msgstr ""
 
-#: src/Admin/Ga4DiagnosticsView.php:153
+#. translators: 1: number of page paths returned by GA4. 2: number that matched local published posts.
+#: src/Admin/Ga4DiagnosticsView.php:158
+#, php-format
+msgid "GA4 returned %1$d page paths; %2$d matched published posts on this WordPress install."
+msgstr ""
+
+#: src/Admin/Ga4DiagnosticsView.php:169
 msgid "Open path"
 msgstr ""
 
@@ -1326,7 +1338,7 @@ msgid "Archive page %d"
 msgstr ""
 
 #: src/Core/Archive/ArchiveRenderer.php:134
-#: src/Frontend/ArchivePage.php:276
+#: src/Frontend/ArchivePage.php:286
 msgid "Archive pages"
 msgstr ""
 
@@ -1406,7 +1418,7 @@ msgid_plural "Found %s results across the whole archive"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Frontend/ArchivePage.php:278
+#: src/Frontend/ArchivePage.php:288
 msgid "Browse the full archive"
 msgstr ""
 

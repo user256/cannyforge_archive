@@ -69,13 +69,21 @@ final class Ga4DiagnosticsView {
 		echo esc_html__( 'Review the page paths returned by GA4 and confirm whether they resolve to published posts on this WordPress install.', 'cannyforge-archive' );
 		echo '</p>';
 
-		if ( ! empty( $rows ) ) {
-			$this->render_local_rows( $rows );
-			echo '</section>';
-			return;
+		if ( empty( $source_urls ) ) {
+			$this->render_no_source_paths();
+		} else {
+			$this->render_source_paths( $source_urls, count( $rows ) );
 		}
 
-		$this->render_empty_state( $source_urls );
+		if ( ! empty( $rows ) ) {
+			echo '<h4>' . esc_html__( 'Matched local content', 'cannyforge-archive' ) . '</h4>';
+			$this->render_local_rows( $rows );
+		} elseif ( ! empty( $source_urls ) ) {
+			echo '<p class="cf-search-console-curator__empty cf-ga4-diagnostics__empty">';
+			echo esc_html__( 'None of these paths matched a published post on this WordPress install. This is expected when testing production data on local or staging content.', 'cannyforge-archive' );
+			echo '</p>';
+		}
+
 		echo '</section>';
 	}
 
@@ -125,23 +133,31 @@ final class Ga4DiagnosticsView {
 	}
 
 	/**
-	 * Render the empty state, including raw GA4 paths when available.
+	 * Explain that no GA4 source paths were retained for the latest refresh.
 	 *
-	 * @param string[] $source_urls Raw GA4 page paths.
 	 * @return void
 	 */
-	private function render_empty_state( array $source_urls ): void {
+	private function render_no_source_paths(): void {
 		echo '<p class="cf-search-console-curator__empty cf-ga4-diagnostics__empty">';
-		if ( empty( $source_urls ) ) {
-			echo esc_html__( 'No cached GA4 pages are available yet. Refresh GA4 in the Google setup wizard to load them here.', 'cannyforge-archive' );
-			echo '</p>';
-			return;
-		}
+		echo esc_html__( 'No cached GA4 pages are available yet. Refresh GA4 in the Google setup wizard to load them here.', 'cannyforge-archive' );
+		echo '</p>';
+	}
 
+	/**
+	 * Render every cached GA4 page path, even when some paths resolve locally.
+	 *
+	 * @param string[] $source_urls Raw GA4 page paths.
+	 * @param int      $matched     Number of paths resolved to local posts.
+	 * @return void
+	 */
+	private function render_source_paths( array $source_urls, int $matched ): void {
+		echo '<h4>' . esc_html__( 'Raw GA4 page paths', 'cannyforge-archive' ) . '</h4>';
+		echo '<p class="description">';
 		printf(
-			/* translators: %d: number of page paths returned by GA4. */
-			esc_html__( 'GA4 returned %d page paths, but none matched published posts on this WordPress install. This is expected when testing production data on local or staging content.', 'cannyforge-archive' ),
-			count( $source_urls )
+			/* translators: 1: number of page paths returned by GA4. 2: number that matched local published posts. */
+			esc_html__( 'GA4 returned %1$d page paths; %2$d matched published posts on this WordPress install.', 'cannyforge-archive' ),
+			absint( count( $source_urls ) ),
+			absint( $matched )
 		);
 		echo '</p>';
 		echo '<ol class="cf-search-console-curator__list cf-ga4-diagnostics__list">';
