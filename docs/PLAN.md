@@ -9,10 +9,9 @@
 
 ## Overview
 
-Default WordPress pagination does not suit the needs of news sites, primarily
-because it wastes crawl budget (and works against a noindex pagination setup).
-This plugin better suits user needs and helps sculpt PageRank toward the pages
-we care about.
+Default WordPress pagination can make content discovery cumbersome on news
+sites. This plugin provides a compact pagination experience and a clear archive
+link so visitors and crawlers can find the site's archive surface.
 
 > N.B. This derives from a previous proposal that was never picked up due to the
 > unstable / outdated nature of the host theme/site at the time.
@@ -43,11 +42,9 @@ Previous  «  [1] 2 3 4 5 … »  Next
 
 ## What this achieves
 
-Tied to click-depth and pagination theory: it helps **new articles** on news
-sites and **old articles** on blogs to rank. In the news case by reducing the
-leak of PageRank to older content; in the blog case by reducing the impact of
-link decay (PageRank lost as pages move down archive pages) on the most
-important evergreen content.
+It gives visitors a predictable compact pagination sequence and a dedicated
+archive surface for discovering older and newer content. It does not make
+search-ranking or crawl-budget guarantees.
 
 ## How it works — admin settings
 

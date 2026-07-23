@@ -86,6 +86,13 @@ final class ArchiveEntry {
 	private bool $noindex;
 
 	/**
+	 * Stable local WordPress post ID, or zero for an external entry.
+	 *
+	 * @var int
+	 */
+	private int $local_post_id;
+
+	/**
 	 * Construct an entry.
 	 *
 	 * @param string   $url                The entry URL.
@@ -97,6 +104,7 @@ final class ArchiveEntry {
 	 * @param string   $author             Author label.
 	 * @param string   $published_date     Publication date (Y-m-d).
 	 * @param bool     $noindex            Whether the source is marked noindex.
+	 * @param int      $local_post_id      Stable local post ID, or zero for external content.
 	 */
 	public function __construct(
 		string $url,
@@ -107,7 +115,8 @@ final class ArchiveEntry {
 		array $tags = array(),
 		string $author = '',
 		string $published_date = '',
-		bool $noindex = false
+		bool $noindex = false,
+		int $local_post_id = 0
 	) {
 		$this->url                = $url;
 		$this->title              = $title;
@@ -118,6 +127,7 @@ final class ArchiveEntry {
 		$this->author             = $author;
 		$this->published_date     = $published_date;
 		$this->noindex            = $noindex;
+		$this->local_post_id      = max( 0, $local_post_id );
 	}
 
 	/**
@@ -208,5 +218,10 @@ final class ArchiveEntry {
 	 */
 	public function is_noindex(): bool {
 		return $this->noindex;
+	}
+
+	/** Stable local post ID, or zero when this entry is not a local post. */
+	public function local_post_id(): int {
+		return $this->local_post_id;
 	}
 }

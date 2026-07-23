@@ -184,6 +184,13 @@ class SettingsFormParserTest extends TestCase {
 		$this->assertSame( PaginationStyle::Leading, $settings->pagination_style() );
 	}
 
+	public function test_full_archive_pagination_defaults_off_and_parses_checkbox(): void {
+		$parser = new SettingsFormParser();
+
+		$this->assertFalse( $parser->parse( array() )->full_archive_pagination() );
+		$this->assertTrue( $parser->parse( array( 'full_archive_pagination' => '1' ) )->full_archive_pagination() );
+	}
+
 	/**
 	 * Theme controls map through to the settings model.
 	 *

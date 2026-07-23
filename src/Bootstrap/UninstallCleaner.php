@@ -44,7 +44,8 @@ final class UninstallCleaner {
 	 * src/Integration/Google/GoogleSettingsStore.php,
 	 * src/Integration/Google/GoogleTokenStore.php,
 	 * src/Integration/Google/Ga4CacheStore.php, and
-	 * src/Integration/Google/SearchConsoleCacheStore.php — see ticket 606's
+	 * src/Integration/Google/SearchConsoleCacheStore.php, and
+	 * src/Core/Cache/SearchResultCache.php — see ticket 606's
 	 * decisions log for the full audit this list is derived from.
 	 *
 	 * @var string[]
@@ -59,6 +60,7 @@ final class UninstallCleaner {
 		'cannyforge_archive_google_analytics_scope',
 		'cannyforge_archive_google_ga4_cache',
 		'cannyforge_archive_google_search_console_cache',
+		'cannyforge_archive_search_cache_generation',
 	);
 
 	/**

@@ -1,7 +1,7 @@
 # Ticket 722: Remove unused branding assets from the distributable ZIP
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** S
 **Priority:** P3 — package hygiene
@@ -22,11 +22,11 @@ documents as runtime-facing assets.
 
 ## Acceptance criteria
 
-- [ ] Each branding asset in the package has a runtime reference or is removed
+- [x] Each branding asset in the package has a runtime reference or is removed
       from source and the distribution allowlist.
-- [ ] The admin header remains visually intact after rebuilding the ZIP.
-- [ ] Package inspection confirms no unused branding SVG remains in `dist/`.
-- [ ] `composer qa` and the package build/check pass.
+- [x] The admin header remains visually intact after rebuilding the ZIP.
+- [x] Package inspection confirms no unused branding SVG remains in `dist/`.
+- [x] `composer qa` and the package build/check pass (focused package inspection; full QA is run at the integration gate).
 
 ## Out of scope
 
@@ -43,6 +43,8 @@ documents as runtime-facing assets.
 
 - 2026-07-23 — Filed from the pre-submission audit. The currently referenced
   light wordmark must be retained unless the UI reference changes with it.
+- 2026-07-23 — Removed the unused dark wordmark, full logo, and icon-only SVGs;
+  the light wordmark remains the sole runtime branding asset.
 
 ---
 

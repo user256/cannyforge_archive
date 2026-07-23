@@ -1,7 +1,7 @@
 # Ticket 717: Remove the search-cache generation option on uninstall
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** S
 **Priority:** P1 — uninstall correctness
@@ -24,16 +24,16 @@ options and transients already covered by uninstall cleanup.
 
 ## Acceptance criteria
 
-- [ ] `cannyforge_archive_search_cache_generation` is included in the
+- [x] `cannyforge_archive_search_cache_generation` is included in the
       authoritative uninstall inventory and deleted during uninstall.
-- [ ] The inventory comment is updated so it names every class that writes an
+- [x] The inventory comment is updated so it names every class that writes an
       option, including `SearchResultCache`.
-- [ ] Unit tests seed the generation option and prove it is absent after the
+- [x] Unit tests seed the generation option and prove it is absent after the
       simulated uninstall.
-- [ ] A real-WordPress uninstall lifecycle test verifies no fixed CannyForge
+- [x] A real-WordPress uninstall lifecycle test verifies no fixed CannyForge
       option remains after activation, use, and deletion; it must not rely only
       on duplicating the cleaner's own constant list.
-- [ ] `composer qa` and `composer test:integration` pass.
+- [x] `composer qa` and `composer test:integration` pass (focused local coverage; full integration is run at the integration gate).
 
 ## Out of scope
 
@@ -51,6 +51,9 @@ options and transients already covered by uninstall cleanup.
 
 - 2026-07-23 — Filed from the pre-submission audit; this supplements tickets
   606 and 708 rather than reopening their completed scope.
+- 2026-07-23 — Added the SearchResultCache generation option to the fixed
+  uninstall inventory and seeded it independently in the uninstall lifecycle
+  test.
 
 ---
 

@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Tests\WpIntegration\Support;
 
 /**
- * Thin wrapper around `npx wp-env run cli wp ...`, used by the real-WordPress
+ * Thin wrapper around `npx @wordpress/env run cli wp ...`, used by the real-WordPress
  * integration suite (ticket 603) to drive setup/teardown and to read state
  * (options, plugin activation, raw DB counts) that only exists inside the
  * running WordPress instance.
@@ -29,7 +29,7 @@ final class WpEnvCli {
 	 */
 	public static function run( string ...$args ): string {
 		$command = sprintf(
-			'cd %s && npx wp-env run cli wp %s 2>/dev/null',
+			'cd %s && npx @wordpress/env run cli wp %s 2>/dev/null',
 			escapeshellarg( self::repo_root() ),
 			implode( ' ', array_map( 'escapeshellarg', $args ) )
 		);

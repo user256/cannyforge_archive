@@ -162,14 +162,14 @@ wizard / GA4 picker work; see
 Pre-submission audit (2026-07-23) — filed before WordPress.org submission;
 these are release-readiness fixes and block ticket 699 unless noted otherwise:
 
-- [ ] [715 — Complete Google external-services disclosure for WordPress.org](715-wporg-google-external-services-complete-disclosure.md)
-- [ ] [716 — Make the readme accurately describe archive URLs and pagination integration](716-readme-archive-behaviour-accuracy.md)
-- [ ] [717 — Remove the search-cache generation option on uninstall](717-uninstall-search-cache-generation-option.md)
-- [ ] [718 — Replace PageRank-sculpting language in the public listing copy](718-readme-neutral-seo-positioning.md)
-- [ ] [719 — Align the plugin-header and readme license declarations](719-align-plugin-license-declarations.md)
-- [ ] [720 — Make the PHP compatibility claim match supported runtimes and CI](720-php85-support-claim-and-ci.md)
-- [ ] [721 — Bring the 0.1.1 changelog in line with the distributed plugin](721-update-011-changelog-for-shipped-google-features.md)
-- [ ] [722 — Remove unused branding assets from the distributable ZIP](722-remove-unused-distribution-brand-assets.md)
+- [x] [715 — Complete Google external-services disclosure for WordPress.org](715-wporg-google-external-services-complete-disclosure.md)
+- [x] [716 — Make the readme accurately describe archive URLs and pagination integration](716-readme-archive-behaviour-accuracy.md)
+- [x] [717 — Remove the search-cache generation option on uninstall](717-uninstall-search-cache-generation-option.md)
+- [x] [718 — Replace PageRank-sculpting language in the public listing copy](718-readme-neutral-seo-positioning.md)
+- [x] [719 — Align the plugin-header and readme license declarations](719-align-plugin-license-declarations.md)
+- [x] [720 — Make the PHP compatibility claim match supported runtimes and CI](720-php85-support-claim-and-ci.md)
+- [x] [721 — Bring the 0.1.1 changelog in line with the distributed plugin](721-update-011-changelog-for-shipped-google-features.md)
+- [x] [722 — Remove unused branding assets from the distributable ZIP](722-remove-unused-distribution-brand-assets.md)
 
 Also fixed mid-sprint, discovered independently by six of the tickets above:
 [a `wp_safe_redirect` test-shim collision](completed/618-phpunit-shim-collision-silently-truncated-suite.md)
@@ -187,4 +187,4 @@ and Playwright candidates also expected to land here.
 - [ ] [702 — Non-text (UI component) contrast for the front-end theme's border colour](702-archive-theme-non-text-contrast.md)
 - [x] [703 — Capture wp.org listing screenshots](completed/703-wporg-screenshot-capture.md)
 - [x] [706 — Make the disposable integration rig rebuild-safe](completed/706-integration-rig-build-order.md)
-- [ ] [723 — Add opt-in full-site pagination after the optimised archive page](723-opt-in-full-archive-pagination.md)
+- [x] [723 — Add opt-in full-site pagination after the optimised archive page](723-opt-in-full-archive-pagination.md)

@@ -1,7 +1,7 @@
 # Ticket 718: Replace PageRank-sculpting language in the public listing copy
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** S
 **Priority:** P2 — WordPress.org policy-review risk
@@ -23,15 +23,15 @@ without claims of PageRank sculpting, leakage, or guaranteed crawler outcomes.
 
 ## Acceptance criteria
 
-- [ ] `readme.txt`, plugin description, and any listing-facing documentation
+- [x] `readme.txt`, plugin description, and any listing-facing documentation
       use neutral, supportable language about archive discovery, clear internal
       navigation, and a compact pagination experience.
-- [ ] No shipped public copy claims PageRank sculpting/leakage, guaranteed crawl
+- [x] No shipped public copy claims PageRank sculpting/leakage, guaranteed crawl
       budget savings, or a search-ranking outcome.
-- [ ] The feature description remains clear about what changes: selected
+- [x] The feature description remains clear about what changes: selected
       archive-type pagination can show a configurable limited sequence and a
       View Archive link.
-- [ ] Readme validation passes.
+- [x] Readme validation passes.
 
 ## Out of scope
 
@@ -48,6 +48,8 @@ without claims of PageRank sculpting, leakage, or guaranteed crawler outcomes.
 
 - 2026-07-23 — Filed from the pre-submission audit to reduce policy ambiguity,
   not because the existing feature was found to be malicious.
+- 2026-07-23 — Replaced ranking and crawl-outcome claims across public metadata,
+  readmes, and the product brief with neutral navigation language.
 
 ---
 

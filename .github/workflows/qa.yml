@@ -56,9 +56,9 @@ jobs:
       fail-fast: false
       matrix:
         # Requires PHP 8.1 (readme.txt) through the latest stable at the time
-        # of writing, 8.4 — ticket 607. Coverage/mutation testing only runs
+        # of writing, 8.5 — ticket 720. Coverage/mutation testing only runs
         # once, on the pinned version below, to keep CI time reasonable.
-        php-version: ['8.1', '8.2', '8.3', '8.4']
+        php-version: ['8.1', '8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v4
 

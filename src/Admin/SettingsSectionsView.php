@@ -59,6 +59,13 @@ final class SettingsSectionsView {
 
 		echo '<p><label><strong>' . esc_html__( '"View Archive" link URL (optional)', 'cannyforge-archive' ) . '</strong><br>';
 		printf( '<input type="url" name="archive_url" value="%s" placeholder="%s"></label></p>', esc_attr( $settings->archive_url() ), esc_attr__( 'Defaults to the archive page', 'cannyforge-archive' ) );
+
+		$this->fields->checkbox(
+			'full_archive_pagination',
+			__( 'Enable full archive pages after the optimised first page', 'cannyforge-archive' ),
+			$settings->full_archive_pagination()
+		);
+		echo '<p class="description">' . esc_html__( 'When enabled, /archive/ remains the selected first page and /archive/page/2/ onward lists every remaining eligible post.', 'cannyforge-archive' ) . '</p>';
 	}
 
 	/**

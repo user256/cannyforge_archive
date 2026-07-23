@@ -6,7 +6,7 @@
 # integration suite (tests/WpIntegration) against it.
 #
 # Requires: `composer dist` already run (dist/cannyforge-archive/ built),
-# Docker reachable, and Node/npm (for `npx wp-env`). Run via
+# Docker reachable, and Node/npm (for `npx @wordpress/env`). Run via
 # `composer test:integration`.
 
 set -euo pipefail
@@ -27,18 +27,18 @@ SEED_COUNT="${SEED_COUNT:-48}"
 
 cleanup() {
 	echo "==> Stopping wp-env"
-	npx wp-env stop >/dev/null 2>&1 || true
+	npx @wordpress/env stop >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
 echo "==> Starting wp-env (WordPress + MySQL in Docker)"
-npx wp-env start
+npx @wordpress/env start
 
 echo "==> Resetting the WordPress database to a clean, disposable state"
-npx wp-env run cli wp db reset --yes >/dev/null
+npx @wordpress/env run cli wp db reset --yes >/dev/null
 
 echo "==> Installing WordPress"
-npx wp-env run cli wp core install \
+npx @wordpress/env run cli wp core install \
 	--url="${WP_ENV_BASE_URL}" \
 	--title="CannyForge Archive Integration" \
 	--admin_user=admin \
@@ -47,7 +47,7 @@ npx wp-env run cli wp core install \
 	--skip-email
 
 echo "==> Activating the plugin"
-npx wp-env run cli wp plugin activate cannyforge-archive
+npx @wordpress/env run cli wp plugin activate cannyforge-archive
 
 # The pagination replacement (ticket 107) hooks the classic
 # `the_posts_pagination()` markup filter. Modern block themes (the WP default,
@@ -57,10 +57,10 @@ npx wp-env run cli wp plugin activate cannyforge-archive
 # ticket's decisions log). Use a classic theme here so the behaviour this
 # suite is required to cover is actually exercised.
 echo "==> Switching to a classic theme (block themes bypass the pagination hook — see decisions log)"
-npx wp-env run cli wp theme activate twentyseventeen
+npx @wordpress/env run cli wp theme activate twentyseventeen
 
 echo "==> Setting a pretty permalink structure (the rewrite endpoint requires one)"
-npx wp-env run cli wp rewrite structure '/%postname%/' --hard
+npx @wordpress/env run cli wp rewrite structure '/%postname%/' --hard
 
 echo "==> Seeding historic content (scripts/seed-historic-content.sh)"
 bash "${ROOT_DIR}/scripts/seed-historic-content.sh" --site-path /var/www/html --count "${SEED_COUNT}"

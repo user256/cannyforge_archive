@@ -2,15 +2,13 @@
 
 A WordPress plugin that gives news and blog sites a combined **HTML sitemap +
 JS-powered archive**, and replaces the default taxonomy pagination with a
-shorter, crawl-budget-friendly sequence that links out to the archive.
+compact sequence that links out to the archive.
 
 ## Why
 
-Default WordPress pagination wastes crawl budget and leaks PageRank into deep,
-low-value paginated taxonomy pages. CannyForge Archive shortens the visible
-pagination run and routes crawlers to a single rich archive/HTML-sitemap page,
-helping sculpt PageRank toward the content that matters (fresh articles on news
-sites, evergreen posts on blogs).
+The plugin provides compact pagination and a clear archive/HTML-sitemap link,
+making content easier to discover through site navigation. It does not promise
+a search-ranking or crawler outcome.
 
 See [`docs/PLAN.md`](docs/PLAN.md) for the full product brief and back-end
 mock-ups.
@@ -22,6 +20,9 @@ mock-ups.
   month+year / author filters.
 - **Pagination replacement** — a limited pagination sequence with a
   "View Archive" link, configurable depth before the archive takes over.
+- **Optional full archive continuation** — when enabled, `/archive/` remains
+  the optimised first page and `/archive/page/2/` onward lists remaining
+  eligible posts without JavaScript.
 - **Blog or News mode** — generate either a Blog sitemap (curated top URLs) or
   a News sitemap (everything published within a configurable recent window).
 

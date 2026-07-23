@@ -5,26 +5,25 @@ Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
 Stable tag: 0.1.1
-License: GPLv2 or later
+License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-HTML sitemap + JS archive, and a crawl-budget-friendly replacement for default taxonomy pagination.
+HTML sitemap and JavaScript archive, with a compact replacement for default taxonomy pagination.
 
 == Description ==
 
 CannyForge Archive Generator gives news and blog sites a combined HTML sitemap and
-JavaScript-powered archive, and replaces WordPress's default taxonomy
-pagination with a shorter sequence that links out to that archive.
+JavaScript-powered archive, and replaces WordPress's default taxonomy pagination
+with a configurable compact sequence that links out to that archive.
 
-CI runs the automated unit/static-analysis suite on every supported PHP
-version, 8.1 through 8.4, so the `Requires PHP` floor above is continuously
-verified rather than asserted.
+The release supports PHP 8.1 through 8.5. CI runs the automated unit suite on
+each of those versions; static analysis is pinned to PHP 8.1. The `Requires
+PHP` value above is the minimum supported version, not a claim that every
+future PHP release is continuously verified.
 
-Default pagination wastes crawl budget and leaks PageRank into deep, low-value
-paginated pages. CannyForge Archive Generator shortens the visible pagination run and
-routes crawlers to a single rich archive page, helping sculpt PageRank toward
-the content that matters — fresh articles on news sites, evergreen posts on
-blogs.
+The plugin provides a compact pagination experience and a clear HTML archive
+link, making older and newer content easier to discover through site
+navigation. It does not promise a search-ranking or crawler outcome.
 
 Features:
 
@@ -32,7 +31,10 @@ Features:
 * News mode: include content published within a configurable recent window.
 * Blog mode: a curated URL list, entered manually or imported from CSV.
 * Client-side search and category / tag / month / author filters.
-* Shortened pagination with a "View Archive" link, targeted per archive type.
+* Configurable compact pagination with a "View Archive" link, targeted per archive type.
+* Optional full archive continuation: `/archive/` stays the optimised first
+  page and `/archive/page/2/` onward lists remaining eligible posts without
+  JavaScript, newest first.
 * SEO controls: archive title, meta description, robots directives, canonical.
 * Content selection: include / exclude by term, drop noindex, pin URLs first.
 
@@ -41,7 +43,9 @@ Features:
 1. Upload the `cannyforge-archive` folder to `/wp-content/plugins/`.
 2. Activate the plugin through the *Plugins* menu in WordPress.
 3. Open *CannyForge Archive Generator* in the admin menu and configure the archive.
-4. Visit `/archive/` (or your configured slug) to view the generated archive.
+4. Visit the fixed `/archive/` endpoint to view the generated archive. The
+   optional `archive_url` setting changes only where a "View Archive" link
+   points; it does not change the endpoint URL.
 
 == External services ==
 
@@ -57,13 +61,45 @@ What the service is used for:
 * Google Search Console can supply top page URLs for the configured property.
 * Google Analytics 4 can supply top page paths as the primary signal or as a Search Console fallback.
 
-What data is sent:
+What data is sent and received:
 
-* The configured OAuth client ID and client secret are used to exchange and refresh access tokens with Google.
-* The configured Search Console property identifier is sent when requesting top-page rows.
-* The configured GA4 property ID is sent when requesting report rows.
-* Google access tokens are sent with those API requests.
-* For GA4 property listing, the Google access token is sent to the Analytics Admin API `https://analyticsadmin.googleapis.com/v1beta/accountSummaries`; returned account and property names/IDs populate the picker.
+* When the owner starts Connect, the browser visits Google's OAuth
+  authorisation endpoint with the configured client ID, registered redirect
+  URI, requested read-only scopes, response type, access type, and a
+  short-lived state value at
+  `https://accounts.google.com/o/oauth2/v2/auth`. Google returns an authorisation code to that
+  redirect URI; the code, client ID, client secret, redirect URI, and grant
+  type are sent server-to-server to `https://oauth2.googleapis.com/token`.
+  Google returns access and refresh tokens plus the access-token lifetime.
+* When the access token is missing or expired, the client ID, client secret,
+  refresh token, and refresh grant type are sent to the same token endpoint.
+  The returned access token and lifetime are cached encrypted locally; the
+  refresh token is retained encrypted until Disconnect or plugin deletion.
+* After a successful connection that requested Search Console access, the
+  plugin automatically lists the account's Search Console properties with a
+  GET to `https://www.googleapis.com/webmasters/v3/sites`. Google returns
+  property URLs and permissions. The selected property list is cached for
+  the current WordPress user for 10 minutes.
+* When the owner loads Search Console properties, the same property-list call
+  runs. When the owner refreshes top content, the configured Search Console
+  property URL, date range, dimensions (`page`), row limit, and access token
+  are sent to `https://www.googleapis.com/webmasters/v3/sites/{property}/searchAnalytics/query`.
+  Google returns page rows; resolved local post IDs, source URLs, and a
+  refresh timestamp are stored in the Search Console cache option until the
+  next refresh, Disconnect, or deletion.
+* After a successful Analytics wizard connection, the plugin automatically
+  lists GA4 accounts and properties with the access token at
+  `https://analyticsadmin.googleapis.com/v1beta/accountSummaries`. Google
+  returns account/property names and IDs; the list is cached for the current
+  WordPress user for 10 minutes. Clicking Load GA4 properties repeats that
+  call.
+* When the owner refreshes GA4 top content, the configured numeric property
+  ID, date range, `pagePath` dimension, `screenPageViews` metric, descending
+  order, row limit, and access token are sent to
+  `https://analyticsdata.googleapis.com/v1beta/properties/{property}:runReport`.
+  Google returns page-path rows; resolved local post IDs, source paths, and a
+  refresh timestamp are stored in the GA4 cache option until the next refresh,
+  Disconnect, or deletion.
 
 What access is requested:
 
@@ -72,20 +108,29 @@ What access is requested:
 
 When it happens:
 
-* Only when the site owner clicks Connect or manually refreshes the Google-backed cache.
-* When the wizard's Analytics-only or Search Console + GA4 signal is selected, the Analytics Admin API `https://analyticsadmin.googleapis.com/v1beta/accountSummaries` endpoint is called after Connect to list the account's GA4 properties. The same property-list request runs when the site owner clicks "Load GA4 properties".
+* Only when the site owner clicks Connect, loads a property list, or manually
+  refreshes a Google-backed cache. The post-Connect Search Console property
+  listing is automatic only when that access was requested; the GA4 property
+  listing is automatic for an Analytics wizard connection.
 * Never during wp.org installation or by default on an unconfigured site.
 
 How credentials are stored and removed:
 
 * The client secret, refresh token, and cached access token are encrypted at rest.
-* Clicking Disconnect makes a best-effort call to Google's token revocation endpoint before clearing the locally stored tokens and caches, so the connection is invalidated on Google's side as well as locally. If Google's revocation endpoint cannot be reached, the local credentials are still cleared and the admin is told the remote grant may need to be revoked manually.
+* Clicking Disconnect makes a best-effort POST to
+  `https://oauth2.googleapis.com/revoke` with the refresh token (or still
+  valid access token) before clearing the locally stored tokens and caches, so
+  the connection is invalidated on Google's side as well as locally. If the
+  endpoint cannot be reached, local credentials are still cleared and the
+  admin is told the remote grant may need to be revoked manually.
 * Deleting the plugin (not just deactivating it) makes the same best-effort revocation call, then permanently removes the plugin's stored settings and credentials, fixed archive caches, and all user-scoped Google property-list and OAuth-state transients, including the encrypted Google credentials. Search-result and rate-limit transients have bounded expirations and are allowed to expire naturally rather than being swept during uninstall. Deactivating the plugin never removes this data — only deleting it does.
 
 Service policies:
 
-* Terms of Service: https://policies.google.com/terms
-* Privacy Policy: https://policies.google.com/privacy
+* Google APIs Terms of Service: https://developers.google.com/terms
+* Google API Services User Data Policy: https://developers.google.com/terms/api-services-user-data-policy
+* Google Privacy Policy: https://policies.google.com/privacy
+* Google Analytics Terms of Service (where GA4 is enabled): https://marketingplatform.google.com/about/analytics/terms/us/
 
 == Frequently Asked Questions ==
 
@@ -94,11 +139,20 @@ Service policies:
 Yes. The archive list is server-rendered and crawlable; the JavaScript only
 adds client-side search and filtering on top.
 
+= Can I publish a complete archive after the selected first page? =
+
+Yes. Enable **full archive pages** under Pagination. The existing `/archive/`
+page remains the optimised first page; `/archive/page/2/` onward then lists
+remaining eligible published posts, newest first. Posts already rendered on
+page one are excluded by local post ID. Curated external URLs remain page-one
+only and never suppress a local post. `/archive/page/1/` redirects to
+`/archive/`; malformed and out-of-range page URLs return 404.
+
 = Does it replace my theme's pagination automatically? =
 
 On targeted archive types it filters the theme's pagination output. Themes that
-render pagination in a non-standard way can use the `[cannyforge_pagination]`
-shortcode or the template tag instead.
+render pagination in a non-standard way can place the
+`[cannyforge_pagination]` shortcode explicitly.
 
 = If I deactivate the plugin (or turn off pagination targeting), do I get my normal pagination back? =
 
@@ -112,17 +166,10 @@ the very next page load — there is no residue to clean up.
 = Exactly what data is sent to Google, and when? =
 
 Nothing is sent to Google unless you explicitly configure Google credentials
-and click Connect (or manually refresh a Google-backed cache) — never on
-install and never by default. Once connected, only these get sent: your
-configured OAuth Client ID/Secret (to exchange and refresh access tokens),
-your Search Console property identifier and/or GA4 property ID (when
-requesting top-page rows), and the resulting Google access token with those
-API requests. When the wizard's Analytics-only or Search Console + GA4 signal is selected, or
-when you click "Load GA4 properties", that access token is also sent to
-Google's Analytics Admin API `accountSummaries` endpoint to list available
-GA4 properties. See the "External services" section above for the full
-disclosure, including exactly which OAuth scopes are requested and how
-disconnecting revokes them.
+and click Connect, load a property list, or manually refresh a Google-backed
+cache — never on install and never by default. The full endpoint-by-endpoint
+request, response, trigger, retention, and policy disclosure is in the
+External services section above.
 
 = How does the archive cache behave, and when does it refresh? =
 
@@ -144,6 +191,11 @@ on the next invalidating event or once the 24-hour TTL expires.
 == Changelog ==
 
 = 0.1.1 =
+* Optional Google connection with least-privilege OAuth, Search Console
+  property/report sourcing, and GA4 Analytics Admin/Data API top-content
+  sourcing, with local caching and disconnect cleanup.
+* Optional full-site archive continuation after the optimised `/archive/`
+  page, disabled by default and served at `/archive/page/2/` onward.
 * Sprint 2 hardening: archive endpoint lifecycle, content-selection
   normalisation, distributable build helper, front-end theming controls,
   historic-content seeding, fragment caching, extensibility hooks, and

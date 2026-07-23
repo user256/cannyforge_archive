@@ -231,7 +231,7 @@ class ContentIndexProvider {
 	 * @param \WP_Post $post The post.
 	 * @return ArchiveEntry
 	 */
-	private function map_post( \WP_Post $post ): ArchiveEntry {
+	protected function map_post( \WP_Post $post ): ArchiveEntry {
 		$date = get_the_date( 'Y-m-d', $post );
 
 		return new ArchiveEntry(
@@ -242,8 +242,25 @@ class ContentIndexProvider {
 			$this->term_names( $post->ID, 'category' ),
 			$this->term_names( $post->ID, 'post_tag' ),
 			get_the_author_meta( 'display_name', (int) $post->post_author ),
-			is_string( $date ) ? $date : ''
+			is_string( $date ) ? $date : '',
+			$this->is_noindex( $post->ID ),
+			$post->ID
 		);
+	}
+
+	/**
+	 * Whether a post is marked noindex by a supported SEO-plugin meta key.
+	 *
+	 * @param int $post_id The post ID.
+	 * @return bool
+	 */
+	private function is_noindex( int $post_id ): bool {
+		if ( '1' === get_post_meta( $post_id, '_yoast_wpseo_meta-robots-noindex', true ) ) {
+			return true;
+		}
+
+		$rank_math = get_post_meta( $post_id, 'rank_math_robots', true );
+		return is_array( $rank_math ) && in_array( 'noindex', $rank_math, true );
 	}
 
 	/**

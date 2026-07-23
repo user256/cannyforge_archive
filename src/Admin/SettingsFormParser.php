@@ -36,14 +36,15 @@ final class SettingsFormParser {
 	public function parse( array $input, array $csv_urls = array() ): Settings {
 		return Settings::from_array(
 			array(
-				'mode'                => $this->string( $input, 'mode' ),
-				'pagination_limit'    => $this->string( $input, 'pagination_limit' ),
-				'pagination_style'    => $this->string( $input, 'pagination_style' ),
-				'archive_url'         => $this->string( $input, 'archive_url' ),
-				'news_window_hours'   => $this->string( $input, 'news_window_hours' ),
-				'news_fallback_count' => $this->string( $input, 'news_fallback_count' ),
-				'blog_max_urls'       => $this->string( $input, 'blog_max_urls' ),
-				'link_types'          => array(
+				'mode'                    => $this->string( $input, 'mode' ),
+				'pagination_limit'        => $this->string( $input, 'pagination_limit' ),
+				'pagination_style'        => $this->string( $input, 'pagination_style' ),
+				'full_archive_pagination' => $this->checkbox( $input, 'full_archive_pagination' ),
+				'archive_url'             => $this->string( $input, 'archive_url' ),
+				'news_window_hours'       => $this->string( $input, 'news_window_hours' ),
+				'news_fallback_count'     => $this->string( $input, 'news_fallback_count' ),
+				'blog_max_urls'           => $this->string( $input, 'blog_max_urls' ),
+				'link_types'              => array(
 					'title'          => $this->checkbox( $input, 'link_title' ),
 					'description'    => $this->checkbox( $input, 'link_description' ),
 					'featured_image' => $this->checkbox( $input, 'link_featured_image' ),
@@ -52,35 +53,35 @@ final class SettingsFormParser {
 					'author'         => $this->checkbox( $input, 'link_author' ),
 					'published_date' => $this->checkbox( $input, 'link_published_date' ),
 				),
-				'filters'             => array(
+				'filters'                 => array(
 					'search'     => $this->checkbox( $input, 'filter_search' ),
 					'category'   => $this->checkbox( $input, 'filter_category' ),
 					'tag'        => $this->checkbox( $input, 'filter_tag' ),
 					'month_year' => $this->checkbox( $input, 'filter_month_year' ),
 					'author'     => $this->checkbox( $input, 'filter_author' ),
 				),
-				'blog_urls'           => $this->blog_urls( $input, $csv_urls ),
-				'targeting'           => array(
+				'blog_urls'               => $this->blog_urls( $input, $csv_urls ),
+				'targeting'               => array(
 					'category' => $this->checkbox( $input, 'target_category' ),
 					'tag'      => $this->checkbox( $input, 'target_tag' ),
 					'author'   => $this->checkbox( $input, 'target_author' ),
 					'date'     => $this->checkbox( $input, 'target_date' ),
 				),
-				'seo'                 => array(
+				'seo'                     => array(
 					'title'            => $this->string( $input, 'seo_title' ),
 					'meta_description' => $this->string( $input, 'seo_meta_description' ),
 					'index'            => $this->checkbox( $input, 'seo_index' ),
 					'follow'           => $this->checkbox( $input, 'seo_follow' ),
 					'canonical'        => $this->string( $input, 'seo_canonical' ),
 				),
-				'theme'               => array(
+				'theme'                   => array(
 					'layout'        => $this->string( $input, 'theme_layout' ),
 					'accent_color'  => $this->string( $input, 'theme_accent_color' ),
 					'surface_color' => $this->string( $input, 'theme_surface_color' ),
 					'text_color'    => $this->string( $input, 'theme_text_color' ),
 					'border_color'  => $this->string( $input, 'theme_border_color' ),
 				),
-				'content_selection'   => array(
+				'content_selection'       => array(
 					'include_categories' => $this->string_list_field( $input, 'select_include_categories' ),
 					'include_tags'       => $this->string_list_field( $input, 'select_include_tags' ),
 					'exclude_categories' => $this->string_list_field( $input, 'select_exclude_categories' ),

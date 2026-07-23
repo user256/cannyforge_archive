@@ -24,4 +24,4 @@ for arg in "$@"; do
 done
 
 cd "${WP_ENV_CWD:?WP_ENV_CWD must point at the repo containing .wp-env.json}"
-exec npx wp-env run cli wp "${args[@]}" 2>/dev/null
+exec npx @wordpress/env run cli wp "${args[@]}" 2>/dev/null

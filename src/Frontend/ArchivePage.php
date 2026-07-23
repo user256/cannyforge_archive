@@ -19,6 +19,7 @@ use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Archive\FilterOptionsProvider;
+use CannyForge\Archive\Core\Archive\FullArchiveContinuationProvider;
 use CannyForge\Archive\Core\Cache\ArchiveCache;
 
 /**
@@ -91,15 +92,23 @@ final class ArchivePage {
 	private ArchiveUrlResolver $url_resolver;
 
 	/**
+	 * Optional server-rendered full-archive continuation source.
+	 *
+	 * @var FullArchiveContinuationProvider
+	 */
+	private FullArchiveContinuationProvider $continuation;
+
+	/**
 	 * Construct the page.
 	 *
-	 * @param SettingsRepositoryInterface   $repository   Settings persistence.
-	 * @param ArchiveEntryProviderInterface $provider     Entry source.
-	 * @param ArchiveRenderer               $renderer     HTML renderer.
-	 * @param string                        $slug         Endpoint slug.
-	 * @param ArchiveCache|null             $cache        HTML fragment cache.
-	 * @param FilterOptionsProvider|null    $options      Whole-database filter options.
-	 * @param ArchiveUrlResolver|null       $url_resolver Archive URL resolver.
+	 * @param SettingsRepositoryInterface          $repository   Settings persistence.
+	 * @param ArchiveEntryProviderInterface        $provider     Entry source.
+	 * @param ArchiveRenderer                      $renderer     HTML renderer.
+	 * @param string                               $slug         Endpoint slug.
+	 * @param ArchiveCache|null                    $cache        HTML fragment cache.
+	 * @param FilterOptionsProvider|null           $options      Whole-database filter options.
+	 * @param ArchiveUrlResolver|null              $url_resolver Archive URL resolver.
+	 * @param FullArchiveContinuationProvider|null $continuation Full-archive continuation source.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -108,7 +117,8 @@ final class ArchivePage {
 		string $slug = self::DEFAULT_SLUG,
 		?ArchiveCache $cache = null,
 		?FilterOptionsProvider $options = null,
-		?ArchiveUrlResolver $url_resolver = null
+		?ArchiveUrlResolver $url_resolver = null,
+		?FullArchiveContinuationProvider $continuation = null
 	) {
 		$this->repository   = $repository;
 		$this->provider     = $provider;
@@ -117,6 +127,7 @@ final class ArchivePage {
 		$this->cache        = $cache ?? new ArchiveCache();
 		$this->options      = $options ?? new FilterOptionsProvider();
 		$this->url_resolver = $url_resolver ?? new ArchiveUrlResolver( $this->slug );
+		$this->continuation = $continuation ?? new FullArchiveContinuationProvider();
 	}
 
 	/**
@@ -161,8 +172,9 @@ final class ArchivePage {
 		// non-empty tail (e.g. `/archive/unwanted-tail/`) isn't a page this
 		// plugin renders, so send the visitor to the resolved archive
 		// destination instead of 200-ing an endpoint variant that doesn't exist.
-		if ( '' !== $wp_query->query_vars[ self::QUERY_VAR ] ) {
-			$this->redirect_tail( $settings );
+		$tail = (string) $wp_query->query_vars[ self::QUERY_VAR ];
+		if ( '' !== $tail ) {
+			$this->maybe_render_continuation( $settings, $tail );
 			return;
 		}
 
@@ -225,13 +237,16 @@ final class ArchivePage {
 	 * @return string
 	 */
 	private function build_html( Settings $settings ): string {
+		if ( $settings->full_archive_pagination() ) {
+			return $this->build_page_one_html( $settings );
+		}
+
 		$cached = $this->cache->get( $settings );
 		if ( false !== $cached ) {
 			return $cached;
 		}
 
-		$entries = $this->provider->provide( $settings );
-		$entries = apply_filters( 'cannyforge_archive_entries', $entries );
+		$entries = $this->page_one_entries( $settings );
 
 		$options = array(
 			'category' => $this->options->categories(),
@@ -246,5 +261,98 @@ final class ArchivePage {
 		$this->cache->set( $settings, $html );
 
 		return $html;
+	}
+
+	/**
+	 * Render page one plus a route to page two when continuation content exists.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return string
+	 */
+	private function build_page_one_html( Settings $settings ): string {
+		$entries = $this->page_one_entries( $settings );
+		$page    = $this->continuation->provide_continuation( $settings, $entries, 1 );
+		$options = array(
+			'category' => $this->options->categories(),
+			'tag'      => $this->options->tags(),
+			'author'   => $this->options->authors(),
+			'month'    => $this->options->months(),
+		);
+		do_action( 'cannyforge_archive_before_render' );
+		$html = $this->renderer->render( $entries, $settings, $options );
+		if ( $page->total() > 0 ) {
+			$html .= sprintf(
+				'<nav class="cannyforge-archive__pagination" aria-label="%s"><a rel="next" href="%s">%s</a></nav>',
+				esc_attr__( 'Archive pages', 'cannyforge-archive' ),
+				esc_url( $this->continuation_url( 2 ) ),
+				esc_html__( 'Browse the full archive', 'cannyforge-archive' )
+			);
+		}
+		do_action( 'cannyforge_archive_after_render' );
+
+		return $html;
+	}
+
+	/**
+	 * Return page-one entries after the existing extension filter.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return \CannyForge\Archive\Contracts\Archive\ArchiveEntry[]
+	 */
+	private function page_one_entries( Settings $settings ): array {
+		return apply_filters( 'cannyforge_archive_entries', $this->provider->provide( $settings ) );
+	}
+
+	/**
+	 * Recognise and render a valid enabled `/archive/page/N/` tail.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @param string   $tail     Endpoint path after `/archive/`.
+	 * @return void
+	 */
+	private function maybe_render_continuation( Settings $settings, string $tail ): void {
+		if ( ! $settings->full_archive_pagination() || ! preg_match( '#^page/([1-9][0-9]*)/?$#', $tail, $matches ) ) {
+			$this->redirect_tail( $settings );
+			return;
+		}
+
+		$requested = (int) $matches[1];
+		if ( 1 === $requested ) {
+			wp_safe_redirect( esc_url_raw( $this->url_resolver->endpoint_url() ), 301 );
+			exit;
+		}
+
+		$entries = $this->page_one_entries( $settings );
+		$page    = $this->continuation->provide_continuation( $settings, $entries, $requested - 1 );
+		if ( 0 === $page->total() || $requested - 1 > $page->total_pages() ) {
+			global $wp_query;
+			if ( $wp_query instanceof \WP_Query ) {
+				$wp_query->is_404 = true;
+			}
+			status_header( 404 );
+			return;
+		}
+
+		global $wp_query;
+		if ( $wp_query instanceof \WP_Query ) {
+			$wp_query->is_404 = false;
+		}
+		status_header( 200 );
+		get_header();
+		echo '<main id="main" class="site-main" role="main">';
+		echo $this->renderer->render_continuation( $page->entries(), $settings, $requested, $page->total_pages(), fn ( int $number ): string => $this->continuation_url( $number ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '</main>';
+		get_footer();
+		exit;
+	}
+
+	/**
+	 * Resolve archive page-one or continuation URLs.
+	 *
+	 * @param int $page Archive URL page number.
+	 * @return string
+	 */
+	private function continuation_url( int $page ): string {
+		return 1 === $page ? $this->url_resolver->endpoint_url() : home_url( '/' . $this->slug . '/page/' . $page . '/' );
 	}
 }

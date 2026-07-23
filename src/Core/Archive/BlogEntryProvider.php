@@ -336,7 +336,8 @@ final class BlogEntryProvider implements ArchiveEntryProviderInterface {
 			$this->term_names( $post_id, 'post_tag' ),
 			get_the_author_meta( 'display_name', (int) $post->post_author ),
 			is_string( $date ) ? $date : '',
-			$this->is_noindex( $post_id )
+			$this->is_noindex( $post_id ),
+			$post_id
 		);
 	}
 

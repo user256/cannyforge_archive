@@ -33,6 +33,21 @@ final class ContentSelector {
 	 * @return ArchiveEntry[]
 	 */
 	public function select( array $entries, ContentSelection $rules ): array {
+		return $this->pin( $this->filter_entries( $entries, $rules ), $rules->pinned_urls() );
+	}
+
+	/**
+	 * Apply inclusion, exclusion and noindex rules without changing source order.
+	 *
+	 * Full-archive continuation uses this variant: unlike the promoted first
+	 * page, later pages must remain newest-to-oldest rather than being reordered
+	 * by the page-one pinning preference.
+	 *
+	 * @param ArchiveEntry[]   $entries The source entries.
+	 * @param ContentSelection $rules   The selection rules.
+	 * @return ArchiveEntry[]
+	 */
+	public function filter_entries( array $entries, ContentSelection $rules ): array {
 		$kept = array();
 		foreach ( $entries as $entry ) {
 			if ( $this->is_kept( $entry, $rules ) ) {
@@ -40,7 +55,7 @@ final class ContentSelector {
 			}
 		}
 
-		return $this->pin( $kept, $rules->pinned_urls() );
+		return $kept;
 	}
 
 	/**

@@ -64,6 +64,11 @@ class UninstallScriptTest extends TestCase {
 	 * @return void
 	 */
 	public function test_uninstall_cleans_up_a_single_site(): void {
+		// This is a fixed writer-owned key, not merely an assertion derived from
+		// UninstallCleaner::option_keys(), so the lifecycle test catches an
+		// inventory omission independently of the cleaner's implementation.
+		OptionStore::set( 'cannyforge_archive_search_cache_generation', 7 );
+
 		foreach ( UninstallCleaner::option_keys() as $key ) {
 			OptionStore::set( $key, 'seeded' );
 		}
@@ -83,6 +88,7 @@ class UninstallScriptTest extends TestCase {
 		foreach ( UninstallCleaner::option_keys() as $key ) {
 			$this->assertArrayNotHasKey( $key, OptionStore::all(), "Option {$key} survived uninstall." );
 		}
+		$this->assertArrayNotHasKey( 'cannyforge_archive_search_cache_generation', OptionStore::all() );
 
 		foreach ( UninstallCleaner::transient_keys() as $key ) {
 			$this->assertArrayNotHasKey( $key, TransientStore::all(), "Transient {$key} survived uninstall." );

@@ -204,7 +204,7 @@ final class SeoHead {
 		$provider = $this->detector->detect();
 		$tags     = SeoProvider::None === $provider
 			? $this->builder->build(
-				$this->repository->get()->seo(),
+				$this->seo(),
 				$this->endpoint_url(),
 				false
 			)
@@ -327,6 +327,12 @@ final class SeoHead {
 	 * @return Seo
 	 */
 	private function seo(): Seo {
+		if ( $this->is_continuation_request() ) {
+			// Page-one overrides describe the curated/promoted archive only. Later
+			// pages are self-canonical archive listings with default directives.
+			return new Seo();
+		}
+
 		return $this->repository->get()->seo();
 	}
 
@@ -337,6 +343,19 @@ final class SeoHead {
 	 * @return string
 	 */
 	private function endpoint_url(): string {
+		global $wp_query;
+		$tail = $wp_query instanceof \WP_Query ? (string) ( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ?? '' ) : '';
+		if ( $this->repository->get()->full_archive_pagination() && preg_match( '#^page/([2-9]|[1-9][0-9]+)/?$#', $tail, $matches ) ) {
+			return home_url( '/' . ArchivePage::DEFAULT_SLUG . '/page/' . $matches[1] . '/' );
+		}
+
 		return $this->url_resolver->endpoint_url();
+	}
+
+	/** Whether the request is a later full-archive continuation page. */
+	private function is_continuation_request(): bool {
+		global $wp_query;
+		$tail = $wp_query instanceof \WP_Query ? (string) ( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ?? '' ) : '';
+		return $this->repository->get()->full_archive_pagination() && 1 === preg_match( '#^page/(?:[2-9]|[1-9][0-9]+)/?$#', $tail );
 	}
 }

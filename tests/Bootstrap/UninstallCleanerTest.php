@@ -85,6 +85,7 @@ class UninstallCleanerTest extends TestCase {
 				'cannyforge_archive_google_analytics_scope',
 				'cannyforge_archive_google_ga4_cache',
 				'cannyforge_archive_google_search_console_cache',
+				'cannyforge_archive_search_cache_generation',
 			),
 			UninstallCleaner::option_keys()
 		);

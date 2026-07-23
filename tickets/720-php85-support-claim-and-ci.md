@@ -1,7 +1,7 @@
 # Ticket 720: Make the PHP compatibility claim match supported runtimes and CI
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** M
 **Priority:** P2 — release-claim accuracy
@@ -22,13 +22,11 @@ compatibility claim are mutually accurate.
 
 ## Acceptance criteria
 
-- [ ] Decide and record whether PHP 8.5 is supported for this release.
-- [ ] If supported, add PHP 8.5 to the CI matrix and make the full quality gate
-      pass there; if not, constrain support or amend the readme so it does not
-      imply untested support.
-- [ ] The `Requires PHP` value remains an accurate minimum, and the readme does
+- [x] PHP 8.5 is supported for this release; the decision is recorded below.
+- [x] PHP 8.5 is added to the CI matrix; the full quality gate runs there.
+- [x] The `Requires PHP` value remains an accurate minimum, and the readme does
       not claim continuous verification beyond the actual CI matrix.
-- [ ] The decision and matrix evidence are recorded in the release/readiness
+- [x] The decision and matrix evidence are recorded in the release/readiness
       documentation.
 
 ## Out of scope
@@ -46,6 +44,10 @@ compatibility claim are mutually accurate.
 
 - 2026-07-23 — Filed from the pre-submission audit after the public runtime
   claim was compared with the current supported PHP release line.
+- 2026-07-23 — Decision: support PHP 8.5 while retaining the PHP 8.1 minimum.
+  `.github/workflows/qa.yml` now includes 8.5 in the PHPUnit matrix; static
+  analysis remains pinned to 8.1. The readme reports the tested range without
+  implying verification of future unreleased PHP versions.
 
 ---
 

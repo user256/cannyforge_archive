@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: CannyForge Archive Generator
- * Description: A combined HTML sitemap + JS-powered archive, and a crawl-budget-friendly replacement for default WordPress taxonomy pagination.
+ * Description: A combined HTML sitemap and JavaScript-powered archive with a compact replacement for default WordPress taxonomy pagination.
  * Version: 0.1.1
  * Requires at least: 6.4
  * Requires PHP: 8.1

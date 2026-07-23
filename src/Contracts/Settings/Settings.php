@@ -73,6 +73,13 @@ final class Settings {
 	private PaginationStyle $pagination_style;
 
 	/**
+	 * Whether `/archive/page/N/` full-site continuation is enabled.
+	 *
+	 * @var bool
+	 */
+	private bool $full_archive_pagination;
+
+	/**
 	 * Which fields each archive entry renders.
 	 *
 	 * @var LinkTypes
@@ -167,6 +174,7 @@ final class Settings {
 	 * @param ContentSelection $content_selection Content-selection rules.
 	 * @param int              $news_fallback_count Latest-N count when the News window is empty.
 	 * @param PaginationStyle  $pagination_style  How the visible page numbers are selected.
+	 * @param bool             $full_archive_pagination Whether later archive pages are enabled.
 	 */
 	public function __construct(
 		Mode $mode = Mode::Blog,
@@ -182,25 +190,27 @@ final class Settings {
 		?Theme $theme = null,
 		?ContentSelection $content_selection = null,
 		int $news_fallback_count = 50,
-		PaginationStyle $pagination_style = PaginationStyle::Leading
+		PaginationStyle $pagination_style = PaginationStyle::Leading,
+		bool $full_archive_pagination = false
 	) {
-		$this->mode                = $mode;
-		$this->pagination_limit    = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
-		$this->link_types          = $link_types ?? new LinkTypes();
-		$this->filters             = $filters ?? new Filters();
-		$this->news_window_hours   = max( self::MIN_NEWS_WINDOW_HOURS, $news_window_hours );
-		$this->blog_max_urls       = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
-		$this->blog_urls           = array_values( $blog_urls );
-		$this->news_fallback_count = min(
+		$this->mode                    = $mode;
+		$this->pagination_limit        = max( self::MIN_PAGINATION_LIMIT, $pagination_limit );
+		$this->link_types              = $link_types ?? new LinkTypes();
+		$this->filters                 = $filters ?? new Filters();
+		$this->news_window_hours       = max( self::MIN_NEWS_WINDOW_HOURS, $news_window_hours );
+		$this->blog_max_urls           = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
+		$this->blog_urls               = array_values( $blog_urls );
+		$this->news_fallback_count     = min(
 			self::MAX_NEWS_FALLBACK_COUNT,
 			max( self::MIN_NEWS_FALLBACK_COUNT, $news_fallback_count )
 		);
-		$this->targeting           = $targeting ?? new Targeting();
-		$this->archive_url         = trim( $archive_url );
-		$this->seo                 = $seo ?? new Seo();
-		$this->theme               = $theme ?? new Theme();
-		$this->content_selection   = $content_selection ?? new ContentSelection();
-		$this->pagination_style    = $pagination_style;
+		$this->targeting               = $targeting ?? new Targeting();
+		$this->archive_url             = trim( $archive_url );
+		$this->seo                     = $seo ?? new Seo();
+		$this->theme                   = $theme ?? new Theme();
+		$this->content_selection       = $content_selection ?? new ContentSelection();
+		$this->pagination_style        = $pagination_style;
+		$this->full_archive_pagination = $full_archive_pagination;
 	}
 
 	/**
@@ -228,6 +238,11 @@ final class Settings {
 	 */
 	public function pagination_style(): PaginationStyle {
 		return $this->pagination_style;
+	}
+
+	/** Whether the optional complete archive continuation is enabled. */
+	public function full_archive_pagination(): bool {
+		return $this->full_archive_pagination;
 	}
 
 	/**
@@ -351,7 +366,8 @@ final class Settings {
 			Theme::from_array( SettingsValueCoercion::sub_array( $data, 'theme' ) ),
 			ContentSelection::from_array( SettingsValueCoercion::sub_array( $data, 'content_selection' ) ),
 			SettingsValueCoercion::to_int( $data['news_fallback_count'] ?? null, 50 ),
-			PaginationStyle::from_value( $data['pagination_style'] ?? null )
+			PaginationStyle::from_value( $data['pagination_style'] ?? null ),
+			! empty( $data['full_archive_pagination'] )
 		);
 	}
 
@@ -362,20 +378,21 @@ final class Settings {
 	 */
 	public function to_array(): array {
 		return array(
-			'mode'                => $this->mode->value,
-			'pagination_limit'    => $this->pagination_limit,
-			'pagination_style'    => $this->pagination_style->value,
-			'link_types'          => $this->link_types->to_array(),
-			'filters'             => $this->filters->to_array(),
-			'news_window_hours'   => $this->news_window_hours,
-			'blog_max_urls'       => $this->blog_max_urls,
-			'news_fallback_count' => $this->news_fallback_count,
-			'blog_urls'           => $this->blog_urls,
-			'targeting'           => $this->targeting->to_array(),
-			'archive_url'         => $this->archive_url,
-			'seo'                 => $this->seo->to_array(),
-			'theme'               => $this->theme->to_array(),
-			'content_selection'   => $this->content_selection->to_array(),
+			'mode'                    => $this->mode->value,
+			'pagination_limit'        => $this->pagination_limit,
+			'pagination_style'        => $this->pagination_style->value,
+			'full_archive_pagination' => $this->full_archive_pagination,
+			'link_types'              => $this->link_types->to_array(),
+			'filters'                 => $this->filters->to_array(),
+			'news_window_hours'       => $this->news_window_hours,
+			'blog_max_urls'           => $this->blog_max_urls,
+			'news_fallback_count'     => $this->news_fallback_count,
+			'blog_urls'               => $this->blog_urls,
+			'targeting'               => $this->targeting->to_array(),
+			'archive_url'             => $this->archive_url,
+			'seo'                     => $this->seo->to_array(),
+			'theme'                   => $this->theme->to_array(),
+			'content_selection'       => $this->content_selection->to_array(),
 		);
 	}
 }

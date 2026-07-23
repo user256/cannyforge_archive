@@ -1,7 +1,7 @@
 # Ticket 716: Make the readme accurately describe archive URLs and pagination integration
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** S
 **Priority:** P1 — truthful listing behaviour
@@ -22,16 +22,16 @@ behaviour that the shipped plugin actually provides.
 
 ## Acceptance criteria
 
-- [ ] The installation instructions describe the fixed `/archive/` endpoint,
+- [x] The installation instructions describe the fixed `/archive/` endpoint,
       or a configurable endpoint slug is implemented with lifecycle, rewrite,
       canonical, and test coverage.
-- [ ] The FAQ removes the template-tag claim, or a documented, public template
+- [x] The FAQ removes the template-tag claim, or a documented, public template
       tag is implemented and covered by tests.
-- [ ] `archive_url` is described precisely as an optional View Archive link
+- [x] `archive_url` is described precisely as an optional View Archive link
       destination, not as an endpoint-slug setting.
-- [ ] Related settings labels, screenshots, and `docs/PLAN.md` do not make a
+- [x] Related settings labels, screenshots, and `docs/PLAN.md` do not make a
       conflicting promise.
-- [ ] Readme validation passes.
+- [x] Readme validation passes.
 
 ## Out of scope
 
@@ -50,6 +50,9 @@ behaviour that the shipped plugin actually provides.
 - 2026-07-23 — Filed from the pre-submission audit. Prefer correcting the
   documentation unless a configurable slug/template tag has a clear product
   need.
+- 2026-07-23 — Documented the fixed `/archive/` endpoint, clarified
+  `archive_url`, and limited the public extension claim to the shipped
+  `[cannyforge_pagination]` shortcode.
 
 ---
 

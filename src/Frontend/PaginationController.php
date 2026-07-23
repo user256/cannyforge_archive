@@ -21,8 +21,7 @@ use CannyForge\Archive\Core\Pagination\TargetingPredicate;
 
 /**
  * Replaces the theme's paginated tail with the shortened "View Archive" block
- * on targeted archive listings, and exposes the same block as a shortcode and
- * template tag.
+ * on targeted archive listings, and exposes the same block as a shortcode.
  *
  * Thin controller: it gathers the WordPress query context (current/total pages,
  * archive type, archive URL) and delegates the decision to
@@ -97,7 +96,7 @@ final class PaginationController {
 	}
 
 	/**
-	 * Register the pagination filter, shortcode, and template-tag hooks.
+	 * Register the pagination filter and shortcode hook.
 	 *
 	 * Hooks `navigation_markup_template` — the filter WordPress actually applies to
 	 * the pagination wrapper (there is no `the_posts_pagination` markup filter) —

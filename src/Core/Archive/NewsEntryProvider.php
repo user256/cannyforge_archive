@@ -146,7 +146,8 @@ final class NewsEntryProvider implements ArchiveEntryProviderInterface {
 			$this->term_names( $post->ID, 'post_tag' ),
 			get_the_author_meta( 'display_name', (int) $post->post_author ),
 			is_string( $date ) ? $date : '',
-			$this->is_noindex( $post->ID )
+			$this->is_noindex( $post->ID ),
+			$post->ID
 		);
 	}
 

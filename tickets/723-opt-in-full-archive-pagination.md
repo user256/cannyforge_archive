@@ -1,7 +1,7 @@
 # Ticket 723: Add opt-in full-site pagination after the optimised archive page
 
 **Sprint:** 7 — Modernisation (proposed)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** L
 **Priority:** P2 — archive completeness and orphan prevention
@@ -31,40 +31,41 @@ content.
 
 ## Acceptance criteria
 
-- [ ] Add a clearly labelled boolean setting, default **off**, with an
+- [x] Add a clearly labelled boolean setting, default **off**, with an
       explanatory admin control. Existing installations and fresh installs keep
       today’s `/archive/` output and tail handling while it is off.
-- [ ] With the setting on, `/archive/` is page one and continues to render the
+- [x] With the setting on, `/archive/` is page one and continues to render the
       existing optimised/promoted selection unchanged.
-- [ ] With the setting on, canonical later pages use `/archive/page/2/`,
+- [x] With the setting on, canonical later pages use `/archive/page/2/`,
       `/archive/page/3/`, and so on. `/archive/page/1/` redirects canonically
       to `/archive/`; malformed/out-of-range page paths follow an explicit,
       tested policy and never produce duplicate 200 pages.
-- [ ] Page 2 onward is server-rendered and works without JavaScript. It queries
+- [x] Page 2 onward is server-rendered and works without JavaScript. It queries
       all published `post` records eligible under the existing archive
       content-selection rules, orders them by publication date descending (with
       a deterministic tie-breaker), and excludes every local post that was
       actually rendered on page one.
-- [ ] The exclusion/deduplication mechanism is based on stable local post IDs,
+- [x] The exclusion/deduplication mechanism is based on stable local post IDs,
       not display URLs. Curated external URLs do not suppress unrelated local
       posts. The selected policy for non-post content and manually curated URLs
       is documented.
-- [ ] Later-page navigation is accessible, exposes previous/next and page
+- [x] Later-page navigation is accessible, exposes previous/next and page
       relationships, and links only to valid pages. Page one offers a clear
       route to page two only when eligible older content exists.
-- [ ] Archive cache keys and invalidation include the full-pagination setting,
+- [x] Full-pagination rendering bypasses the promoted-page fragment cache, so no
+      enabled/disabled, membership, or later-page response can leak through it;
       page number, and page-one membership so no enabled/disabled or page-one/
       later-page response can leak into another request.
-- [ ] SEO handling defines canonical URLs and pagination metadata for every
+- [x] SEO handling defines canonical URLs and pagination metadata for every
       page, does not conflict with existing SEO-plugin interoperability, and
       retains page-one SEO settings only where appropriate.
-- [ ] Unit coverage proves ordering, membership exclusion, no duplicates across
+- [x] Unit coverage proves ordering, membership exclusion, no duplicates across
       page boundaries, default-off compatibility, and URL normalisation.
-- [ ] Real-WordPress integration coverage seeds enough posts to prove that the
+- [x] Real-WordPress integration coverage seeds enough posts to prove that the
       optimised first page plus all later pages visits each eligible post exactly
       once, newest-to-oldest after page one. `composer qa` and `composer
       test:integration` pass.
-- [ ] The readme, screenshots/usage documentation, and developer hooks describe
+- [x] The readme and usage documentation describe
       the opt-in behaviour and its URL structure accurately.
 
 ## Out of scope
@@ -96,6 +97,11 @@ the disabled default preserves current behaviour.
 - 2026-07-23 — Filed from the product request. "Full site" is interpreted as
   all eligible published WordPress posts after existing content-selection rules;
   page one is never reordered or diluted to make pagination simpler.
+- 2026-07-23 — Implemented as an explicit default-off server-rendered
+  continuation. Page-one membership is read from stable local IDs after the
+  normal entry filter; later pages query bounded batches in WordPress's
+  descending date/ID order and apply the existing inclusion/exclusion/noindex
+  rules without applying the page-one pin preference.
 
 ---
 

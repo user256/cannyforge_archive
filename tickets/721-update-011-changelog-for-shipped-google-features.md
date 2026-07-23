@@ -1,7 +1,7 @@
 # Ticket 721: Bring the 0.1.1 changelog in line with the distributed plugin
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** S
 **Priority:** P2 — release metadata accuracy
@@ -22,12 +22,12 @@ in version 0.1.1 without promising unfinished work.
 
 ## Acceptance criteria
 
-- [ ] The 0.1.1 changelog includes the optional Google connection, Search
+- [x] The 0.1.1 changelog includes the optional Google connection, Search
       Console, and GA4 top-content functionality actually present in the ZIP.
-- [ ] The existing hardening and archive changes remain represented accurately.
-- [ ] No changelog entry claims a feature that is disabled, incomplete, or only
+- [x] The existing hardening and archive changes remain represented accurately.
+- [x] No changelog entry claims a feature that is disabled, incomplete, or only
       planned in another ticket.
-- [ ] Readme validation passes.
+- [x] Readme validation passes.
 
 ## Out of scope
 
@@ -44,6 +44,8 @@ in version 0.1.1 without promising unfinished work.
 ## Notes / decisions log
 
 - 2026-07-23 — Filed from the pre-submission audit.
+- 2026-07-23 — Added the shipped optional Google OAuth, Search Console, and GA4
+  top-content functionality to the 0.1.1 changelog.
 
 ---
 

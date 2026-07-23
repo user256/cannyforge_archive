@@ -104,6 +104,37 @@ final class ArchiveRenderer {
 	}
 
 	/**
+	 * Render a no-JavaScript continuation page and its accessible navigation.
+	 *
+	 * @param ArchiveEntry[] $entries Entries for this page.
+	 * @param Settings       $settings Current settings.
+	 * @param int            $page Archive URL page number (starts at 2).
+	 * @param int            $total_pages Total continuation pages.
+	 * @param callable       $url Resolves an archive URL page number.
+	 * @return string
+	 */
+	public function render_continuation( array $entries, Settings $settings, int $page, int $total_pages, callable $url ): string {
+		$navigation = '';
+		if ( $page > 2 ) {
+			$navigation .= sprintf( '<a rel="prev" href="%s">%s</a>', esc_url( $url( $page - 1 ) ), esc_html__( 'Previous archive page', 'cannyforge-archive' ) );
+		} else {
+			$navigation .= sprintf( '<a rel="prev" href="%s">%s</a>', esc_url( $url( 1 ) ), esc_html__( 'Previous archive page', 'cannyforge-archive' ) );
+		}
+		if ( $page - 1 < $total_pages ) {
+			$navigation .= sprintf( ' <a rel="next" href="%s">%s</a>', esc_url( $url( $page + 1 ) ), esc_html__( 'Next archive page', 'cannyforge-archive' ) );
+		}
+
+		return '<section class="cannyforge-archive" aria-labelledby="cannyforge-archive-continuation-title">'
+			. '<h1 id="cannyforge-archive-continuation-title" class="cannyforge-archive__title">'
+			. esc_html__( 'Archive', 'cannyforge-archive' ) . '</h1>'
+			/* translators: %d is the archive URL page number. */
+			. '<p>' . esc_html( sprintf( __( 'Archive page %d', 'cannyforge-archive' ), $page ) ) . '</p>'
+			. '<ul class="cannyforge-archive__list">' . $this->render_entries( $entries, $settings ) . '</ul>'
+			. '<nav class="cannyforge-archive__pagination" aria-label="'
+			. esc_attr__( 'Archive pages', 'cannyforge-archive' ) . '">' . $navigation . '</nav></section>';
+	}
+
+	/**
 	 * Render a single entry as a list item.
 	 *
 	 * @param ArchiveEntry $entry The entry.

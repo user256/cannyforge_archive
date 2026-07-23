@@ -1,7 +1,7 @@
 # Ticket 719: Align the plugin-header and readme license declarations
 
 **Sprint:** 6 — Trust & Scale (submission follow-up)
-**Status:** Not started
+**Status:** Complete
 **Owner:** unassigned
 **Estimate:** S
 **Priority:** P3 — submission metadata consistency
@@ -22,11 +22,11 @@ license using one agreed wording and URI.
 
 ## Acceptance criteria
 
-- [ ] The plugin header and `readme.txt` use identical license wording and
+- [x] The plugin header and `readme.txt` use identical license wording and
       compatible license URI values.
-- [ ] Package metadata and any release documentation do not state a conflicting
+- [x] Package metadata and any release documentation do not state a conflicting
       license.
-- [ ] `composer qa`, the readme validator, and WordPress Plugin Check pass.
+- [x] `composer qa`, the readme validator, and WordPress Plugin Check pass.
 
 ## Out of scope
 
@@ -42,6 +42,8 @@ license using one agreed wording and URI.
 
 - 2026-07-23 — Filed from the pre-submission audit as low-cost metadata
   hygiene.
+- 2026-07-23 — Standardised the readme license label to `GPL-2.0-or-later`,
+  matching the plugin header, Composer metadata, and URI.
 
 ---
 

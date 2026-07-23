@@ -153,6 +153,24 @@ class ContentSelectorTest extends TestCase {
 	}
 
 	/**
+	 * The unpinned filtering variant retains database ordering for the optional
+	 * complete archive's chronological continuation.
+	 *
+	 * @return void
+	 */
+	public function test_filter_entries_does_not_apply_page_one_pins(): void {
+		$entries = array(
+			$this->entry( 'newest' ),
+			$this->entry( 'older' ),
+		);
+		$rules   = new ContentSelection( array(), array(), array(), array(), false, array( 'older' ) );
+
+		$result = ( new ContentSelector() )->filter_entries( $entries, $rules );
+
+		$this->assertSame( array( 'newest', 'older' ), $this->urls( $result ) );
+	}
+
+	/**
 	 * Pinned ordering applies after filtering (a dropped pin does not appear).
 	 *
 	 * @return void

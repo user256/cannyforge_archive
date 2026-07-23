@@ -1,6 +1,6 @@
 {
     "name": "cannyforge/archive",
-    "description": "CannyForge Archive — combined HTML sitemap + JS archive and a crawl-budget-friendly pagination replacement for WordPress.",
+    "description": "CannyForge Archive — combined HTML sitemap and JavaScript archive with a compact pagination replacement for WordPress.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -61,7 +61,7 @@
         "infection": "infection --threads=max --no-progress --no-interaction",
         "test": "phpunit",
         "test:integration": [
-            "bash -lc 'npx wp-env stop >/dev/null 2>&1 || true'",
+            "bash -lc 'npx @wordpress/env stop >/dev/null 2>&1 || true'",
             "@dist",
             "bash scripts/run-integration-tests.sh"
         ],
