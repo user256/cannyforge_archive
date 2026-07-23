@@ -73,6 +73,11 @@ final class GoogleTokenStore {
 	private const STATUS_KEY = 'cannyforge_archive_google_connection_status';
 
 	/**
+	 * Whether the last successful grant included Analytics read access.
+	 */
+	private const ANALYTICS_SCOPE_KEY = 'cannyforge_archive_google_analytics_scope';
+
+	/**
 	 * Secret cipher for the refresh token.
 	 *
 	 * @var SecretCipher
@@ -207,6 +212,28 @@ final class GoogleTokenStore {
 	}
 
 	/**
+	 * Record whether the last successful OAuth grant included Analytics access.
+	 *
+	 * @param bool $granted Whether Analytics read access was requested/granted.
+	 * @return void
+	 */
+	public function set_analytics_scope_granted( bool $granted ): void {
+		( $this->set_option )( self::ANALYTICS_SCOPE_KEY, $granted ? 1 : 0 );
+	}
+
+	/**
+	 * Whether the current stored connection is known to include Analytics access.
+	 *
+	 * Legacy connections have no marker and intentionally return false so a GA4
+	 * upgrade cannot offer a picker backed by an insufficient grant.
+	 *
+	 * @return bool
+	 */
+	public function analytics_scope_granted(): bool {
+		return (bool) ( $this->get_option )( self::ANALYTICS_SCOPE_KEY, 0 );
+	}
+
+	/**
 	 * The current connection status.
 	 *
 	 * @return string
@@ -260,5 +287,6 @@ final class GoogleTokenStore {
 		( $this->set_option )( self::ACCESS_TOKEN_KEY, '' );
 		( $this->set_option )( self::ACCESS_TOKEN_EXPIRES_AT_KEY, 0 );
 		( $this->set_option )( self::STATUS_KEY, self::STATUS_DISCONNECTED );
+		( $this->set_option )( self::ANALYTICS_SCOPE_KEY, 0 );
 	}
 }

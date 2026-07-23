@@ -112,6 +112,18 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 	}
 }
 
+if ( ! function_exists( 'sanitize_key' ) ) {
+	/**
+	 * In-memory sanitize_key: lowercase, keep only a-z0-9_- (matches core).
+	 *
+	 * @param string $key Raw key.
+	 * @return string
+	 */
+	function sanitize_key( string $key ): string {
+		return (string) preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $key ) );
+	}
+}
+
 if ( ! function_exists( 'wp_unslash' ) ) {
 	/**
 	 * Pass-through wp_unslash (no slashing happens in the test runtime).

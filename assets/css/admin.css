@@ -89,9 +89,16 @@
 }
 .cf-header-left h1 {
 	margin: 0;
-	font-size: 20px;
-	font-weight: 600;
-	color: var(--cf-text-main);
+	display: flex;
+	align-items: center;
+	padding: 0;
+	background: transparent;
+}
+.cf-brand-logo {
+	display: block;
+	width: 180px;
+	height: auto;
+	max-height: 48px;
 }
 .cf-badge {
 	background: var(--cf-primary-light);
@@ -148,6 +155,79 @@
 	background: transparent;
 	border: 1px solid var(--cf-border-focus);
 	color: var(--cf-text-muted);
+}
+
+/* Search Console curation list */
+.cf-search-console-curator {
+	max-width: 760px;
+	margin: 20px 0 24px;
+	padding: 16px 20px;
+	border: 1px solid var(--cf-border);
+	border-radius: var(--cf-radius);
+	background: var(--cf-surface);
+}
+.cf-search-console-curator h3 {
+	margin: 0 0 6px;
+}
+.cf-search-console-curator__list {
+	max-height: 320px;
+	overflow-y: auto;
+	margin: 16px 0;
+	padding: 0;
+	list-style: none;
+	border-top: 1px solid var(--cf-border);
+}
+.cf-search-console-curator__item {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--cf-border);
+}
+.cf-search-console-curator__item label {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	min-width: 0;
+	flex: 1;
+}
+.cf-search-console-curator__rank {
+	min-width: 22px;
+	color: var(--cf-text-muted);
+	font-variant-numeric: tabular-nums;
+}
+.cf-search-console-curator__title {
+	font-weight: 600;
+	word-break: break-word;
+}
+.cf-search-console-curator__link {
+	flex-shrink: 0;
+	font-size: 12px;
+}
+.cf-search-console-curator__empty {
+	margin-bottom: 0;
+	padding: 12px;
+	background: var(--cf-bg);
+}
+.cf-search-console-curator__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+	.cf-search-console-curator__item {
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+	.cf-search-console-curator__link {
+		margin-left: 30px;
+	}
+	.cf-search-console-curator__actions {
+		align-items: flex-start;
+		flex-direction: column;
+	}
 }
 
 /* Body Grid */
@@ -537,6 +617,9 @@
 	}
 }
 @media (max-width: 768px) {
+	.cf-signal-cards {
+		grid-template-columns: 1fr;
+	}
 	.cf-app-body {
 		flex-direction: column;
 	}
@@ -600,105 +683,173 @@
 	margin-bottom: 32px;
 }
 
-/* Wizard Steps */
-.cannyforge-google-wizard__progress {
-	display: grid;
-	gap: 4px;
-	margin: 0 0 24px;
-	padding: 16px 18px;
-	border: 1px solid #c7d7fe;
-	border-left: 4px solid var(--cf-primary);
-	border-radius: 10px;
-	background: var(--cf-primary-light);
-	color: var(--cf-text-main);
-}
-.cannyforge-google-wizard__progress-kicker {
-	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--cf-primary);
-}
-.cannyforge-google-wizard__progress strong {
-	margin: 0;
-	font-size: 16px;
-}
-.cannyforge-google-wizard__progress span:last-child {
-	font-size: 13px;
-	color: var(--cf-text-muted);
-}
-.cannyforge-google-wizard__steps {
-	margin: 0 0 32px;
-	padding: 0;
-	list-style: none;
-	counter-reset: google-wizard-step;
-}
-.cannyforge-google-wizard__steps li {
-	position: relative;
-	margin-bottom: 32px;
-	padding: 18px 20px 18px 58px;
-	border: 1px solid var(--cf-border);
-	border-radius: 10px;
-	background: var(--cf-surface);
-}
-.cannyforge-google-wizard__steps li::before {
-	position: absolute;
-	top: 18px;
-	left: 18px;
-	display: grid;
-	width: 26px;
-	height: 26px;
-	place-items: center;
-	counter-increment: google-wizard-step;
-	content: counter(google-wizard-step);
-	border-radius: 50%;
-	background: var(--cf-primary-light);
-	color: var(--cf-primary);
-	font-size: 12px;
-	font-weight: 700;
-}
-.cannyforge-google-wizard__steps strong {
-	display: block;
-	font-size: 16px;
-	margin-bottom: 8px;
-	color: var(--cf-text-main);
-}
-.cannyforge-google-wizard__steps p {
-	font-size: 14px;
-	color: var(--cf-text-muted);
-	margin-bottom: 12px;
-	line-height: 1.5;
-}
+/* Google setup wizard (full-page stepped flow) */
 .cannyforge-google-wizard__inline-action {
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
 	margin-top: 16px;
 }
-.cannyforge-google-wizard__save-status {
-	align-self: center;
+.cf-wizard-page {
+	max-width: 860px;
+	margin: 0 auto;
+	padding: 32px 24px 64px;
+	width: 100%;
+}
+.cf-wizard-page .notice.inline {
+	margin: 0 0 16px;
+}
+.cf-wizard-steps {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	list-style: none;
+	margin: 0 0 24px;
+	padding: 0;
+}
+.cf-wizard-steps li {
+	flex: 1 1 120px;
+	margin: 0;
+}
+.cf-wizard-step-pill {
+	display: block;
+	text-align: center;
+	padding: 8px 10px;
+	border-radius: 8px;
 	font-size: 13px;
-}
-.cannyforge-google-wizard__save-status.is-saving {
-	color: var(--cf-text-muted);
-}
-.cannyforge-google-wizard__save-status.is-success {
-	color: var(--cf-success);
-}
-.cannyforge-google-wizard__save-status.is-error {
-	color: #b42318;
-}
-.cannyforge-wizard-code {
-	display: inline-block;
+	font-weight: 600;
 	background: var(--cf-bg);
 	border: 1px solid var(--cf-border);
-	padding: 8px 12px;
-	border-radius: 6px;
+	color: var(--cf-text-muted);
+	text-decoration: none;
+}
+.cf-wizard-step-pill.is-done {
+	background: #e8fff4;
+	border-color: #a6f4c5;
+	color: #0f7a43;
+}
+.cf-wizard-step-pill.is-active {
+	background: var(--cf-primary);
+	border-color: var(--cf-primary);
+	color: #fff;
+	outline: 2px solid var(--cf-primary);
+	outline-offset: 2px;
+}
+a.cf-wizard-step-pill:hover {
+	border-color: var(--cf-primary);
+	color: var(--cf-primary);
+}
+a.cf-wizard-step-pill.is-done:hover {
+	color: #0f7a43;
+}
+.cf-wizard-card {
+	padding: 25px;
+}
+.cf-wizard-card h2 {
+	margin-top: 0;
+}
+.cf-wizard-card input[type="text"],
+.cf-wizard-card input[type="password"],
+.cf-wizard-card select {
+	width: 100%;
+	max-width: 480px;
+}
+.cf-wizard-copy-row {
+	margin: 16px 0 24px;
+}
+.cf-wizard-copy-controls {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+}
+.cf-wizard-copy-controls input {
+	flex: 1;
+	max-width: none;
 	font-family: monospace;
 	font-size: 13px;
-	color: var(--cf-text-main);
+	background: var(--cf-bg);
+}
+.cf-wizard-details {
+	border: 1px solid var(--cf-border);
+	border-radius: 8px;
+	padding: 12px 16px;
 	margin-bottom: 12px;
-	word-break: break-all;
+	background: var(--cf-surface);
+}
+.cf-wizard-details summary {
+	cursor: pointer;
+	font-weight: 600;
+	color: var(--cf-text-main);
+}
+.cf-wizard-details > p {
+	margin-top: 12px;
+	color: var(--cf-text-muted);
+}
+.cf-wizard-actions {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin: 16px 0;
+}
+.cf-wizard-nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid var(--cf-border);
+}
+.cf-wizard-status-pill {
+	display: inline-block;
+	padding: 0.2rem 0.55rem;
+	border-radius: 999px;
+}
+.cf-wizard-checklist {
+	list-style: none;
+	margin: 16px 0 24px;
+	padding: 0;
+}
+.cf-wizard-checklist li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 14px;
+	border: 1px solid var(--cf-border);
+	border-radius: 8px;
+	margin-bottom: 8px;
+	background: var(--cf-surface);
+	color: var(--cf-text-main);
+}
+.cf-wizard-checklist-mark {
+	display: grid;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	font-size: 12px;
+	font-weight: 700;
+	flex: 0 0 auto;
+}
+.cf-wizard-checklist li.is-done .cf-wizard-checklist-mark {
+	background: #e8fff4;
+	color: #0f7a43;
+}
+.cf-wizard-checklist li.is-pending {
+	border-color: #fec84b;
+	background: #fffaeb;
+}
+.cf-wizard-checklist li.is-pending .cf-wizard-checklist-mark {
+	background: #fff4e5;
+	color: var(--cf-warning);
+}
+.cf-wizard-checklist li.is-optional .cf-wizard-checklist-mark {
+	background: var(--cf-bg);
+	color: var(--cf-text-muted);
+}
+.cf-signal-cards {
+	grid-template-columns: repeat(3, 1fr);
+	margin-bottom: 8px;
 }
 
 /* Reset WP buttons in the modal to use our styling */

@@ -40,7 +40,9 @@ abstract class GoogleConnectionControllerTestCase extends TestCase {
 		parent::setUp();
 		OptionStore::reset();
 		TransientStore::reset();
-		$_GET = array();
+		$_GET     = array();
+		$_POST    = array();
+		$_REQUEST = array();
 		unset(
 			$GLOBALS['cannyforge_test_current_user_can'],
 			$GLOBALS['cannyforge_test_current_user_id'],
@@ -54,7 +56,9 @@ abstract class GoogleConnectionControllerTestCase extends TestCase {
 	 * @return void
 	 */
 	protected function tearDown(): void {
-		$_GET = array();
+		$_GET     = array();
+		$_POST    = array();
+		$_REQUEST = array();
 		parent::tearDown();
 	}
 

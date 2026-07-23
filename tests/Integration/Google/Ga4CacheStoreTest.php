@@ -41,16 +41,32 @@ class Ga4CacheStoreTest extends TestCase {
 	}
 
 	/**
+	 * Saving raw page paths de-duplicates and filters empty/non-string values.
+	 *
+	 * @return void
+	 */
+	public function test_save_results_cleans_and_get_returns_source_urls(): void {
+		$store = new Ga4CacheStore();
+		$store->save_results(
+			array(),
+			array( '/production/a/', ' /production/a/ ', '', 42, '/production/b/' )
+		);
+
+		$this->assertSame( array( '/production/a/', '/production/b/' ), $store->get_source_urls() );
+	}
+
+	/**
 	 * Clearing the cache yields no IDs.
 	 *
 	 * @return void
 	 */
 	public function test_clear_empties_cache(): void {
 		$store = new Ga4CacheStore();
-		$store->save_post_ids( array( 10, 7 ) );
+		$store->save_results( array( 10, 7 ), array( '/a/' ) );
 		$store->clear();
 
 		$this->assertSame( array(), $store->get_post_ids() );
+		$this->assertSame( array(), $store->get_source_urls() );
 	}
 
 	/**

@@ -70,6 +70,22 @@ final class SearchConsoleCacheStore {
 	}
 
 	/**
+	 * The raw URLs returned by the last Search Console refresh.
+	 *
+	 * These are retained for diagnostics when a local/staging install cannot
+	 * resolve production URLs to local published posts.
+	 *
+	 * @return string[]
+	 */
+	public function get_source_urls(): array {
+		$stored = ( $this->get_option )( self::OPTION_KEY, array() );
+		$data   = is_array( $stored ) ? $stored : array();
+		$urls   = isset( $data['source_urls'] ) && is_array( $data['source_urls'] ) ? $data['source_urls'] : array();
+
+		return $this->clean_urls( $urls );
+	}
+
+	/**
 	 * Persist the cached post IDs with a refresh timestamp.
 	 *
 	 * @param int[]    $ids          Post IDs.
@@ -77,10 +93,23 @@ final class SearchConsoleCacheStore {
 	 * @return void
 	 */
 	public function save_post_ids( array $ids, ?int $refreshed_at = null ): void {
+		$this->save_results( $ids, array(), $refreshed_at );
+	}
+
+	/**
+	 * Persist local IDs and the raw URLs returned by Search Console.
+	 *
+	 * @param int[]    $ids          Matched local post IDs.
+	 * @param string[] $source_urls  Raw URLs returned by Google.
+	 * @param int|null $refreshed_at Unix timestamp (defaults to now).
+	 * @return void
+	 */
+	public function save_results( array $ids, array $source_urls, ?int $refreshed_at = null ): void {
 		( $this->set_option )(
 			self::OPTION_KEY,
 			array(
 				'post_ids'     => $this->clean_ids( $ids ),
+				'source_urls'  => $this->clean_urls( $source_urls ),
 				'refreshed_at' => $refreshed_at ?? time(),
 			)
 		);
@@ -96,6 +125,7 @@ final class SearchConsoleCacheStore {
 			self::OPTION_KEY,
 			array(
 				'post_ids'     => array(),
+				'source_urls'  => array(),
 				'refreshed_at' => 0,
 			)
 		);
@@ -118,6 +148,29 @@ final class SearchConsoleCacheStore {
 			$int = (int) $id;
 			if ( $int > 0 && ! in_array( $int, $clean, true ) ) {
 				$clean[] = $int;
+			}
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Clean raw source URLs into unique non-empty strings.
+	 *
+	 * @param array<int, mixed> $urls Raw URLs.
+	 * @return string[]
+	 */
+	private function clean_urls( array $urls ): array {
+		$clean = array();
+
+		foreach ( $urls as $url ) {
+			if ( ! is_string( $url ) ) {
+				continue;
+			}
+
+			$url = trim( $url );
+			if ( '' !== $url && ! in_array( $url, $clean, true ) ) {
+				$clean[] = $url;
 			}
 		}
 

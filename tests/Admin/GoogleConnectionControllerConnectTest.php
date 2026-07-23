@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Tests\Admin;
 
 use CannyForge\Archive\Admin\GoogleConnectionController;
+use CannyForge\Archive\Admin\GoogleWizardPage;
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
 use CannyForge\Archive\Integration\Google\GoogleOauthScopePolicy;
 use CannyForge\Archive\Integration\Google\GoogleSettings;
@@ -59,6 +60,35 @@ class GoogleConnectionControllerConnectTest extends GoogleConnectionControllerTe
 		$this->assertSame(
 			GoogleOauthScopePolicy::SCOPE_SEARCH_CONSOLE . ' ' . GoogleOauthScopePolicy::SCOPE_ANALYTICS,
 			$this->query_param( $location, 'scope' )
+		);
+	}
+
+	/**
+	 * The wizard's Analytics-only path requests Analytics without Search
+	 * Console, so selecting that path changes the OAuth grant immediately.
+	 *
+	 * @return void
+	 */
+	public function test_start_connect_requests_analytics_only_scope_for_wizard_path(): void {
+		$controller = $this->controller_with_settings( new GoogleSettings( 'client-id', 'client-secret' ) );
+		$_POST      = array(
+			GoogleConnectionController::CONNECT_NONCE_FIELD => 'test-nonce-' . GoogleConnectionController::CONNECT_NONCE_ACTION,
+			GoogleWizardPage::RETURN_STEP_FIELD => GoogleWizardPage::STEP_CONNECT,
+			GoogleWizardPage::SIGNAL_FIELD      => GoogleWizardPage::SIGNAL_GA4,
+		);
+
+		$location = $this->assert_redirects( static fn () => $controller->start_connect() );
+
+		$this->assertSame( GoogleOauthScopePolicy::SCOPE_ANALYTICS, $this->query_param( $location, 'scope' ) );
+		$state = $this->query_param( $location, 'state' );
+		$this->assertSame(
+			array(
+				'uid'            => get_current_user_id(),
+				'wizard'         => true,
+				'search_console' => false,
+				'analytics'      => true,
+			),
+			get_transient( 'cannyforge_archive_google_oauth_' . $state )
 		);
 	}
 
@@ -119,7 +149,11 @@ class GoogleConnectionControllerConnectTest extends GoogleConnectionControllerTe
 
 		$this->assertNotSame( '', $state, 'start_connect() must generate a non-empty CSRF state.' );
 		$this->assertSame(
-			get_current_user_id(),
+			array(
+				'uid'            => get_current_user_id(),
+				'wizard'         => false,
+				'search_console' => true,
+			),
 			get_transient( 'cannyforge_archive_google_oauth_' . $state ),
 			'The state transient must be recorded for the current user before redirecting to Google.'
 		);

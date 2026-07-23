@@ -86,13 +86,14 @@ final class SearchConsoleTopContentRefresher {
 	 * @return int[]
 	 */
 	public function refresh( int $limit ): array {
-		$settings = $this->settings->get();
-		$rows     = $this->client->query_top_pages(
+		$settings    = $this->settings->get();
+		$rows        = $this->client->query_top_pages(
 			$settings->search_console_site_url(),
 			$settings->report_window_days(),
 			$limit
 		);
-		$ids      = $this->map_rows_to_post_ids(
+		$source_urls = $this->client->extract_page_urls( $rows, max( 1, $limit * 3 ) );
+		$ids         = $this->map_rows_to_post_ids(
 			$rows,
 			$this->client,
 			$this->url_to_postid,
@@ -100,7 +101,7 @@ final class SearchConsoleTopContentRefresher {
 			$limit
 		);
 
-		$this->cache->save_post_ids( $ids );
+		$this->cache->save_results( $ids, $source_urls );
 
 		return $ids;
 	}

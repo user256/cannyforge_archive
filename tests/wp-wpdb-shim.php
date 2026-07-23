@@ -1,7 +1,7 @@
 <?php
 /**
  * Minimal in-memory stand-in for WordPress's `$wpdb` global, scoped to what
- * uninstall.php's direct-query OAuth state transient cleanup needs
+ * uninstall.php's direct-query Google dynamic transient cleanup needs
  * (ticket 606): `prepare()`, `query()`, `esc_like()`, and the `$options`
  * table-name property. Guarded so a real WordPress environment takes
  * precedence.
@@ -34,7 +34,7 @@ if ( ! class_exists( 'wpdb' ) ) {
 		public array $queries = array();
 
 		/**
-		 * Minimal stand-in for `$wpdb->prepare()`: substitutes `%s`
+		 * Minimal stand-in for `$wpdb->prepare()`: substitutes `%i` and `%s`
 		 * placeholders in call order. Sufficient for the single query shape
 		 * uninstall.php builds; not a general SQL-escaping implementation.
 		 *
@@ -44,12 +44,18 @@ if ( ! class_exists( 'wpdb' ) ) {
 		 */
 		public function prepare( string $query, ...$args ): string {
 			foreach ( $args as $value ) {
-				$pos = strpos( $query, '%s' );
-				if ( false === $pos ) {
+				$identifier_pos = strpos( $query, '%i' );
+				$string_pos     = strpos( $query, '%s' );
+				if ( false === $identifier_pos && false === $string_pos ) {
 					break;
 				}
 
-				$query = substr_replace( $query, "'" . addslashes( (string) $value ) . "'", $pos, 2 );
+				if ( false !== $identifier_pos && ( false === $string_pos || $identifier_pos < $string_pos ) ) {
+					$identifier = str_replace( '`', '``', (string) $value );
+					$query      = substr_replace( $query, '`' . $identifier . '`', $identifier_pos, 2 );
+				} else {
+					$query = substr_replace( $query, "'" . addslashes( (string) $value ) . "'", $string_pos, 2 );
+				}
 			}
 
 			return $query;
@@ -63,6 +69,16 @@ if ( ! class_exists( 'wpdb' ) ) {
 		 */
 		public function query( string $query ) {
 			$this->queries[] = $query;
+
+			// Simulate the rows removed by uninstall.php's prepared LIKE query.
+			// The real wpdb executes this SQL; the test shim mirrors its effect on
+			// the in-memory transient store so tests can assert rows are gone.
+			$normalised = str_replace( '\\', '', $query );
+			preg_match_all( "/_transient(?:_timeout)?_([^']+)%'/", $normalised, $matches );
+			foreach ( $matches[1] as $prefix ) {
+				\CannyForge\Archive\Tests\TransientStore::delete_prefix( $prefix );
+			}
+
 			return true;
 		}
 

@@ -11,7 +11,6 @@ namespace CannyForge\Archive\Tests\Admin;
 
 use CannyForge\Archive\Admin\SettingsView;
 use CannyForge\Archive\Contracts\Settings\Settings;
-use CannyForge\Archive\Integration\Google\GoogleSettings;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,39 +35,23 @@ class SettingsViewTest extends TestCase {
 		$this->assertStringContainsString( 'name="blog_urls"', $html );
 		$this->assertStringContainsString( 'Google Top Content', $html );
 		$this->assertStringContainsString( 'Open Google setup wizard', $html );
-		$this->assertStringContainsString( 'name="google_client_id"', $html );
-		$this->assertStringContainsString( 'name="google_client_secret"', $html );
-		$this->assertStringContainsString( 'name="google_client_json"', $html );
-		$this->assertStringContainsString( 'name="google_search_console_site_url"', $html );
-		$this->assertStringContainsString( 'name="google_report_window_days"', $html );
-		$this->assertStringContainsString( 'name="google_ga4_property_id"', $html );
-		$this->assertStringContainsString( 'Connect Google', $html );
-		$this->assertStringContainsString( 'Disconnect', $html );
-		$this->assertStringContainsString( 'Refresh Search Console', $html );
-		$this->assertStringContainsString( 'Refresh GA4', $html );
-		$this->assertStringContainsString( 'data-cf-google-consent-copy', $html );
-		$this->assertStringContainsString( 'Search Console (read-only)', $html );
-		$this->assertStringNotContainsString( 'Google Analytics 4 (read-only)', $html );
+		$this->assertStringContainsString( 'cf_wizard=google', $html );
 	}
 
 	/**
-	 * The pre-connect consent copy names Analytics too once GA4 is configured
-	 * (ticket 614: scopes shown must match what will actually be requested).
+	 * The raw Google credential fields live in the stepped setup wizard now,
+	 * not on the settings page — the page shows only the summary strip and
+	 * the wizard launcher.
 	 *
 	 * @return void
 	 */
-	public function test_consent_copy_names_analytics_when_ga4_is_configured(): void {
-		ob_start();
-		( new SettingsView() )->render(
-			Settings::from_array( array( 'mode' => 'blog' ) ),
-			'admin.php?page=cannyforge-archive',
-			'',
-			new GoogleSettings( '', '', '', 30, '123456789' )
-		);
-		$html = (string) ob_get_clean();
+	public function test_google_fields_are_delegated_to_the_wizard(): void {
+		$html = $this->render( Settings::from_array( array( 'mode' => 'blog' ) ) );
 
-		$this->assertStringContainsString( 'Search Console (read-only)', $html );
-		$this->assertStringContainsString( 'Google Analytics 4 (read-only)', $html );
+		$this->assertStringNotContainsString( 'name="google_client_id"', $html );
+		$this->assertStringNotContainsString( 'name="google_client_secret"', $html );
+		$this->assertStringNotContainsString( 'name="google_client_json"', $html );
+		$this->assertStringNotContainsString( 'name="google_search_console_site_url"', $html );
 	}
 
 	/**
@@ -114,12 +97,6 @@ class SettingsViewTest extends TestCase {
 				'name="target_author"',
 				'name="target_date"',
 				'name="archive_url"',
-				'name="google_client_id"',
-				'name="google_client_secret"',
-				'name="google_client_json"',
-				'name="google_search_console_site_url"',
-				'name="google_report_window_days"',
-				'name="google_ga4_property_id"',
 				'name="seo_title"',
 				'name="seo_meta_description"',
 				'name="seo_index"',
@@ -227,14 +204,14 @@ class SettingsViewTest extends TestCase {
 	}
 
 	/**
-	 * The page is renamed to "CannyForge Archive Generator" (not "HTML Sitemap Generator").
+	 * The page carries the CannyForge Archive branding (not "HTML Sitemap Generator").
 	 *
 	 * @return void
 	 */
 	public function test_titled_archive_generator(): void {
 		$html = $this->render( new Settings() );
 
-		$this->assertStringContainsString( 'CannyForge Archive Generator', $html );
+		$this->assertStringContainsString( 'CannyForge Archive', $html );
 		$this->assertStringNotContainsString( 'HTML Sitemap Generator Settings', $html );
 	}
 

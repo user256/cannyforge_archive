@@ -17,12 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Decides which Google OAuth scopes to request for the currently configured
  * features (ticket 614).
  *
- * Search Console read-only is always requested: it is the primary, always-on
- * Google signal (ticket 405). Analytics (GA4) read-only is requested only
- * when a GA4 property ID is configured, so a Search Console-only install
- * never asks the admin to grant Analytics access it will never use. This is
- * the single source of truth the connect-flow redirect builds its `scope`
- * parameter from.
+ * The wizard can request Search Console, Analytics, or both. The settings-page
+ * connect flow keeps the legacy Search Console default and adds Analytics when
+ * a GA4 property is already configured.
  */
 final class GoogleOauthScopePolicy {
 	/**
@@ -38,12 +35,17 @@ final class GoogleOauthScopePolicy {
 	/**
 	 * The individual OAuth scopes to request, in request order.
 	 *
-	 * @param GoogleSettings $settings Current Google settings.
+	 * @param GoogleSettings $settings           Current Google settings.
+	 * @param bool           $include_analytics  Request Analytics access.
+	 * @param bool           $include_search_console Request Search Console access.
 	 * @return array<int, string>
 	 */
-	public static function scopes( GoogleSettings $settings ): array {
-		$scopes = array( self::SCOPE_SEARCH_CONSOLE );
-		if ( '' !== $settings->ga4_property_id() ) {
+	public static function scopes( GoogleSettings $settings, bool $include_analytics = false, bool $include_search_console = true ): array {
+		$scopes = array();
+		if ( $include_search_console ) {
+			$scopes[] = self::SCOPE_SEARCH_CONSOLE;
+		}
+		if ( $include_analytics || '' !== $settings->ga4_property_id() ) {
 			$scopes[] = self::SCOPE_ANALYTICS;
 		}
 
@@ -53,10 +55,12 @@ final class GoogleOauthScopePolicy {
 	/**
 	 * The scopes to request, as a single space-separated OAuth scope string.
 	 *
-	 * @param GoogleSettings $settings Current Google settings.
+	 * @param GoogleSettings $settings           Current Google settings.
+	 * @param bool           $include_analytics  Request Analytics access.
+	 * @param bool           $include_search_console Request Search Console access.
 	 * @return string
 	 */
-	public static function scope_string( GoogleSettings $settings ): string {
-		return implode( ' ', self::scopes( $settings ) );
+	public static function scope_string( GoogleSettings $settings, bool $include_analytics = false, bool $include_search_console = true ): string {
+		return implode( ' ', self::scopes( $settings, $include_analytics, $include_search_console ) );
 	}
 }

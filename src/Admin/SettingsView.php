@@ -70,18 +70,13 @@ final class SettingsView {
 	/**
 	 * Render the whole settings page.
 	 *
-	 * @param Settings                                                $settings              Current settings to populate the form with.
-	 * @param string                                                  $action_url            The form post target.
-	 * @param string                                                  $preview_url           The live archive URL for the "Preview" link.
-	 * @param GoogleSettings|null                                     $google_settings       Current Google settings.
-	 * @param string                                                  $google_status         Current Google connection status.
-	 * @param bool                                                    $google_secret_saved   Whether a client secret is already stored.
-	 * @param string                                                  $google_connect_url    Connect action URL.
-	 * @param string                                                  $google_disconnect_url Disconnect action URL.
-	 * @param string                                                  $google_notice         One-shot Google notice text.
-	 * @param string                                                  $google_notice_type    One-shot Google notice type.
-	 * @param array<int, array{site_url: string, permission: string}> $google_properties Cached properties.
-	 * @param string                                                  $property_refresh_url  Property refresh action URL.
+	 * @param Settings            $settings           Current settings to populate the form with.
+	 * @param string              $action_url         The form post target.
+	 * @param string              $preview_url        The live archive URL for the "Preview" link.
+	 * @param GoogleSettings|null $google_settings    Current Google settings.
+	 * @param string              $google_status      Current Google connection status.
+	 * @param string              $google_notice      One-shot Google notice text.
+	 * @param string              $google_notice_type One-shot Google notice type.
 	 * @return void
 	 */
 	public function render(
@@ -90,13 +85,8 @@ final class SettingsView {
 		string $preview_url = '',
 		?GoogleSettings $google_settings = null,
 		string $google_status = GoogleTokenStore::STATUS_DISCONNECTED,
-		bool $google_secret_saved = false,
-		string $google_connect_url = '',
-		string $google_disconnect_url = '',
 		string $google_notice = '',
-		string $google_notice_type = GoogleConnectionController::NOTICE_ERROR,
-		array $google_properties = array(),
-		string $property_refresh_url = ''
+		string $google_notice_type = GoogleConnectionController::NOTICE_ERROR
 	): void {
 		$google_settings = $google_settings ?? new GoogleSettings();
 
@@ -115,7 +105,7 @@ final class SettingsView {
 		$this->render_sidebar_nav();
 
 		echo '<main class="cf-app-main">';
-		$this->render_content_tab( $settings, $google_settings, $google_status, $google_secret_saved, $google_connect_url, $google_disconnect_url, $google_notice, $google_notice_type, $google_properties, $property_refresh_url );
+		$this->render_content_tab( $settings, $google_settings, $google_status, $google_notice, $google_notice_type );
 		$this->render_settings_accordions( $settings );
 		echo '</main>';
 
@@ -151,29 +141,19 @@ final class SettingsView {
 	 * Render the always-visible "Content" tab: mode cards, the mode-dependent
 	 * panel, and content-selection.
 	 *
-	 * @param Settings                                                $settings              Current settings.
-	 * @param GoogleSettings                                          $google_settings       Current Google settings.
-	 * @param string                                                  $google_status         Current Google connection status.
-	 * @param bool                                                    $google_secret_saved   Whether a client secret is already stored.
-	 * @param string                                                  $google_connect_url    Connect action URL.
-	 * @param string                                                  $google_disconnect_url Disconnect action URL.
-	 * @param string                                                  $google_notice         One-shot Google notice text.
-	 * @param string                                                  $google_notice_type    One-shot Google notice type.
-	 * @param array<int, array{site_url: string, permission: string}> $google_properties Cached properties.
-	 * @param string                                                  $property_refresh_url  Property refresh action URL.
+	 * @param Settings       $settings           Current settings.
+	 * @param GoogleSettings $google_settings    Current Google settings.
+	 * @param string         $google_status      Current Google connection status.
+	 * @param string         $google_notice      One-shot Google notice text.
+	 * @param string         $google_notice_type One-shot Google notice type.
 	 * @return void
 	 */
 	private function render_content_tab(
 		Settings $settings,
 		GoogleSettings $google_settings,
 		string $google_status,
-		bool $google_secret_saved,
-		string $google_connect_url,
-		string $google_disconnect_url,
 		string $google_notice,
-		string $google_notice_type,
-		array $google_properties,
-		string $property_refresh_url
+		string $google_notice_type
 	): void {
 		echo '<div id="tab-content" class="cf-tab-section active">';
 		echo '<div class="cf-section-header">';
@@ -181,7 +161,7 @@ final class SettingsView {
 		echo '<p>' . esc_html__( 'Choose what content to show in your archive.', 'cannyforge-archive' ) . '</p>';
 		echo '</div>';
 		$this->render_mode_only( $settings );
-		$this->mode_panel->render( $settings, $google_settings, $google_status, $google_secret_saved, $google_connect_url, $google_disconnect_url, $google_notice, $google_notice_type, $google_properties, $property_refresh_url );
+		$this->mode_panel->render( $settings, $google_settings, $google_status, $google_notice, $google_notice_type );
 		echo '<div class="cf-card" style="margin-top:24px;">';
 		$this->sections->content_selection( $settings );
 		echo '</div>';
@@ -288,10 +268,19 @@ final class SettingsView {
 	 * @return void
 	 */
 	private function render_brand_header( string $preview_url ): void {
+		$logo_url = 'assets/branding/cannyforge-font-light.svg';
+		if ( defined( 'CANNYFORGE_ARCHIVE_FILE' ) && function_exists( 'plugin_dir_url' ) ) {
+			$logo_url = plugin_dir_url( CANNYFORGE_ARCHIVE_FILE ) . 'assets/branding/cannyforge-font-light.svg';
+		}
+
 		echo '<header class="cf-app-header">';
 		echo '<div class="cf-header-left">';
 		echo '<button type="button" class="cf-btn cf-btn-icon" id="cf-nav-toggle" aria-label="' . esc_attr__( 'Toggle navigation', 'cannyforge-archive' ) . '" aria-expanded="true" aria-controls="cf-app-sidebar"><span class="dashicons dashicons-menu" aria-hidden="true"></span></button>';
-		echo '<h1>' . esc_html__( 'CannyForge Archive', 'cannyforge-archive' ) . '</h1>';
+		printf(
+			'<h1><img class="cf-brand-logo" src="%s" alt="%s"></h1>',
+			esc_url( $logo_url ),
+			esc_attr__( 'CannyForge Archive', 'cannyforge-archive' )
+		);
 		echo '</div>';
 		echo '<div class="cf-header-right">';
 		if ( '' !== $preview_url ) {

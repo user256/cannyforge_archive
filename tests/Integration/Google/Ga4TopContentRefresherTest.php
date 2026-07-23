@@ -110,6 +110,7 @@ class Ga4TopContentRefresherTest extends TestCase {
 
 		$this->assertSame( array( 10, 7 ), $ids );
 		$this->assertSame( array( 10, 7 ), $cache->get_post_ids() );
+		$this->assertSame( array( '/a/', '/b/' ), $cache->get_source_urls() );
 	}
 
 	/**

@@ -51,4 +51,17 @@ class SearchConsoleCacheStoreTest extends TestCase {
 
 		$this->assertSame( array(), $store->get_post_ids() );
 	}
+
+	/**
+	 * Raw URLs are retained separately from matched local post IDs.
+	 *
+	 * @return void
+	 */
+	public function test_save_results_retains_clean_source_urls(): void {
+		$store = new SearchConsoleCacheStore();
+		$store->save_results( array(), array( 'https://example.test/a/', 'https://example.test/a/', '', 12 ) );
+
+		$this->assertSame( array(), $store->get_post_ids() );
+		$this->assertSame( array( 'https://example.test/a/' ), $store->get_source_urls() );
+	}
 }

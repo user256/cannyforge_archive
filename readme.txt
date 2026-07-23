@@ -55,7 +55,7 @@ What the service is used for:
 
 * Google OAuth authenticates the site owner's Google account and refreshes API access tokens.
 * Google Search Console can supply top page URLs for the configured property.
-* Google Analytics 4 can supply top page paths as an optional fallback signal.
+* Google Analytics 4 can supply top page paths as the primary signal or as a Search Console fallback.
 
 What data is sent:
 
@@ -63,22 +63,24 @@ What data is sent:
 * The configured Search Console property identifier is sent when requesting top-page rows.
 * The configured GA4 property ID is sent when requesting report rows.
 * Google access tokens are sent with those API requests.
+* For GA4 property listing, the Google access token is sent to the Analytics Admin API `https://analyticsadmin.googleapis.com/v1beta/accountSummaries`; returned account and property names/IDs populate the picker.
 
 What access is requested:
 
-* The connect flow always requests the Search Console read-only scope (`https://www.googleapis.com/auth/webmasters.readonly`).
-* The Analytics (GA4) read-only scope (`https://www.googleapis.com/auth/analytics.readonly`) is requested only when a GA4 property ID is configured, so a Search Console-only setup never asks for Analytics access.
+* The Search Console read-only scope (`https://www.googleapis.com/auth/webmasters.readonly`) is requested for Search Console-only and combined wizard paths.
+* The Analytics (GA4) read-only scope (`https://www.googleapis.com/auth/analytics.readonly`) is requested for Analytics-only and combined wizard paths, or when a GA4 property ID is already configured. A Search Console-only setup never asks for Analytics access.
 
 When it happens:
 
 * Only when the site owner clicks Connect or manually refreshes the Google-backed cache.
+* When the wizard's Analytics-only or Search Console + GA4 signal is selected, the Analytics Admin API `https://analyticsadmin.googleapis.com/v1beta/accountSummaries` endpoint is called after Connect to list the account's GA4 properties. The same property-list request runs when the site owner clicks "Load GA4 properties".
 * Never during wp.org installation or by default on an unconfigured site.
 
 How credentials are stored and removed:
 
 * The client secret, refresh token, and cached access token are encrypted at rest.
 * Clicking Disconnect makes a best-effort call to Google's token revocation endpoint before clearing the locally stored tokens and caches, so the connection is invalidated on Google's side as well as locally. If Google's revocation endpoint cannot be reached, the local credentials are still cleared and the admin is told the remote grant may need to be revoked manually.
-* Deleting the plugin (not just deactivating it) makes the same best-effort revocation call, then permanently removes every option, cache, and transient the plugin created, including the encrypted Google credentials. Deactivating the plugin never removes this data — only deleting it does.
+* Deleting the plugin (not just deactivating it) makes the same best-effort revocation call, then permanently removes the plugin's stored settings and credentials, fixed archive caches, and all user-scoped Google property-list and OAuth-state transients, including the encrypted Google credentials. Search-result and rate-limit transients have bounded expirations and are allowed to expire naturally rather than being swept during uninstall. Deactivating the plugin never removes this data — only deleting it does.
 
 Service policies:
 
@@ -115,7 +117,10 @@ install and never by default. Once connected, only these get sent: your
 configured OAuth Client ID/Secret (to exchange and refresh access tokens),
 your Search Console property identifier and/or GA4 property ID (when
 requesting top-page rows), and the resulting Google access token with those
-API requests. See the "External services" section above for the full
+API requests. When the wizard's Analytics-only or Search Console + GA4 signal is selected, or
+when you click "Load GA4 properties", that access token is also sent to
+Google's Analytics Admin API `accountSummaries` endpoint to list available
+GA4 properties. See the "External services" section above for the full
 disclosure, including exactly which OAuth scopes are requested and how
 disconnecting revokes them.
 

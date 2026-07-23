@@ -69,4 +69,18 @@ class GoogleOauthScopePolicyTest extends TestCase {
 			GoogleOauthScopePolicy::scope_string( $settings )
 		);
 	}
+
+	/**
+	 * The Analytics-only path requests Analytics without Search Console.
+	 *
+	 * @return void
+	 */
+	public function test_analytics_only_scope_excludes_search_console(): void {
+		$settings = new GoogleSettings( 'id', 'secret' );
+
+		$this->assertSame(
+			array( GoogleOauthScopePolicy::SCOPE_ANALYTICS ),
+			GoogleOauthScopePolicy::scopes( $settings, true, false )
+		);
+	}
 }

@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
+use CannyForge\Archive\Integration\Google\Ga4PropertyClient;
+use CannyForge\Archive\Integration\Google\Ga4PropertyStore;
 use CannyForge\Archive\Integration\Google\GoogleOauthClient;
 use CannyForge\Archive\Integration\Google\GoogleOauthScopePolicy;
 use CannyForge\Archive\Integration\Google\GoogleRevocationService;
@@ -86,11 +88,6 @@ final class GoogleConnectionController {
 	public const NOTICE_ERROR = 'error';
 
 	/**
-	 * CSRF state transient prefix.
-	 */
-	private const STATE_PREFIX = 'cannyforge_archive_google_oauth_';
-
-	/**
 	 * Google OAuth authorization endpoint.
 	 */
 	private const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -136,18 +133,25 @@ final class GoogleConnectionController {
 	private GoogleRevocationService $revocation;
 
 	/**
-	 * Search Console property client.
-	 *
-	 * @var SearchConsolePropertyClient
-	 */
-	private SearchConsolePropertyClient $property_client;
-
-	/**
 	 * Cached Search Console properties.
 	 *
 	 * @var SearchConsolePropertyStore
 	 */
 	private SearchConsolePropertyStore $property_store;
+
+	/**
+	 * GA4 property cache.
+	 *
+	 * @var Ga4PropertyStore
+	 */
+	private Ga4PropertyStore $ga4_property_store;
+
+	/**
+	 * Post-OAuth property-list completion service.
+	 *
+	 * @var GoogleConnectionCallbackService
+	 */
+	private GoogleConnectionCallbackService $callback_service;
 
 	/**
 	 * Construct the controller.
@@ -159,6 +163,8 @@ final class GoogleConnectionController {
 	 * @param GoogleRevocationService|null     $revocation   Token revocation service.
 	 * @param SearchConsolePropertyClient|null $property_client Property list client.
 	 * @param SearchConsolePropertyStore|null  $property_store  Property cache.
+	 * @param Ga4PropertyClient|null           $ga4_property_client GA4 property client.
+	 * @param Ga4PropertyStore|null            $ga4_property_store  GA4 property cache.
 	 */
 	public function __construct(
 		GoogleSettingsStore $settings,
@@ -167,15 +173,20 @@ final class GoogleConnectionController {
 		?Ga4CacheStore $ga4_cache = null,
 		?GoogleRevocationService $revocation = null,
 		?SearchConsolePropertyClient $property_client = null,
-		?SearchConsolePropertyStore $property_store = null
+		?SearchConsolePropertyStore $property_store = null,
+		?Ga4PropertyClient $ga4_property_client = null,
+		?Ga4PropertyStore $ga4_property_store = null
 	) {
-		$this->settings        = $settings;
-		$this->tokens          = $tokens;
-		$this->search_cache    = $search_cache;
-		$this->ga4_cache       = $ga4_cache ?? new Ga4CacheStore();
-		$this->revocation      = $revocation ?? new GoogleRevocationService( $tokens );
-		$this->property_client = $property_client ?? new SearchConsolePropertyClient( $this->oauth_client() );
-		$this->property_store  = $property_store ?? new SearchConsolePropertyStore();
+		$this->settings           = $settings;
+		$this->tokens             = $tokens;
+		$this->search_cache       = $search_cache;
+		$this->ga4_cache          = $ga4_cache ?? new Ga4CacheStore();
+		$this->revocation         = $revocation ?? new GoogleRevocationService( $tokens );
+		$search_client            = $property_client ?? new SearchConsolePropertyClient( $this->oauth_client() );
+		$this->property_store     = $property_store ?? new SearchConsolePropertyStore();
+		$ga4_client               = $ga4_property_client ?? new Ga4PropertyClient( $this->oauth_client() );
+		$this->ga4_property_store = $ga4_property_store ?? new Ga4PropertyStore();
+		$this->callback_service   = new GoogleConnectionCallbackService( $tokens, $search_client, $this->property_store, $ga4_client, $this->ga4_property_store );
 	}
 
 	/**
@@ -206,14 +217,21 @@ final class GoogleConnectionController {
 			);
 		}
 
-		$state = wp_generate_password( 32, false, false );
-		set_transient( self::STATE_PREFIX . $state, get_current_user_id(), 600 );
+		$from_wizard            = '' !== GoogleWizardPage::return_step_from_request();
+		$signal                 = $from_wizard ? GoogleWizardStepPlanner::signal_from_request() : GoogleWizardPage::SIGNAL_SC;
+		$request_analytics      = $from_wizard
+			? GoogleWizardPage::signal_uses_analytics( $signal )
+			: '' !== $settings->ga4_property_id();
+		$request_search_console = $from_wizard
+			? GoogleWizardPage::signal_uses_search_console( $signal )
+			: true;
+		$state                  = ( new GoogleOauthStateStore() )->create( $from_wizard, $request_analytics, $request_search_console );
 
 		$params = array(
 			'client_id'              => $settings->client_id(),
 			'redirect_uri'           => $this->callback_url(),
 			'response_type'          => 'code',
-			'scope'                  => GoogleOauthScopePolicy::scope_string( $settings ),
+			'scope'                  => GoogleOauthScopePolicy::scope_string( $settings, $request_analytics, $request_search_console ),
 			'access_type'            => 'offline',
 			'prompt'                 => 'consent',
 			'state'                  => $state,
@@ -231,43 +249,34 @@ final class GoogleConnectionController {
 	 */
 	public function handle_callback(): void {
 		$this->require_capability();
-		$callback = $this->callback_request();
+		$callback = GoogleOauthCallbackRequest::read();
 
 		// The CSRF state transient is validated and consumed before anything
 		// else touches token status (ticket 614): an attacker hitting this
 		// endpoint directly with `?error=...` and no/invalid state must not be
 		// able to flip the connection into an error state.
-		$this->assert_valid_state( $callback['state'] );
+		$state_data  = ( new GoogleOauthStateStore() )->consume( $callback['state'] );
+		$from_wizard = $state_data['wizard'];
+		$signal      = GoogleWizardStepPlanner::signal_from_scope_flags( $state_data['analytics'], $state_data['search_console'] );
+		$error_base  = $from_wizard
+			? GoogleWizardPage::url_with_signal( GoogleWizardPage::STEP_CONNECT, $signal )
+			: $this->settings_url();
 
 		if ( '' !== $callback['error'] ) {
 			$this->tokens->set_status( GoogleTokenStore::STATUS_ERROR );
-			$this->redirect_to_settings( $callback['error'], self::NOTICE_ERROR );
+			$this->redirect_with_notice( $callback['error'], self::NOTICE_ERROR, $error_base );
 		}
 
-		$this->assert_callback_has_code( $callback['code'] );
-
-		$client = $this->oauth_client();
-		if ( ! $client->connect( $callback['code'], $this->callback_url() ) ) {
-			$this->redirect_to_settings(
-				'' !== $client->last_error()
-					? $client->last_error()
-					: __( 'Could not complete Google sign-in.', 'cannyforge-archive' ),
-				self::NOTICE_ERROR
-			);
+		$this->assert_callback_has_code( $callback['code'], $error_base );
+		$result = $this->callback_service->complete( $this->oauth_client(), $callback['code'], $this->callback_url(), $state_data );
+		if ( ! $result['success'] ) {
+			$this->redirect_with_notice( $result['message'], $result['notice_type'], $error_base );
 		}
 
-		$this->property_store->clear();
-		$properties = $this->property_client->list_properties();
-		if ( array() !== $properties ) {
-			$this->property_store->save( $properties );
-		}
-
-		$this->redirect_to_settings(
-			array() !== $properties
-				? __( 'Google connected. Choose a Search Console property below.', 'cannyforge-archive' )
-			: __( 'Google connected. Load Search Console properties below to choose a property.', 'cannyforge-archive' ),
-			self::NOTICE_SUCCESS
-		);
+		$target = $from_wizard
+			? GoogleWizardPage::url_with_signal( GoogleWizardPage::STEP_PROPERTY, $signal )
+			: $this->settings_url();
+		$this->redirect_with_notice( $result['message'], $result['notice_type'], $target );
 	}
 
 	/**
@@ -288,6 +297,7 @@ final class GoogleConnectionController {
 		$this->search_cache->clear();
 		$this->ga4_cache->clear();
 		$this->property_store->clear();
+		$this->ga4_property_store->clear();
 
 		$this->redirect_to_settings(
 			$revoked
@@ -316,20 +326,38 @@ final class GoogleConnectionController {
 	}
 
 	/**
-	 * Redirect back to the settings page with a one-shot notice.
+	 * Redirect back to where the action was submitted from — the wizard step
+	 * when the posted form carried one, otherwise the settings page — with a
+	 * one-shot notice.
 	 *
 	 * @param string $message Notice message.
 	 * @param string $type    Notice type.
 	 * @return never
 	 */
 	private function redirect_to_settings( string $message, string $type ): never {
+		$this->redirect_with_notice(
+			$message,
+			$type,
+			GoogleWizardPage::redirect_base_from_request( $this->settings_url() )
+		);
+	}
+
+	/**
+	 * Redirect to a target URL with a one-shot notice.
+	 *
+	 * @param string $message Notice message.
+	 * @param string $type    Notice type.
+	 * @param string $target  Target URL.
+	 * @return never
+	 */
+	private function redirect_with_notice( string $message, string $type, string $target ): never {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
 					self::NOTICE_KEY      => rawurlencode( $message ),
 					self::NOTICE_TYPE_KEY => $type,
 				),
-				$this->settings_url()
+				$target
 			)
 		);
 		exit;
@@ -347,56 +375,26 @@ final class GoogleConnectionController {
 	}
 
 	/**
-	 * The callback query arguments, sanitised.
-	 *
-	 * @return array{error: string, code: string, state: string}
-	 */
-	private function callback_request(): array {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- OAuth callback validates provider state transient instead of a WordPress nonce.
-		return array(
-			'error' => isset( $_GET['error'] ) ? sanitize_text_field( (string) wp_unslash( $_GET['error'] ) ) : '',
-			'code'  => isset( $_GET['code'] ) ? sanitize_text_field( (string) wp_unslash( $_GET['code'] ) ) : '',
-			'state' => isset( $_GET['state'] ) ? sanitize_text_field( (string) wp_unslash( $_GET['state'] ) ) : '',
-		);
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
-	}
-
-	/**
 	 * Redirect with an error when the callback omitted the authorization code.
 	 *
-	 * Called only after {@see self::assert_valid_state()} has already
+	 * Called only after {@see GoogleOauthStateStore::consume()} has already
 	 * validated the CSRF state, so this is safe to let mutate token status.
 	 *
-	 * @param string $code Callback code.
+	 * @param string $code       Callback code.
+	 * @param string $error_base Redirect base for the error notice.
 	 * @return void
 	 */
-	private function assert_callback_has_code( string $code ): void {
+	private function assert_callback_has_code( string $code, string $error_base ): void {
 		if ( '' !== $code ) {
 			return;
 		}
 
 		$this->tokens->set_status( GoogleTokenStore::STATUS_ERROR );
-		$this->redirect_to_settings(
+		$this->redirect_with_notice(
 			__( 'Google callback did not include the expected code value.', 'cannyforge-archive' ),
-			self::NOTICE_ERROR
+			self::NOTICE_ERROR,
+			$error_base
 		);
-	}
-
-	/**
-	 * Validate the CSRF state transient for the callback.
-	 *
-	 * @param string $state Callback state.
-	 * @return void
-	 */
-	private function assert_valid_state( string $state ): void {
-		$uid = get_transient( self::STATE_PREFIX . $state );
-		delete_transient( self::STATE_PREFIX . $state );
-
-		if ( is_numeric( $uid ) && (int) get_current_user_id() === (int) $uid ) {
-			return;
-		}
-
-		wp_die( esc_html__( 'Invalid OAuth state. Try connecting again.', 'cannyforge-archive' ) );
 	}
 
 	/**

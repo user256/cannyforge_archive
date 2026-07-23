@@ -48,6 +48,7 @@ class UninstallScriptTest extends TestCase {
 
 		if ( isset( $GLOBALS['wpdb'] ) && $GLOBALS['wpdb'] instanceof \wpdb ) {
 			$GLOBALS['wpdb']->queries = array();
+			$GLOBALS['wpdb']->options = 'wp_options';
 		}
 
 		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
@@ -57,8 +58,8 @@ class UninstallScriptTest extends TestCase {
 
 	/**
 	 * A single-site uninstall deletes every known option and fixed-name
-	 * transient, and issues the direct-query cleanup for the dynamically
-	 * suffixed OAuth state transients.
+	 * transient, and issues the direct-query cleanup for dynamically suffixed
+	 * OAuth state and Google property-list transients.
 	 *
 	 * @return void
 	 */
@@ -70,6 +71,12 @@ class UninstallScriptTest extends TestCase {
 		foreach ( UninstallCleaner::transient_keys() as $key ) {
 			TransientStore::set( $key, '<p>seeded html</p>' );
 		}
+		TransientStore::set( 'cannyforge_archive_google_oauth_state-1', 'oauth state' );
+		TransientStore::set( 'cannyforge_archive_sc_properties_12', array( 'sc' ) );
+		TransientStore::set( 'cannyforge_archive_sc_properties_34', array( 'sc' ) );
+		TransientStore::set( 'cannyforge_archive_ga4_properties_12', array( 'ga4' ) );
+		TransientStore::set( 'cannyforge_archive_ga4_properties_34', array( 'ga4' ) );
+		TransientStore::set( 'unrelated_transient', 'keep me' );
 
 		require __DIR__ . self::SCRIPT_RELATIVE;
 
@@ -80,8 +87,14 @@ class UninstallScriptTest extends TestCase {
 		foreach ( UninstallCleaner::transient_keys() as $key ) {
 			$this->assertArrayNotHasKey( $key, TransientStore::all(), "Transient {$key} survived uninstall." );
 		}
+		$this->assertArrayNotHasKey( 'cannyforge_archive_google_oauth_state-1', TransientStore::all() );
+		$this->assertArrayNotHasKey( 'cannyforge_archive_sc_properties_12', TransientStore::all() );
+		$this->assertArrayNotHasKey( 'cannyforge_archive_sc_properties_34', TransientStore::all() );
+		$this->assertArrayNotHasKey( 'cannyforge_archive_ga4_properties_12', TransientStore::all() );
+		$this->assertArrayNotHasKey( 'cannyforge_archive_ga4_properties_34', TransientStore::all() );
+		$this->assertSame( 'keep me', TransientStore::all()['unrelated_transient'] ?? null );
 
-		$this->assertCount( 1, $GLOBALS['wpdb']->queries, 'Expected exactly one direct-query OAuth state transient cleanup.' );
+		$this->assertCount( 1, $GLOBALS['wpdb']->queries, 'Expected exactly one direct-query Google dynamic transient cleanup.' );
 
 		// esc_like() + prepare() backslash-escape underscores (a single-char
 		// SQL wildcard) for correct SQL syntax; strip backslashes so the
@@ -89,7 +102,12 @@ class UninstallScriptTest extends TestCase {
 		$query = str_replace( '\\', '', $GLOBALS['wpdb']->queries[0] );
 		$this->assertStringContainsString( '_transient_cannyforge_archive_google_oauth_', $query );
 		$this->assertStringContainsString( '_transient_timeout_cannyforge_archive_google_oauth_', $query );
-		$this->assertStringContainsString( 'DELETE FROM wp_options', $query );
+		$this->assertStringContainsString( '_transient_cannyforge_archive_sc_properties_', $query );
+		$this->assertStringContainsString( '_transient_timeout_cannyforge_archive_sc_properties_', $query );
+		$this->assertStringContainsString( '_transient_cannyforge_archive_ga4_properties_', $query );
+		$this->assertStringContainsString( '_transient_timeout_cannyforge_archive_ga4_properties_', $query );
+		$this->assertStringContainsString( 'DELETE FROM `wp_options`', $query );
+		$this->assertStringNotContainsString( '{options_table}', $query );
 
 		$this->assertArrayNotHasKey( 'cannyforge_test_switch_to_blog_calls', $GLOBALS, 'Single-site uninstall must not iterate sites.' );
 	}

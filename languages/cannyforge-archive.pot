@@ -9,15 +9,15 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-21T13:13:34+00:00\n"
+"POT-Creation-Date: 2026-07-22T17:57:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: cannyforge-archive\n"
 
 #. Plugin Name of the plugin
 #: cannyforge-archive.php
-#: src/Admin/SettingsPage.php:181
-#: src/Admin/SettingsPage.php:182
+#: src/Admin/SettingsPage.php:204
+#: src/Admin/SettingsPage.php:205
 msgid "CannyForge Archive Generator"
 msgstr ""
 
@@ -26,18 +26,68 @@ msgstr ""
 msgid "A combined HTML sitemap + JS-powered archive, and a crawl-budget-friendly replacement for default WordPress taxonomy pagination."
 msgstr ""
 
-#: cannyforge-archive.php:62
+#: cannyforge-archive.php:98
 msgid "Settings"
 msgstr ""
 
 #: src/Admin/AdminAssets.php:103
-#: src/Admin/SettingsView.php:267
+#: src/Admin/SettingsView.php:255
 msgid "All changes saved"
 msgstr ""
 
 #: src/Admin/AdminAssets.php:104
 msgid "Draft changes"
 msgstr ""
+
+#: src/Admin/AdminAssets.php:105
+msgid "Copied"
+msgstr ""
+
+#. translators: %d is the number of page URLs added to the curated list.
+#: src/Admin/AdminAssets.php:107
+#, php-format
+msgid "Added %d page(s) to curated URLs."
+msgstr ""
+
+#: src/Admin/AdminAssets.php:108
+msgid "Select at least one page first."
+msgstr ""
+
+#. translators: %s is replaced client-side with the computed contrast ratio, e.g. "2.1".
+#: src/Admin/AdminAssets.php:110
+#, php-format
+msgid "Text vs. surface contrast is %s:1 — WCAG AA requires at least 4.5:1."
+msgstr ""
+
+#. translators: %s is replaced client-side with the computed contrast ratio, e.g. "2.1".
+#: src/Admin/AdminAssets.php:112
+#, php-format
+msgid "Accent vs. surface contrast is %s:1 — WCAG AA requires at least 4.5:1."
+msgstr ""
+
+#: src/Admin/Ga4PropertyController.php:68
+#: src/Admin/Ga4RefreshController.php:175
+#: src/Admin/GoogleConnectionController.php:373
+#: src/Admin/SearchConsolePropertyController.php:98
+#: src/Admin/SearchConsoleRefreshController.php:171
+msgid "You do not have permission to do that."
+msgstr ""
+
+#: src/Admin/Ga4PropertyController.php:73
+msgid "Connect Google before loading GA4 properties."
+msgstr ""
+
+#: src/Admin/Ga4PropertyController.php:82
+msgid "Google returned no GA4 properties for this account."
+msgstr ""
+
+#. translators: %d: number of properties.
+#: src/Admin/Ga4PropertyController.php:91
+#, php-format
+msgid "%d GA4 property loaded."
+msgid_plural "%d GA4 properties loaded."
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/Admin/Ga4RefreshController.php:117
 msgid "Connect Google and save a GA4 property ID before refreshing."
@@ -49,354 +99,583 @@ msgstr ""
 msgid "GA4 cache refreshed: %d post IDs."
 msgstr ""
 
-#: src/Admin/Ga4RefreshController.php:172
-#: src/Admin/GoogleConnectionController.php:314
-#: src/Admin/SearchConsoleRefreshController.php:168
-msgid "You do not have permission to do that."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:182
-msgid "Save Google Client ID and Client Secret first, then try Connect again."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:232
-msgid "Could not complete Google sign-in."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:238
-msgid "Google connected."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:263
-msgid "Google disconnected."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:264
-msgid "Google disconnected locally, but Google could not confirm the access grant was revoked. You can revoke it manually from your Google Account permissions."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:349
-msgid "Google callback did not include the expected code value."
-msgstr ""
-
-#: src/Admin/GoogleConnectionController.php:368
-msgid "Invalid OAuth state. Try connecting again."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:50
-msgid "Close wizard"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:51
-msgid "Google top-content setup wizard"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:53
-msgid "This wizard walks through the whole setup in order: choose your signal, create the Google app, save credentials, connect the account, and refresh the cache."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:67
-msgid "Save Google details"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:79
-msgid "Choose your signal path"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:80
-msgid "Search Console is the main source and is enough for most sites. Turn on GA4 only if you also want an analytics fallback when Search Console returns nothing."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:84
-msgid "Also use GA4 as a fallback signal"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:96
-msgid "Set up Google Auth Platform"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:97
-msgid "In Google Cloud, create or select a project, then open Google Auth Platform. If this is a new project and Google shows a Get started prompt, complete that setup first. After that, the main screen you usually need here is Branding."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:99
-msgid "Open Branding"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:100
-msgid "Open Google setup guide"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:102
-msgid "If the app is not yet published and Google treats it as External, add yourself as a test user during the setup flow before trying to connect."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:113
-msgid "Create the OAuth web client"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:114
-msgid "Open Google Auth Platform > Clients, click Create client, and choose Web application. Give it a clear name such as CannyForge Archive Generator. During client creation, add the Redirect URI from the next step into Authorized redirect URIs. Authorized JavaScript origins are not required for this plugin."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:116
-msgid "Open Clients"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:117
-msgid "Enable Search Console API"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:118
-msgid "Enable Analytics Data API"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:120
-msgid "Search Console API is required. Enable Analytics Data API only if you plan to use the GA4 fallback. In the client form, scroll to Authorized redirect URIs, click + Add URI, paste the exact callback URL shown below, then click Create."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:131
-msgid "Copy and add this Redirect URI"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:132
-msgid "In the OAuth web client form, find Authorized redirect URIs, click + Add URI, and paste this exact URL before saving the client. It must match exactly, including `https`, trailing slash, and the full `admin-post.php?action=...` path."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:134
-msgid "Copy Redirect URI"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:145
-msgid "Prepare the properties you want to read"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:146
-msgid "In Search Console, use the property selector in the top-left and choose + Add property if this site is not there yet. Use Domain property if you control DNS; otherwise use a URL-prefix property. The Google account you connect here must already have access to that property."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:148
-msgid "Open Search Console"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:149
-msgid "Open GA4 Admin"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:151
-msgid "For the Search Console field below, use either `sc-domain:example.com` for a Domain property or the full URL such as `https://example.com/` for a URL-prefix property."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:165
-msgid "Save the Google details"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:166
-msgid "Either paste the Client ID and Client Secret from the Clients page, or download the OAuth client JSON from Google and import it here. Then enter the Search Console property you prepared above."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:180
-msgid "Optional: add the GA4 fallback property"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:181
-msgid "Leave this blank if Search Console is enough. If you enable GA4, enter the numeric GA4 Property ID, not the Measurement ID that starts with `G-`."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:184
+#: src/Admin/GoogleAnalyticsPropertySelectorView.php:30
 msgid "GA4 Property ID"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:186
-msgid "numeric ID, e.g. 123456789"
+#: src/Admin/GoogleAnalyticsPropertySelectorView.php:40
+msgid "Properties load from the connected Google account. The saved numeric ID is kept selectable if access changes."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:189
-msgid "Open GA4, go to Admin, select the property, then open Property Settings and copy the numeric Property ID. Do not use the Measurement ID and do not include the `properties/` prefix."
+#: src/Admin/GoogleAnalyticsPropertySelectorView.php:51
+msgid "Select an Analytics property"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:203
-msgid "Connect Google and refresh the cache"
+#: src/Admin/GoogleAnalyticsPropertySelectorView.php:93
+msgid "Reconnect Google with Analytics access before loading or saving a GA4 property."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:204
-msgid "After saving the details, connect the Google account that has Search Console access and GA4 access if you enabled the fallback. Then refresh Search Console and optionally GA4 to populate the archive cache."
+#: src/Admin/GoogleAnalyticsPropertySelectorView.php:99
+msgid "Load GA4 properties"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:221
+#: src/Admin/GoogleConnectionCallbackService.php:96
+msgid "Could not complete Google sign-in."
+msgstr ""
+
+#. translators: %s: GA4 property-list failure reason.
+#: src/Admin/GoogleConnectionCallbackService.php:116
+#, php-format
+msgid "Google connected, but GA4 properties could not be loaded: %s Check that the Analytics Admin API is enabled and that this account can access a GA4 property."
+msgstr ""
+
+#: src/Admin/GoogleConnectionCallbackService.php:137
+msgid "Google connected. Choose an Analytics property below."
+msgstr ""
+
+#: src/Admin/GoogleConnectionCallbackService.php:140
+msgid "Google connected. Choose your Search Console and Analytics properties below."
+msgstr ""
+
+#: src/Admin/GoogleConnectionCallbackService.php:144
+msgid "Google connected. Choose a Search Console property below."
+msgstr ""
+
+#: src/Admin/GoogleConnectionCallbackService.php:145
+msgid "Google connected. Load Search Console properties below to choose a property."
+msgstr ""
+
+#: src/Admin/GoogleConnectionController.php:215
+msgid "Save Google Client ID and Client Secret first, then try Connect again."
+msgstr ""
+
+#: src/Admin/GoogleConnectionController.php:304
+msgid "Google disconnected."
+msgstr ""
+
+#: src/Admin/GoogleConnectionController.php:305
+msgid "Google disconnected locally, but Google could not confirm the access grant was revoked. You can revoke it manually from your Google Account permissions."
+msgstr ""
+
+#: src/Admin/GoogleConnectionController.php:394
+msgid "Google callback did not include the expected code value."
+msgstr ""
+
+#: src/Admin/GoogleOauthStateStore.php:77
+msgid "Invalid OAuth state. Try connecting again."
+msgstr ""
+
+#: src/Admin/GooglePropertySelectorView.php:31
+#: src/Admin/ModeSettingsPanelView.php:436
+msgid "Search Console property"
+msgstr ""
+
+#: src/Admin/GooglePropertySelectorView.php:32
+msgid "Select a property after connecting Google"
+msgstr ""
+
+#: src/Admin/GooglePropertySelectorView.php:53
+msgid "Load properties"
+msgstr ""
+
+#: src/Admin/GooglePropertySelectorView.php:58
+msgid "Connect Google first, then load the properties available to that account and choose one here."
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:41
+msgid "Connect your Google account"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:44
+msgid "Connect the Google account that has access to your Search Console property and GA4. If the Google app is unpublished, that account must be listed as a test user."
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:46
+msgid "Connect the Google account that has access to your GA4 property. If the Google app is unpublished, that account must be listed as a test user."
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:48
+msgid "Connect the Google account that has access to your Search Console property. If the Google app is unpublished, that account must be listed as a test user."
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:57
+msgid "Connection needs re-authorising — the site's security keys may have changed, so the stored connection can no longer be read. Click Connect Google again to restore it; nothing else needs to change."
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:71
+msgid "Reconnect Google"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:71
+msgid "Connect Google"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:77
+msgid "Disconnect"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:88
+#: src/Admin/GoogleWizardSetupStepsView.php:70
+#: src/Admin/GoogleWizardSetupStepsView.php:124
+msgid "Continue"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:108
 msgid "Search Console (read-only)"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:222
+#: src/Admin/GoogleWizardAccountStepsView.php:109
 msgid "Google Analytics 4 (read-only)"
 msgstr ""
 
 #. translators: %s: comma-separated list of read-only Google scopes, e.g. "Search Console (read-only), Google Analytics 4 (read-only)".
-#: src/Admin/GoogleWizardModalView.php:232
+#: src/Admin/GoogleWizardAccountStepsView.php:119
 #, php-format
 msgid "Connecting will ask Google to grant read-only access to: %s."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:248
-msgid "Saved. Leave blank to keep it."
+#: src/Admin/GoogleWizardAccountStepsView.php:139
+msgid "Choose your Search Console and Analytics properties"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:249
-msgid "Paste the client secret, then save settings."
+#: src/Admin/GoogleWizardAccountStepsView.php:140
+msgid "Choose your Analytics property"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:251
-msgid "Import OAuth client JSON (optional)"
+#: src/Admin/GoogleWizardAccountStepsView.php:140
+msgid "Choose your Search Console property"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:254
-msgid "In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file here to import the Client ID and Client Secret automatically on save."
+#: src/Admin/GoogleWizardAccountStepsView.php:142
+msgid "Choose both properties used by this path. The archive uses Search Console first and falls back to GA4 when Search Console has no data."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:258
-msgid "Google Client ID"
+#: src/Admin/GoogleWizardAccountStepsView.php:143
+msgid "Choose the GA4 property whose top pages should populate the archive."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:263
-msgid "Google Client Secret"
+#: src/Admin/GoogleWizardAccountStepsView.php:143
+msgid "The properties available to the connected account load automatically after connecting. If the list is empty, use Load properties — and make sure this site is listed in Search Console."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:268
-msgid "Search Console Site URL"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:270
-msgid "sc-domain:example.com or https://example.com/"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:274
+#: src/Admin/GoogleWizardAccountStepsView.php:179
 msgid "Report window (days)"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:279
-msgid "Connection status:"
+#: src/Admin/GoogleWizardAccountStepsView.php:182
+msgid "How far back the top-content reports look."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:286
-msgid "The client secret is never rendered back into the form. Leave it blank on save to keep the stored secret unchanged."
+#: src/Admin/GoogleWizardAccountStepsView.php:186
+msgid "Save and finish"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:289
-msgid "Save Settings after editing the Google fields. Use Connect only after the client details are saved."
+#: src/Admin/GoogleWizardAccountStepsView.php:200
+msgid "Setup summary"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:314
-msgid "Connect Google"
+#: src/Admin/GoogleWizardAccountStepsView.php:201
+msgid "Green items are ready; amber items still need a step finished."
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:319
-msgid "Disconnect"
+#: src/Admin/GoogleWizardAccountStepsView.php:211
+#: src/Admin/GoogleWizardView.php:109
+msgid "Back to settings"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:324
+#: src/Admin/GoogleWizardAccountStepsView.php:229
+msgid "Credentials saved"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:236
+msgid "Google account connected"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:244
+msgid "Search Console property chosen"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:253
+msgid "GA4 fallback property chosen"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:253
+msgid "Analytics property chosen"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:261
+msgid "GA4 fallback (optional)"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:291
+msgid "Finish this step"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:298
+msgid "Add it"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:327
+msgid "Populate the archive now instead of waiting for the next scheduled refresh:"
+msgstr ""
+
+#: src/Admin/GoogleWizardAccountStepsView.php:333
 msgid "Refresh Search Console"
 msgstr ""
 
-#: src/Admin/GoogleWizardModalView.php:329
+#: src/Admin/GoogleWizardAccountStepsView.php:340
 msgid "Refresh GA4"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:97
-msgid "News Cycle Settings"
+#: src/Admin/GoogleWizardAccountStepsView.php:374
+msgid "Connection status:"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:99
-msgid "A list of posts published in the last <insert newscycle settings>."
+#: src/Admin/GoogleWizardAccountStepsView.php:416
+#: src/Admin/GoogleWizardSetupStepsView.php:279
+msgid "Back"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:101
-msgid "Include content published in the last (hours)"
+#: src/Admin/GoogleWizardSetupStepsView.php:34
+msgid "Choose your content signal"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:106
-msgid "When that window is empty, show the latest (posts)"
+#: src/Admin/GoogleWizardSetupStepsView.php:36
+msgid "Choose Search Console, Analytics, or a combined path that uses GA4 when Search Console returns no data."
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:112
-msgid "Fallback so the archive is never blank when no post falls inside the recent window."
+#: src/Admin/GoogleWizardSetupStepsView.php:47
+msgid "Search Console only"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:141
-msgid "Top Articles"
+#: src/Admin/GoogleWizardSetupStepsView.php:48
+msgid "Read-only access to your Search Console top content."
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:143
-msgid "A list of top articles manually set."
+#: src/Admin/GoogleWizardSetupStepsView.php:54
+msgid "Analytics only"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:145
-msgid "Maximum curated URLs"
+#: src/Admin/GoogleWizardSetupStepsView.php:55
+msgid "Use GA4 top pages as the primary content signal."
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:154
-msgid "Import URLs from CSV"
+#: src/Admin/GoogleWizardSetupStepsView.php:61
+msgid "Search Console + GA4 fallback"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:158
-msgid "Replace the list with the CSV (otherwise merge)"
+#: src/Admin/GoogleWizardSetupStepsView.php:62
+msgid "Use Search Console first, then GA4 when Search Console has no data."
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:162
-msgid "The first URL-like value in each CSV row is imported."
+#: src/Admin/GoogleWizardSetupStepsView.php:111
+msgid "Create the Google app"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:198
-msgid "Google Top Content"
+#: src/Admin/GoogleWizardSetupStepsView.php:113
+msgid "One-time setup in Google Cloud: a project with the required Google APIs enabled and an OAuth web client. Start by copying this Redirect URI — the client must be created with it, exactly as shown."
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:200
-msgid "Use the guided setup to connect Google, choose your content signal, and refresh the archive cache without needing to understand the raw API fields first."
+#: src/Admin/GoogleWizardSetupStepsView.php:138
+msgid "Authorized redirect URI"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:207
-msgid "Open Google setup wizard"
+#: src/Admin/GoogleWizardSetupStepsView.php:146
+msgid "Copy"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:210
-msgid "You can reopen this any time to update credentials, reconnect, or refresh the cache."
+#: src/Admin/GoogleWizardSetupStepsView.php:149
+msgid "It must match exactly, including https and the full admin-post.php?action=... path."
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:257
+#: src/Admin/GoogleWizardSetupStepsView.php:161
+msgid "1. Set up Google Auth Platform"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:162
+msgid "In Google Cloud, create or select a project, then open Google Auth Platform. If Google shows a Get started prompt for a new project, complete it first. If the app stays unpublished (External), add yourself as a test user during that flow."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:163
+msgid "Open Google Auth Platform"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:167
+msgid "2. Create the OAuth web client"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:168
+msgid "Open Clients, click Create client, choose Web application, and name it (for example CannyForge Archive). Under Authorized redirect URIs click + Add URI, paste the Redirect URI above, then Create. JavaScript origins are not required."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:169
+msgid "Open Clients"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:173
+msgid "3. Enable the APIs"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:178
+msgid "This path uses Search Console first and GA4 as a fallback, so enable all three APIs."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:180
+msgid "This path uses GA4 as the primary signal, so enable the Analytics Data API and Analytics Admin API."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:182
+msgid "This path uses Search Console, so enable the Search Console API."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:186
+msgid "Enable Search Console API"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:189
+msgid "Enable Analytics Data API"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:190
+msgid "Enable Analytics Admin API"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:206
+msgid "Add your credentials"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:208
+msgid "In Google Auth Platform > Clients, open your web client and use Download JSON, then upload the file here. The Client ID and Secret are imported securely on the server."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:218
+msgid "OAuth client JSON"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:225
+msgid "Save and continue"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:238
+msgid "Saved. Leave blank to keep it."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:239
+msgid "Paste the client secret."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:242
+msgid "Or paste the values manually"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:245
+msgid "Google Client ID"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:250
+msgid "Google Client Secret"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:253
+msgid "The client secret is never rendered back into the form. Leave it blank to keep the stored secret unchanged."
+msgstr ""
+
+#: src/Admin/GoogleWizardStepPlanner.php:107
+msgid "Signal"
+msgstr ""
+
+#: src/Admin/GoogleWizardStepPlanner.php:108
+msgid "Google app"
+msgstr ""
+
+#: src/Admin/GoogleWizardStepPlanner.php:109
+#: src/Admin/ModeSettingsPanelView.php:426
 msgid "Credentials"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:258
+#: src/Admin/GoogleWizardStepPlanner.php:110
+msgid "Connect"
+msgstr ""
+
+#: src/Admin/GoogleWizardStepPlanner.php:111
+msgid "Property"
+msgstr ""
+
+#: src/Admin/GoogleWizardStepPlanner.php:112
+msgid "Finish"
+msgstr ""
+
+#: src/Admin/GoogleWizardView.php:103
+msgid "Google setup"
+msgstr ""
+
+#: src/Admin/GoogleWizardView.php:126
+msgid "Google settings saved."
+msgstr ""
+
+#: src/Admin/GoogleWizardView.php:131
+#: src/Admin/SettingsPage.php:237
+msgid "Google OAuth client JSON was not imported: "
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:121
+msgid "News Cycle Settings"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:123
+msgid "Show posts published within the configured recent window, falling back to the latest posts when that window is empty."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:125
+msgid "Include content published in the last (hours)"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:130
+msgid "When that window is empty, show the latest (posts)"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:136
+msgid "Fallback so the archive is never blank when no post falls inside the recent window."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:159
+msgid "Top Articles"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:161
+msgid "A list of top articles manually set."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:163
+msgid "Maximum curated URLs"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:174
+msgid "Import URLs from CSV"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:178
+msgid "Replace the list with the CSV (otherwise merge)"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:182
+msgid "The first URL-like value in each CSV row is imported."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:202
+msgid "Search Console top pages"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:204
+msgid "Select published WordPress posts from the latest Search Console results to add them to your curated URL list."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:218
+#: src/Admin/ModeSettingsPanelView.php:313
+msgid "(Untitled post)"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:236
+#: src/Admin/ModeSettingsPanelView.php:325
+msgid "View"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:241
+msgid "Add selected to curated URLs"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:256
+msgid "No cached Search Console pages are available yet. Refresh Search Console in the Google setup wizard to load them here."
+msgstr ""
+
+#. translators: %d: number of URLs returned by Search Console.
+#: src/Admin/ModeSettingsPanelView.php:263
+#, php-format
+msgid "Search Console returned %d URLs, but none matched published posts on this WordPress install. This is expected when testing production data on local or staging content."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:298
+msgid "GA4 top pages"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:300
+msgid "Review the page paths returned by GA4 and confirm whether they resolve to published posts on this WordPress install."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:335
+msgid "No cached GA4 pages are available yet. Refresh GA4 in the Google setup wizard to load them here."
+msgstr ""
+
+#. translators: %d: number of page paths returned by GA4.
+#: src/Admin/ModeSettingsPanelView.php:342
+#, php-format
+msgid "GA4 returned %d page paths, but none matched published posts on this WordPress install. This is expected when testing production data on local or staging content."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:352
+msgid "Open path"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:374
+msgid "Google Top Content"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:376
+msgid "Use the guided setup to connect Google, choose your content signal, and refresh the archive cache without needing to understand the raw API fields first."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:384
+msgid "Open Google setup wizard"
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:387
+msgid "You can reopen this any time to update credentials, reconnect, or refresh the cache."
+msgstr ""
+
+#: src/Admin/ModeSettingsPanelView.php:427
 msgid "Saved"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:258
-#: src/Admin/ModeSettingsPanelView.php:268
+#: src/Admin/ModeSettingsPanelView.php:427
+#: src/Admin/ModeSettingsPanelView.php:437
 msgid "Needed"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:262
+#: src/Admin/ModeSettingsPanelView.php:431
 msgid "Google account"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:267
-msgid "Search Console property"
-msgstr ""
-
-#: src/Admin/ModeSettingsPanelView.php:268
+#: src/Admin/ModeSettingsPanelView.php:437
 msgid "Ready"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:272
+#: src/Admin/ModeSettingsPanelView.php:441
 msgid "GA4 fallback"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:273
+#: src/Admin/ModeSettingsPanelView.php:442
 msgid "Enabled"
 msgstr ""
 
-#: src/Admin/ModeSettingsPanelView.php:273
+#: src/Admin/ModeSettingsPanelView.php:442
 msgid "Off"
 msgstr ""
+
+#: src/Admin/SearchConsolePropertyController.php:103
+msgid "Connect Google before loading Search Console properties."
+msgstr ""
+
+#: src/Admin/SearchConsolePropertyController.php:111
+msgid "Google returned no Search Console properties for this account."
+msgstr ""
+
+#. translators: %d: number of properties.
+#: src/Admin/SearchConsolePropertyController.php:120
+#, php-format
+msgid "%d Search Console property loaded."
+msgid_plural "%d Search Console properties loaded."
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/Admin/SearchConsoleRefreshController.php:113
 msgid "Connect Google and save a Search Console site URL before refreshing."
@@ -408,16 +687,16 @@ msgstr ""
 msgid "Search Console cache refreshed: %d post IDs."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:197
+#: src/Admin/SettingsPage.php:220
 msgid "You do not have permission to manage these settings."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:203
+#: src/Admin/SettingsPage.php:231
 msgid "Settings saved."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:209
-msgid "Google OAuth client JSON was not imported: "
+#: src/Admin/SettingsPage.php:244
+msgid "No authenticated-encryption backend is available on this server (the PHP sodium extension, or OpenSSL with AES-256-GCM). Google secrets cannot be encrypted at rest, so new Client Secrets and connection tokens will not be saved until this is fixed — ask your host to enable the sodium PHP extension."
 msgstr ""
 
 #: src/Admin/SettingsSectionsView.php:51
@@ -493,300 +772,300 @@ msgstr ""
 msgid "Border Color"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:129
+#: src/Admin/SettingsSectionsView.php:136
 msgid "Done"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:144
+#: src/Admin/SettingsSectionsView.php:151
 msgid "Pagination Targeting"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:146
+#: src/Admin/SettingsSectionsView.php:153
 msgid "Replace pagination on these archive types."
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:148
+#: src/Admin/SettingsSectionsView.php:155
 msgid "Category archives"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:149
+#: src/Admin/SettingsSectionsView.php:156
 msgid "Tag archives"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:150
+#: src/Admin/SettingsSectionsView.php:157
 msgid "Author archives"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:151
+#: src/Admin/SettingsSectionsView.php:158
 msgid "Date archives"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:163
+#: src/Admin/SettingsSectionsView.php:170
 msgid "User Filters"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:164
+#: src/Admin/SettingsSectionsView.php:171
 msgid "Search Box"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:165
+#: src/Admin/SettingsSectionsView.php:172
 msgid "Category filters"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:166
+#: src/Admin/SettingsSectionsView.php:173
 msgid "Tag filters"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:167
+#: src/Admin/SettingsSectionsView.php:174
 msgid "Month + Year filters"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:168
+#: src/Admin/SettingsSectionsView.php:175
 msgid "Author filters"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:182
+#: src/Admin/SettingsSectionsView.php:189
 msgid "Content Selection"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:184
+#: src/Admin/SettingsSectionsView.php:191
 msgid "Choose categories and tags from your site instead of typing term names manually."
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:186
+#: src/Admin/SettingsSectionsView.php:193
 msgid "Include categories"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:186
+#: src/Admin/SettingsSectionsView.php:193
 msgid "Only show entries that match at least one selected category."
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:187
+#: src/Admin/SettingsSectionsView.php:194
 msgid "Include tags"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:187
+#: src/Admin/SettingsSectionsView.php:194
 msgid "Only show entries that match at least one selected tag."
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:188
+#: src/Admin/SettingsSectionsView.php:195
 msgid "Exclude categories"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:188
+#: src/Admin/SettingsSectionsView.php:195
 msgid "Hide any entry that matches one of these categories."
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:189
+#: src/Admin/SettingsSectionsView.php:196
 msgid "Exclude tags"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:189
+#: src/Admin/SettingsSectionsView.php:196
 msgid "Hide any entry that matches one of these tags."
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:190
+#: src/Admin/SettingsSectionsView.php:197
 msgid "Exclude noindex content"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:191
+#: src/Admin/SettingsSectionsView.php:198
 msgid "Pinned URLs (shown first)"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:203
+#: src/Admin/SettingsSectionsView.php:210
 msgid "Archive Link Types"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:204
+#: src/Admin/SettingsSectionsView.php:211
 msgid "Title (default)"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:205
+#: src/Admin/SettingsSectionsView.php:212
 msgid "Description / snippet"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:206
+#: src/Admin/SettingsSectionsView.php:213
 msgid "Featured Image"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:207
+#: src/Admin/SettingsSectionsView.php:214
 msgid "Categories"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:208
+#: src/Admin/SettingsSectionsView.php:215
 msgid "Tags"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:209
+#: src/Admin/SettingsSectionsView.php:216
 #: src/Core/Archive/FilterControlsRenderer.php:139
 msgid "Author"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:210
+#: src/Admin/SettingsSectionsView.php:217
 msgid "Published date"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:255
-#: src/Admin/SettingsView.php:140
-#: src/Admin/SettingsView.php:221
+#: src/Admin/SettingsSectionsView.php:262
+#: src/Admin/SettingsView.php:134
+#: src/Admin/SettingsView.php:209
 msgid "SEO"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:257
+#: src/Admin/SettingsSectionsView.php:264
 msgid "Archive title"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:260
+#: src/Admin/SettingsSectionsView.php:267
 msgid "Meta description"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:266
+#: src/Admin/SettingsSectionsView.php:273
 msgid "Allow indexing (index)"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:267
+#: src/Admin/SettingsSectionsView.php:274
 msgid "Allow following links (follow)"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:269
+#: src/Admin/SettingsSectionsView.php:276
 msgid "Canonical URL (optional)"
 msgstr ""
 
-#: src/Admin/SettingsSectionsView.php:273
+#: src/Admin/SettingsSectionsView.php:280
 msgid "Defaults to the archive URL"
 msgstr ""
 
-#: src/Admin/SettingsView.php:136
-#: src/Admin/SettingsView.php:172
+#: src/Admin/SettingsView.php:130
+#: src/Admin/SettingsView.php:160
 msgid "Content"
 msgstr ""
 
-#: src/Admin/SettingsView.php:137
-#: src/Admin/SettingsView.php:192
+#: src/Admin/SettingsView.php:131
+#: src/Admin/SettingsView.php:180
 msgid "Display"
 msgstr ""
 
-#: src/Admin/SettingsView.php:138
-#: src/Admin/SettingsView.php:203
+#: src/Admin/SettingsView.php:132
+#: src/Admin/SettingsView.php:191
 msgid "Pagination"
 msgstr ""
 
-#: src/Admin/SettingsView.php:139
-#: src/Admin/SettingsView.php:212
+#: src/Admin/SettingsView.php:133
+#: src/Admin/SettingsView.php:200
 msgid "Filters"
 msgstr ""
 
-#: src/Admin/SettingsView.php:141
-#: src/Admin/SettingsView.php:230
+#: src/Admin/SettingsView.php:135
+#: src/Admin/SettingsView.php:218
 msgid "Advanced"
 msgstr ""
 
-#: src/Admin/SettingsView.php:173
+#: src/Admin/SettingsView.php:161
 msgid "Choose what content to show in your archive."
 msgstr ""
 
-#: src/Admin/SettingsView.php:193
+#: src/Admin/SettingsView.php:181
 msgid "Choose layout and what information to show for each article."
 msgstr ""
 
-#: src/Admin/SettingsView.php:204
+#: src/Admin/SettingsView.php:192
 msgid "Configure pagination and where the archive link appears."
 msgstr ""
 
-#: src/Admin/SettingsView.php:213
+#: src/Admin/SettingsView.php:201
 msgid "Control which archive types and user filters replace pagination."
 msgstr ""
 
-#: src/Admin/SettingsView.php:222
+#: src/Admin/SettingsView.php:210
 msgid "Set archive title and meta description."
 msgstr ""
 
-#: src/Admin/SettingsView.php:231
+#: src/Admin/SettingsView.php:219
 msgid "Additional options for fine control."
 msgstr ""
 
-#: src/Admin/SettingsView.php:247
+#: src/Admin/SettingsView.php:235
 msgid "Live preview"
 msgstr ""
 
-#: src/Admin/SettingsView.php:248
+#: src/Admin/SettingsView.php:236
 msgid "This shows the last saved version of your archive. Save changes to update it."
 msgstr ""
 
-#: src/Admin/SettingsView.php:249
+#: src/Admin/SettingsView.php:237
 msgid "You have unsaved changes that are not shown below yet."
 msgstr ""
 
-#: src/Admin/SettingsView.php:253
+#: src/Admin/SettingsView.php:241
 msgid "Archive preview"
 msgstr ""
 
-#: src/Admin/SettingsView.php:270
+#: src/Admin/SettingsView.php:258
 msgid "Reset to saved values"
 msgstr ""
 
-#: src/Admin/SettingsView.php:271
-#: src/Admin/SettingsView.php:300
+#: src/Admin/SettingsView.php:259
+#: src/Admin/SettingsView.php:297
 msgid "Save changes"
 msgstr ""
 
-#: src/Admin/SettingsView.php:285
+#: src/Admin/SettingsView.php:278
 msgid "Toggle navigation"
 msgstr ""
 
-#: src/Admin/SettingsView.php:286
+#: src/Admin/SettingsView.php:282
 msgid "CannyForge Archive"
 msgstr ""
 
-#: src/Admin/SettingsView.php:290
+#: src/Admin/SettingsView.php:287
 msgid "Live Preview"
 msgstr ""
 
-#: src/Admin/SettingsView.php:294
+#: src/Admin/SettingsView.php:291
 msgid "Preview Archive"
 msgstr ""
 
-#: src/Admin/SettingsView.php:316
+#: src/Admin/SettingsView.php:313
 msgid "Preview device size"
 msgstr ""
 
-#: src/Admin/SettingsView.php:317
+#: src/Admin/SettingsView.php:314
 msgid "Desktop"
 msgstr ""
 
-#: src/Admin/SettingsView.php:318
+#: src/Admin/SettingsView.php:315
 msgid "Tablet"
 msgstr ""
 
-#: src/Admin/SettingsView.php:319
+#: src/Admin/SettingsView.php:316
 msgid "Mobile"
 msgstr ""
 
-#: src/Admin/SettingsView.php:375
+#: src/Admin/SettingsView.php:372
 msgid "Archive style"
 msgstr ""
 
-#: src/Admin/SettingsView.php:378
+#: src/Admin/SettingsView.php:375
 msgid "Latest posts"
 msgstr ""
 
-#: src/Admin/SettingsView.php:378
+#: src/Admin/SettingsView.php:375
 msgid "Show recently published content"
 msgstr ""
 
-#: src/Admin/SettingsView.php:379
+#: src/Admin/SettingsView.php:376
 msgid "Curated archive"
 msgstr ""
 
-#: src/Admin/SettingsView.php:379
+#: src/Admin/SettingsView.php:376
 msgid "Show selected evergreen content"
 msgstr ""
 
-#: src/Admin/SettingsView.php:380
+#: src/Admin/SettingsView.php:377
 msgid "Latest + curated"
 msgstr ""
 
-#: src/Admin/SettingsView.php:380
+#: src/Admin/SettingsView.php:377
 msgid "Combine recent and selected content"
 msgstr ""
 
@@ -858,8 +1137,54 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
+#: src/Frontend/ArchiveAssets.php:149
+msgid "‹ Prev"
+msgstr ""
+
+#: src/Frontend/ArchiveAssets.php:150
+msgid "Next ›"
+msgstr ""
+
+#. translators: {current} and {total} are replaced client-side with page numbers; kept as literal tokens (not sprintf) because the JS layer has no printf-style formatter.
+#: src/Frontend/ArchiveAssets.php:152
+msgid "Page {current} of {total}"
+msgstr ""
+
+#: src/Frontend/ArchiveAssets.php:153
+msgid "No results match your search."
+msgstr ""
+
+#. translators: %s is replaced client-side with the number of matching results (singular form).
+#. translators: %s is replaced client-side with the number of matching results (plural form).
+#: src/Frontend/ArchiveAssets.php:155
+#: src/Frontend/ArchiveAssets.php:157
+#, php-format
+msgid "Found %s result across the whole archive"
+msgid_plural "Found %s results across the whole archive"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Frontend/ArchiveSearchEndpoint.php:140
+msgid "Too many search requests. Please wait a moment and try again."
+msgstr ""
+
 #: src/Frontend/PaginationController.php:171
 msgid "View Archive"
+msgstr ""
+
+#: src/Integration/Google/Ga4PropertyClient.php:69
+#: src/Integration/Google/SearchConsolePropertyClient.php:69
+msgid "Google is not connected."
+msgstr ""
+
+#: src/Integration/Google/Ga4PropertyClient.php:78
+msgid "The GA4 properties request could not be completed."
+msgstr ""
+
+#. translators: %d: HTTP response status code.
+#: src/Integration/Google/Ga4PropertyClient.php:87
+#, php-format
+msgid "Google returned HTTP %d while listing GA4 properties."
 msgstr ""
 
 #: src/Integration/Google/GoogleClientConfigImporter.php:44
@@ -880,4 +1205,34 @@ msgstr ""
 
 #: src/Integration/Google/GoogleClientConfigImporter.php:82
 msgid "That file did not include a Client ID or Client Secret."
+msgstr ""
+
+#: src/Integration/Google/GoogleTokenStore.php:269
+msgid "Connected"
+msgstr ""
+
+#: src/Integration/Google/GoogleTokenStore.php:270
+msgid "Expired"
+msgstr ""
+
+#: src/Integration/Google/GoogleTokenStore.php:271
+msgid "Error"
+msgstr ""
+
+#: src/Integration/Google/GoogleTokenStore.php:272
+msgid "Needs re-authorising"
+msgstr ""
+
+#: src/Integration/Google/GoogleTokenStore.php:273
+msgid "Disconnected"
+msgstr ""
+
+#: src/Integration/Google/SearchConsolePropertyClient.php:75
+msgid "The Search Console properties request could not be completed."
+msgstr ""
+
+#. translators: %d: HTTP response status code.
+#: src/Integration/Google/SearchConsolePropertyClient.php:83
+#, php-format
+msgid "Google returned HTTP %d while listing Search Console properties."
 msgstr ""

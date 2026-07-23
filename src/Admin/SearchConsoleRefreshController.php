@@ -139,7 +139,8 @@ final class SearchConsoleRefreshController {
 	}
 
 	/**
-	 * Redirect back to the settings page with a one-shot notice.
+	 * Redirect back to where the action was submitted from — the wizard step
+	 * when the posted form carried one, otherwise the settings page.
 	 *
 	 * @param string $message Notice message.
 	 * @param string $type    Notice type.
@@ -152,7 +153,9 @@ final class SearchConsoleRefreshController {
 					GoogleConnectionController::NOTICE_KEY => rawurlencode( $message ),
 					GoogleConnectionController::NOTICE_TYPE_KEY => $type,
 				),
-				admin_url( 'admin.php?page=' . SettingsPage::PAGE_SLUG )
+				GoogleWizardPage::redirect_base_from_request(
+					admin_url( 'admin.php?page=' . SettingsPage::PAGE_SLUG )
+				)
 			)
 		);
 		exit;

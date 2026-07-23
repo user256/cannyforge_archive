@@ -113,6 +113,7 @@ class SearchConsoleTopContentRefresherTest extends TestCase {
 
 		$this->assertSame( array( 10, 7 ), $ids );
 		$this->assertSame( array( 10, 7 ), $cache->get_post_ids() );
+		$this->assertSame( array( 'https://example.test/a/', 'https://example.test/b/' ), $cache->get_source_urls() );
 	}
 
 	/**

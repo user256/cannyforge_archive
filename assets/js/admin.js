@@ -214,114 +214,96 @@
 		});
 	}
 
-	function initGoogleWizardDialogs() {
-		document.querySelectorAll('[data-cf-google-wizard-dialog]').forEach(function (dialog) {
-			var openers = Array.prototype.slice.call(document.querySelectorAll('[data-cf-google-wizard-open]'));
-			var closers = Array.prototype.slice.call(dialog.querySelectorAll('[data-cf-google-wizard-close]'));
-			var ga4Toggle = dialog.querySelector('[data-cf-google-ga4-toggle]');
-			var ga4Panel = dialog.querySelector('[data-cf-google-ga4-fields]');
-			var ga4Input = ga4Panel ? ga4Panel.querySelector('input[name="google_ga4_property_id"]') : null;
-			var copyButton = dialog.querySelector('[data-cf-google-copy-callback]');
-			var callbackCode = dialog.querySelector('[data-cf-google-callback-url]');
-			var saveDetailsButton = dialog.querySelector('[data-cf-google-save-details]');
-			var saveStatus = dialog.querySelector('[data-cf-google-save-status]');
-			var wizardForm = dialog.closest('form');
-			var progressTitle = dialog.querySelector('[data-cf-google-wizard-progress-title]');
-			var progressMessage = dialog.querySelector('[data-cf-google-wizard-progress-message]');
+	/**
+	 * Wire every `[data-cf-copy="<selector>"]` button to copy the value of
+	 * the input the selector points at (the Google wizard's redirect URI).
+	 * The server-rendered (already localised) label is captured for the
+	 * revert, so only the transient "Copied" state needs its own string.
+	 */
+	function initCopyButtons() {
+		if (!navigator.clipboard || !navigator.clipboard.writeText) {
+			return;
+		}
 
-			var syncGa4 = function () {
-				if (!ga4Toggle || !ga4Panel || !ga4Input) {
+		document.querySelectorAll('[data-cf-copy]').forEach(function (button) {
+			var target = document.querySelector(button.getAttribute('data-cf-copy'));
+			if (!target) {
+				return;
+			}
+
+			var defaultLabel = button.textContent;
+			var copiedLabel = (root.CannyForgeAdminL10n && root.CannyForgeAdminL10n.copiedLabel) || 'Copied';
+
+			button.addEventListener('click', function () {
+				navigator.clipboard.writeText('value' in target ? target.value : target.textContent || '');
+				button.textContent = copiedLabel;
+				window.setTimeout(function () {
+					button.textContent = defaultLabel;
+				}, 1600);
+			});
+		});
+	}
+
+	/**
+	 * Auto-select the contents of read-only reference inputs (the wizard's
+	 * redirect URI) on focus, so a manual copy grabs the whole value.
+	 */
+	function initSelectOnFocus() {
+		document.querySelectorAll('[data-cf-select-on-focus]').forEach(function (input) {
+			input.addEventListener('focus', function () {
+				input.select();
+			});
+		});
+	}
+
+	/**
+	 * Add selected, human-readable Search Console pages to the Blog URL
+	 * textarea. This is intentionally a client-side curation action: the
+	 * normal settings save remains the single place where the edited URL list
+	 * is persisted.
+	 */
+	function initSearchConsoleCurator() {
+		document.querySelectorAll('[data-cf-add-search-console-pages]').forEach(function (button) {
+			var targetSelector = button.getAttribute('data-target');
+			var target = targetSelector ? document.querySelector(targetSelector) : null;
+			var status = button.parentElement ? button.parentElement.querySelector('[data-cf-search-console-status]') : null;
+
+			if (!target) {
+				return;
+			}
+
+			button.addEventListener('click', function () {
+				var urls = target.value.split(/\r?\n/).map(function (url) { return url.trim(); }).filter(Boolean);
+				var seen = Object.create(null);
+				var added = 0;
+
+				urls.forEach(function (url) { seen[url] = true; });
+
+				button.closest('.cf-search-console-curator').querySelectorAll('[data-cf-search-console-page]:checked').forEach(function (checkbox) {
+					var url = (checkbox.getAttribute('data-url') || '').trim();
+
+					if (url && !seen[url]) {
+						urls.push(url);
+						seen[url] = true;
+						added += 1;
+					}
+
+					checkbox.checked = false;
+				});
+
+				if (0 === added) {
+					if (status) {
+						status.textContent = (root.CannyForgeAdminL10n && root.CannyForgeAdminL10n.curatorNoneSelected) || 'Select at least one page first.';
+					}
 					return;
 				}
 
-				var enabled = !!ga4Toggle.checked;
-				ga4Panel.hidden = !enabled;
-				ga4Input.disabled = !enabled;
-
-				if (!enabled) {
-					ga4Input.value = '';
+				target.value = urls.join('\n');
+				target.dispatchEvent(new Event('input', { bubbles: true }));
+				if (status) {
+					status.textContent = ((root.CannyForgeAdminL10n && root.CannyForgeAdminL10n.curatorAdded) || 'Added %d page(s) to curated URLs.').replace('%d', String(added));
 				}
-			};
-
-			wireDialog(dialog, openers, closers);
-
-			if (saveDetailsButton && saveStatus && wizardForm && window.fetch && window.FormData) {
-				saveDetailsButton.addEventListener('click', function (event) {
-					event.preventDefault();
-					if (saveDetailsButton.disabled) {
-						return;
-					}
-
-					var defaultLabel = saveDetailsButton.textContent;
-					saveDetailsButton.disabled = true;
-					saveDetailsButton.textContent = 'Saving…';
-					saveStatus.hidden = false;
-					saveStatus.className = 'cannyforge-google-wizard__save-status is-saving';
-					saveStatus.textContent = 'Saving credentials…';
-
-					window.fetch(wizardForm.action, {
-						method: 'POST',
-						body: new window.FormData(wizardForm),
-						credentials: 'same-origin',
-						headers: { 'X-Requested-With': 'XMLHttpRequest' },
-					})
-						.then(function (response) {
-							return response.text().then(function (html) {
-								return { ok: response.ok, html: html };
-							});
-						})
-						.then(function (result) {
-							if (!result.ok || result.html.indexOf('Google OAuth client JSON was not imported') !== -1) {
-								throw new Error('save-failed');
-							}
-
-							saveStatus.className = 'cannyforge-google-wizard__save-status is-success';
-							saveStatus.textContent = 'Credentials saved. The wizard is still open.';
-							if (progressTitle && progressMessage) {
-								progressTitle.textContent = 'Next: connect your Google account';
-								progressMessage.textContent = 'Click Connect Google below and approve read-only access in Google.';
-							}
-						})
-						.catch(function () {
-							saveStatus.className = 'cannyforge-google-wizard__save-status is-error';
-							saveStatus.textContent = 'Credentials could not be saved. Check the file and try again.';
-						})
-						.finally(function () {
-							saveDetailsButton.disabled = false;
-							saveDetailsButton.textContent = defaultLabel;
-						});
-				});
-			}
-
-			if (ga4Toggle) {
-				ga4Toggle.addEventListener('change', syncGa4);
-				syncGa4();
-			}
-
-			if (copyButton && callbackCode && navigator.clipboard && navigator.clipboard.writeText) {
-				// Capture the server-rendered (already localised) label instead of
-				// hardcoding the revert text, so only the transient "Copied" state
-				// needs its own localised string (ticket 610).
-				var copyDefaultLabel = copyButton.textContent;
-				var copiedLabel = (root.CannyForgeAdminL10n && root.CannyForgeAdminL10n.copiedLabel) || 'Copied';
-
-				copyButton.addEventListener('click', function () {
-					navigator.clipboard.writeText(callbackCode.textContent || '');
-					copyButton.textContent = copiedLabel;
-					window.setTimeout(function () {
-						copyButton.textContent = copyDefaultLabel;
-					}, 1600);
-				});
-			}
-
-			if ('1' === dialog.getAttribute('data-cf-google-wizard-auto-open')) {
-				if (typeof dialog.showModal === 'function') {
-					dialog.showModal();
-				} else {
-					dialog.setAttribute('open', 'open');
-				}
-				document.body.classList.add('cannyforge-modal-open');
-			}
+			});
 		});
 	}
 
@@ -576,7 +558,9 @@
 
 	function init() {
 		initGenericDialogs();
-		initGoogleWizardDialogs();
+		initCopyButtons();
+		initSelectOnFocus();
+		initSearchConsoleCurator();
 		initNavigation();
 		initPanelToggles();
 		initPreviewDevices();

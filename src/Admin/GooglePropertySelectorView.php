@@ -46,7 +46,6 @@ final class GooglePropertySelectorView {
 		}
 		echo '</select></label></p>';
 		echo '<p class="cannyforge-google-wizard__inline-action">';
-		echo '<button type="submit" class="button button-primary">' . esc_html__( 'Save property and continue', 'cannyforge-archive' ) . '</button>';
 		if ( '' !== $property_refresh_url ) {
 			printf(
 				'<button type="submit" class="button button-secondary" formaction="%s" formmethod="post">%s</button>',

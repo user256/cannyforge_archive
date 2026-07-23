@@ -56,31 +56,59 @@ describe('colour-editor dialog', () => {
 	});
 });
 
-describe('Google wizard credential save', () => {
-	test('saves in place and keeps the wizard open', async () => {
-		document.body.innerHTML = settingsPageHtml().replace(
-			'</form>',
-			'<dialog data-cf-google-wizard-dialog>' +
-				'<div class="cannyforge-google-wizard__progress">' +
-					'<strong data-cf-google-wizard-progress-title>Next: add credentials</strong>' +
-					'<span data-cf-google-wizard-progress-message>Upload the JSON.</span>' +
-				'</div>' +
-				'<button type="submit" data-cf-google-save-details>Save credentials and continue</button>' +
-				'<span data-cf-google-save-status hidden></span>' +
-			'</dialog></form>'
-		);
-		window.fetch = jest.fn().mockResolvedValue({
-			ok: true,
-			text: () => Promise.resolve('<html><body><div class="notice-success">Settings saved.</div></body></html>'),
+describe('Google wizard copy button', () => {
+	beforeEach(() => {
+		document.body.innerHTML =
+			'<div class="cf-wizard-copy-controls">' +
+				'<input type="text" id="cf-google-redirect-uri" value="https://example.test/wp-admin/admin-post.php?action=cb" readonly data-cf-select-on-focus>' +
+				'<button type="button" data-cf-copy="#cf-google-redirect-uri">Copy</button>' +
+			'</div>';
+		Object.assign(navigator, {
+			clipboard: { writeText: jest.fn() },
 		});
 		loadAdminScript();
+	});
 
-		document.querySelector('[data-cf-google-save-details]').click();
-		await new Promise((resolve) => setTimeout(resolve, 0));
+	test('copies the redirect URI input value and swaps the label to Copied', () => {
+		var button = document.querySelector('[data-cf-copy]');
+		button.click();
 
-		expect(window.fetch).toHaveBeenCalledTimes(1);
-		expect(document.querySelector('[data-cf-google-wizard-dialog]').hasAttribute('open')).toBe(false);
-		expect(document.querySelector('[data-cf-google-save-status]').textContent).toContain('Credentials saved');
-		expect(document.querySelector('[data-cf-google-wizard-progress-title]').textContent).toContain('Next: connect');
+		expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+			'https://example.test/wp-admin/admin-post.php?action=cb'
+		);
+		expect(button.textContent).toBe('Copied');
+	});
+
+	test('focusing the read-only input selects its whole value', () => {
+		var input = document.getElementById('cf-google-redirect-uri');
+		input.select = jest.fn();
+
+		input.dispatchEvent(new FocusEvent('focus'));
+
+		expect(input.select).toHaveBeenCalled();
+	});
+});
+
+describe('Search Console curation list', () => {
+	test('adds selected page URLs to the curated list and marks the form dirty', () => {
+		document.body.innerHTML =
+			'<form id="cf-settings-form">' +
+				'<textarea id="cf-blog-urls">https://example.test/existing/</textarea>' +
+				'<section class="cf-search-console-curator">' +
+					'<label><input type="checkbox" data-cf-search-console-page data-url="https://example.test/new-page/" checked> New page</label>' +
+					'<button type="button" data-cf-add-search-console-pages data-target="#cf-blog-urls">Add selected</button>' +
+					'<span data-cf-search-console-status></span>' +
+				'</section>' +
+				'<div id="cf-form-status" data-state="saved"><span class="cf-footer-status-text"></span></div>' +
+			'</form>';
+		loadAdminScript();
+
+		document.querySelector('[data-cf-add-search-console-pages]').click();
+
+		expect(document.getElementById('cf-blog-urls').value).toBe(
+			'https://example.test/existing/\nhttps://example.test/new-page/'
+		);
+		expect(document.querySelector('[data-cf-search-console-status]').textContent).toContain('Added 1 page');
+		expect(document.getElementById('cf-form-status').getAttribute('data-state')).toBe('dirty');
 	});
 });

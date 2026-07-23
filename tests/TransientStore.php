@@ -51,6 +51,20 @@ final class TransientStore {
 	}
 
 	/**
+	 * Delete every transient whose key starts with a prefix.
+	 *
+	 * @param string $prefix Transient key prefix.
+	 * @return void
+	 */
+	public static function delete_prefix( string $prefix ): void {
+		foreach ( array_keys( self::$transients ) as $key ) {
+			if ( str_starts_with( $key, $prefix ) ) {
+				unset( self::$transients[ $key ] );
+			}
+		}
+	}
+
+	/**
 	 * Clear all stored transients (call between tests for isolation).
 	 *
 	 * @return void

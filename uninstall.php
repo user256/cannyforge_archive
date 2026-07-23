@@ -2,9 +2,9 @@
 /**
  * Uninstall routine (ticket 606).
  *
- * Removes every row this plugin created — the settings option, the Google
- * client/token options, the GA4 and Search Console caches, the archive HTML
- * fragment-cache transients, and the OAuth CSRF state transients — and
+ * Removes the plugin's stored settings and credentials, fixed archive
+ * caches, OAuth CSRF state transients, and user-scoped Google property-list
+ * transients — and
  * best-effort revokes the stored Google grant with Google first, so a stale
  * grant doesn't linger in the site owner's Google account after the plugin
  * is gone.
@@ -29,16 +29,17 @@ require __DIR__ . '/autoload.php';
 
 use CannyForge\Archive\Bootstrap\UninstallCleaner;
 
-if ( ! function_exists( 'cannyforge_archive_delete_oauth_state_transients' ) ) {
+if ( ! function_exists( 'cannyforge_archive_delete_google_dynamic_transients' ) ) {
 	/**
-	 * Delete the Google OAuth CSRF state transient rows directly.
+	 * Delete Google transient rows whose keys carry a dynamic suffix.
 	 *
-	 * Each is named `cannyforge_archive_google_oauth_{state}` with a random
-	 * per-connect-attempt suffix
-	 * ({@see \CannyForge\Archive\Admin\GoogleConnectionController}), so there
-	 * is no fixed key `delete_transient()` can address; a direct, prepared
-	 * `LIKE` query against the current site's options table is the only way
-	 * to remove every row regardless of how many connect attempts were made.
+	 * OAuth state keys are named `cannyforge_archive_google_oauth_{state}` with
+	 * a random per-connect-attempt suffix
+	 * ({@see \CannyForge\Archive\Admin\GoogleConnectionController}); the
+	 * property stores use the same pattern with a WordPress user ID suffix.
+	 * There is no fixed key `delete_transient()` can address, so a direct,
+	 * prepared `LIKE` query against the current site's options table removes
+	 * every row regardless of how many users or connect attempts exist.
 	 *
 	 * Best-effort: a missing/incompatible `$wpdb` (never the case in a real
 	 * WordPress uninstall, but cheap to guard) is a silent no-op rather than
@@ -46,32 +47,40 @@ if ( ! function_exists( 'cannyforge_archive_delete_oauth_state_transients' ) ) {
 	 *
 	 * @return void
 	 */
-	function cannyforge_archive_delete_oauth_state_transients(): void {
+	function cannyforge_archive_delete_google_dynamic_transients(): void {
 		global $wpdb;
 
 		if ( ! ( $wpdb instanceof \wpdb ) ) {
 			return;
 		}
 
-		$like = $wpdb->esc_like( 'cannyforge_archive_google_oauth_' ) . '%';
+		$patterns = array();
+		foreach ( array(
+			'cannyforge_archive_google_oauth_',
+			'cannyforge_archive_sc_properties_',
+			'cannyforge_archive_ga4_properties_',
+		) as $prefix ) {
+			$like       = $wpdb->esc_like( $prefix ) . '%';
+			$patterns[] = '_transient_' . $like;
+			$patterns[] = '_transient_timeout_' . $like;
+		}
 
-		// The table name is a trusted internal $wpdb property (never user
-		// input), so it is substituted in after prepare() rather than
-		// interpolated into the %s-templated string itself: that keeps the
-		// string passed to prepare() a genuine literal, which is what its
-		// SQL-injection-safety typing expects.
-		$prepared = $wpdb->prepare(
-			'DELETE FROM {options_table} WHERE option_name LIKE %s OR option_name LIKE %s',
-			'_transient_' . $like,
-			'_transient_timeout_' . $like
+		$query = $wpdb->prepare(
+			'DELETE FROM %i WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s',
+			$wpdb->options,
+			$patterns[0],
+			$patterns[1],
+			$patterns[2],
+			$patterns[3],
+			$patterns[4],
+			$patterns[5]
 		);
-
-		if ( null === $prepared ) {
+		if ( ! is_string( $query ) ) {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- both %s values above are already escaped via $wpdb->prepare(); this str_replace() only substitutes the trusted, non-user-controlled $wpdb->options table name into the already-prepared string.
-		$wpdb->query( str_replace( '{options_table}', $wpdb->options, $prepared ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Uninstall must sweep dynamically suffixed transients; $query is prepared immediately above, including its identifier.
+		$wpdb->query( $query );
 	}
 }
 
@@ -83,7 +92,7 @@ if ( ! function_exists( 'cannyforge_archive_uninstall_clean_current_site' ) ) {
 	 */
 	function cannyforge_archive_uninstall_clean_current_site(): void {
 		( new UninstallCleaner() )->clean_current_site();
-		cannyforge_archive_delete_oauth_state_transients();
+		cannyforge_archive_delete_google_dynamic_transients();
 	}
 }
 

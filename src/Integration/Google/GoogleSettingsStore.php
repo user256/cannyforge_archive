@@ -125,6 +125,37 @@ final class GoogleSettingsStore {
 	}
 
 	/**
+	 * Persist only the Google fields present in a raw form submission.
+	 *
+	 * Fields absent from the input keep their stored value, so a form that
+	 * posts a subset of the Google settings (a single wizard step, or the
+	 * main settings form with no Google fields at all) can never wipe the
+	 * fields it did not render. A posted-but-blank client secret keeps the
+	 * stored secret via {@see self::save()}.
+	 *
+	 * @param array<string, mixed> $input Raw form input (`google_*` keys).
+	 * @return void
+	 */
+	public function save_overlay( array $input ): void {
+		$map     = array(
+			'google_client_id'               => 'client_id',
+			'google_client_secret'           => 'client_secret',
+			'google_search_console_site_url' => 'search_console_site_url',
+			'google_report_window_days'      => 'report_window_days',
+			'google_ga4_property_id'         => 'ga4_property_id',
+		);
+		$current = $this->get()->to_array();
+
+		foreach ( $map as $posted_key => $stored_key ) {
+			if ( array_key_exists( $posted_key, $input ) && is_scalar( $input[ $posted_key ] ) ) {
+				$current[ $stored_key ] = (string) $input[ $posted_key ];
+			}
+		}
+
+		$this->save( GoogleSettings::from_array( $current ) );
+	}
+
+	/**
 	 * Whether a client secret is already stored.
 	 *
 	 * @return bool

@@ -82,6 +82,7 @@ class UninstallCleanerTest extends TestCase {
 				'cannyforge_archive_google_access_token',
 				'cannyforge_archive_google_token_expires_at',
 				'cannyforge_archive_google_connection_status',
+				'cannyforge_archive_google_analytics_scope',
 				'cannyforge_archive_google_ga4_cache',
 				'cannyforge_archive_google_search_console_cache',
 			),

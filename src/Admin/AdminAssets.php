@@ -103,6 +103,9 @@ final class AdminAssets {
 				'savedLabel'            => __( 'All changes saved', 'cannyforge-archive' ),
 				'draftLabel'            => __( 'Draft changes', 'cannyforge-archive' ),
 				'copiedLabel'           => __( 'Copied', 'cannyforge-archive' ),
+				/* translators: %d is the number of page URLs added to the curated list. */
+				'curatorAdded'          => __( 'Added %d page(s) to curated URLs.', 'cannyforge-archive' ),
+				'curatorNoneSelected'   => __( 'Select at least one page first.', 'cannyforge-archive' ),
 				/* translators: %s is replaced client-side with the computed contrast ratio, e.g. "2.1". */
 				'contrastTextWarning'   => __( 'Text vs. surface contrast is %s:1 — WCAG AA requires at least 4.5:1.', 'cannyforge-archive' ),
 				/* translators: %s is replaced client-side with the computed contrast ratio, e.g. "2.1". */

@@ -15,7 +15,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
 | **Sprint 4 — Resilience & empty-state fallbacks** | Done | 401–406 implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), optional GA4 source (406). 499 = GO (qa green, 192 tests); live Google smoke deferred (needs real credentials). |
 | **Sprint 5 — wp.org submission compliance** | Done | 501 completed: runtime-only packaging, direct-file guards, branded naming, and external-services readme disclosure. |
-| **Sprint 6 — Trust & Scale** | In progress | 601–617 are merged/completed in the roadmap; 699 remains No-Go pending its local integration evidence and live review items. |
+| **Sprint 6 — Trust & Scale** | In progress | 601–617 completed; 699 No-Go. Google wizard audit filed 707–713 (wp.org disclosure + functional). |
 
 ## Sprint 1 — Settings & MVP
 
@@ -74,6 +74,10 @@ real sites.
 - [`docs/GOOGLE.md`](../docs/GOOGLE.md) — Google top-content sourcing setup (Search Console + GA4, tickets 404–406).
 - [`sprint-2-implementation-audit-2026-06-18.md`](sprint-2-implementation-audit-2026-06-18.md)
   — code-vs-ticket audit of 201–205.
+- [`plugin-audit-2026-07-21.md`](plugin-audit-2026-07-21.md)
+  — pre-Sprint-6 review gate audit (spawned 611–615).
+- [`google-wizard-audit-2026-07-22.md`](google-wizard-audit-2026-07-22.md)
+  — full-page Google wizard / GA4 picker audit (spawned 707–713).
 
 ## Sprint 3 — Findability
 
@@ -142,6 +146,31 @@ priority.
 - [x] [617 — Handle rejected archive-tail safe redirects](completed/617-archive-tail-safe-redirect-fallback.md)
 - [ ] [699 — Sprint 6 review gate (including deferred live Google smoke)](699-sprint-6-review.md)
 
+Google wizard audit (2026-07-22) — filed against the uncommitted full-page
+wizard / GA4 picker work; see
+[google-wizard-audit-2026-07-22.md](google-wizard-audit-2026-07-22.md):
+
+- [x] [707 — wp.org: External services disclosure for wizard Analytics scope + Admin API](707-wporg-google-external-services-disclosure.md)
+- [x] [708 — Uninstall user-scoped SC/GA4 property-list transients](708-uninstall-property-list-transients.md)
+- [x] [709 — Replace News panel `<insert newscycle settings>` placeholder copy](709-news-panel-placeholder-copy.md)
+- [x] [710 — Enable Analytics Admin API in wizard + surface GA4 list failures](710-ga4-admin-api-instructions-and-errors.md)
+- [x] [711 — Force reconnect when upgrading SC-only → SC+GA4](711-wizard-ga4-scope-upgrade-reconnect.md)
+- [x] [712 — Preserve `cf_signal` on wizard Back / checklist links](712-wizard-signal-navigation.md)
+- [x] [713 — Remove leftover Property-step “Save property and continue” CTA](713-wizard-property-duplicate-save.md)
+- [x] [714 — Make the dynamic-transient uninstall query pass Plugin Check](714-wporg-plugin-check-uninstall-query.md)
+
+Pre-submission audit (2026-07-23) — filed before WordPress.org submission;
+these are release-readiness fixes and block ticket 699 unless noted otherwise:
+
+- [ ] [715 — Complete Google external-services disclosure for WordPress.org](715-wporg-google-external-services-complete-disclosure.md)
+- [ ] [716 — Make the readme accurately describe archive URLs and pagination integration](716-readme-archive-behaviour-accuracy.md)
+- [ ] [717 — Remove the search-cache generation option on uninstall](717-uninstall-search-cache-generation-option.md)
+- [ ] [718 — Replace PageRank-sculpting language in the public listing copy](718-readme-neutral-seo-positioning.md)
+- [ ] [719 — Align the plugin-header and readme license declarations](719-align-plugin-license-declarations.md)
+- [ ] [720 — Make the PHP compatibility claim match supported runtimes and CI](720-php85-support-claim-and-ci.md)
+- [ ] [721 — Bring the 0.1.1 changelog in line with the distributed plugin](721-update-011-changelog-for-shipped-google-features.md)
+- [ ] [722 — Remove unused branding assets from the distributable ZIP](722-remove-unused-distribution-brand-assets.md)
+
 Also fixed mid-sprint, discovered independently by six of the tickets above:
 [a `wp_safe_redirect` test-shim collision](completed/618-phpunit-shim-collision-silently-truncated-suite.md)
 that silently truncated the whole PHPUnit run after ~8 tests while still
@@ -158,3 +187,4 @@ and Playwright candidates also expected to land here.
 - [ ] [702 — Non-text (UI component) contrast for the front-end theme's border colour](702-archive-theme-non-text-contrast.md)
 - [x] [703 — Capture wp.org listing screenshots](completed/703-wporg-screenshot-capture.md)
 - [x] [706 — Make the disposable integration rig rebuild-safe](completed/706-integration-rig-build-order.md)
+- [ ] [723 — Add opt-in full-site pagination after the optimised archive page](723-opt-in-full-archive-pagination.md)

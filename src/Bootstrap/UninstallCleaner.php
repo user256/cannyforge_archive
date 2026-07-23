@@ -28,12 +28,12 @@ use CannyForge\Archive\Integration\Google\GoogleTokenStore;
  * procedural top-level code in `uninstall.php`) lets it be unit-tested the
  * same way as every other collaborator in this codebase.
  *
- * The one thing this class does NOT cover is the Google OAuth CSRF state
- * transient (`cannyforge_archive_google_oauth_{state}`,
- * {@see \CannyForge\Archive\Admin\GoogleConnectionController}): its name
- * carries a random per-connect-attempt suffix, so there is no fixed key to
- * pass to `delete_transient()`. `uninstall.php` deletes those rows directly
- * via a prepared `$wpdb` query instead.
+ * Dynamic Google transients are not included in the fixed-name inventory:
+ * OAuth CSRF state (`cannyforge_archive_google_oauth_{state}`,
+ * {@see \CannyForge\Archive\Admin\GoogleConnectionController}) and the
+ * user-scoped Search Console/GA4 property lists carry suffixes, so there is
+ * no fixed key to pass to `delete_transient()`. `uninstall.php` deletes all
+ * three prefixes directly via one prepared `$wpdb` query instead.
  */
 final class UninstallCleaner {
 	/**
@@ -56,6 +56,7 @@ final class UninstallCleaner {
 		'cannyforge_archive_google_access_token',
 		'cannyforge_archive_google_token_expires_at',
 		'cannyforge_archive_google_connection_status',
+		'cannyforge_archive_google_analytics_scope',
 		'cannyforge_archive_google_ga4_cache',
 		'cannyforge_archive_google_search_console_cache',
 	);

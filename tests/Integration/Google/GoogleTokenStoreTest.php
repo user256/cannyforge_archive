@@ -140,11 +140,27 @@ class GoogleTokenStoreTest extends TestCase {
 		$store->save_refresh_token( 'refresh-token-value' );
 		$store->save_access_token( 'cached-token', 1200 );
 		$store->set_status( GoogleTokenStore::STATUS_CONNECTED );
+		$store->set_analytics_scope_granted( true );
 
 		$store->clear();
 
 		$this->assertSame( '', $store->refresh_token() );
 		$this->assertSame( '', $store->valid_access_token( 1000 ) );
 		$this->assertSame( GoogleTokenStore::STATUS_DISCONNECTED, $store->status() );
+		$this->assertFalse( $store->analytics_scope_granted() );
+	}
+
+	/**
+	 * Analytics scope state is explicit, and an unmarked legacy connection is
+	 * treated as insufficient for the GA4 picker.
+	 *
+	 * @return void
+	 */
+	public function test_analytics_scope_marker_defaults_false_and_can_be_set(): void {
+		$store = new GoogleTokenStore();
+
+		$this->assertFalse( $store->analytics_scope_granted() );
+		$store->set_analytics_scope_granted( true );
+		$this->assertTrue( $store->analytics_scope_granted() );
 	}
 }

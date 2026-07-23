@@ -17,8 +17,8 @@ use CannyForge\Archive\Contracts\SettingsRepositoryInterface;
 use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
 use CannyForge\Archive\Core\Settings\CsvUrlExtractor;
 use CannyForge\Archive\Integration\Google\Ga4CacheStore;
+use CannyForge\Archive\Integration\Google\Ga4PropertyStore;
 use CannyForge\Archive\Integration\Google\GoogleClientConfigImporter;
-use CannyForge\Archive\Integration\Google\GoogleSettings;
 use CannyForge\Archive\Integration\Google\GoogleSettingsStore;
 use CannyForge\Archive\Integration\Google\GoogleTokenStore;
 use CannyForge\Archive\Integration\Google\SearchConsoleCacheStore;
@@ -100,11 +100,18 @@ final class SettingsPage {
 	private Ga4CacheStore $ga4_cache;
 
 	/**
-	 * Google OAuth client JSON importer.
+	 * Google OAuth client JSON upload reader (shared with the wizard).
 	 *
-	 * @var GoogleClientConfigImporter
+	 * @var GoogleClientJsonUploadReader
 	 */
-	private GoogleClientConfigImporter $google_client_importer;
+	private GoogleClientJsonUploadReader $json_upload;
+
+	/**
+	 * The stepped Google setup wizard sub-view of this page.
+	 *
+	 * @var GoogleWizardPage
+	 */
+	private GoogleWizardPage $wizard;
 
 	/**
 	 * Short-lived Search Console property list.
@@ -124,16 +131,6 @@ final class SettingsPage {
 	private ArchiveUrlResolver $url_resolver;
 
 	/**
-	 * The actionable error from the last Google client JSON import attempt,
-	 * or empty when none was attempted or it succeeded. Rendered as a
-	 * distinct notice so a failed import is never mistaken for the general
-	 * "Settings saved" success message.
-	 *
-	 * @var string
-	 */
-	private string $google_import_error = '';
-
-	/**
 	 * Construct the page.
 	 *
 	 * @param SettingsRepositoryInterface     $repository Settings persistence.
@@ -147,6 +144,8 @@ final class SettingsPage {
 	 * @param GoogleClientConfigImporter|null $google_client_importer Google client JSON importer.
 	 * @param ArchiveUrlResolver|null         $url_resolver           Archive URL resolver.
 	 * @param SearchConsolePropertyStore|null $property_store         Property cache.
+	 * @param GoogleWizardPage|null           $wizard                 Google setup wizard sub-view.
+	 * @param Ga4PropertyStore|null           $ga4_property_store     GA4 property cache.
 	 */
 	public function __construct(
 		SettingsRepositoryInterface $repository,
@@ -159,19 +158,31 @@ final class SettingsPage {
 		?Ga4CacheStore $ga4_cache = null,
 		?GoogleClientConfigImporter $google_client_importer = null,
 		?ArchiveUrlResolver $url_resolver = null,
-		?SearchConsolePropertyStore $property_store = null
+		?SearchConsolePropertyStore $property_store = null,
+		?GoogleWizardPage $wizard = null,
+		?Ga4PropertyStore $ga4_property_store = null
 	) {
-		$this->repository             = $repository;
-		$this->parser                 = $parser;
-		$this->view                   = $view;
-		$this->csv                    = $csv ?? new CsvUrlExtractor();
-		$this->google_settings        = $google_settings ?? new GoogleSettingsStore();
-		$this->google_tokens          = $google_tokens ?? new GoogleTokenStore();
-		$this->search_cache           = $search_cache ?? new SearchConsoleCacheStore();
-		$this->ga4_cache              = $ga4_cache ?? new Ga4CacheStore();
-		$this->google_client_importer = $google_client_importer ?? new GoogleClientConfigImporter();
-		$this->url_resolver           = $url_resolver ?? new ArchiveUrlResolver();
-		$this->property_store         = $property_store ?? new SearchConsolePropertyStore();
+		$this->repository      = $repository;
+		$this->parser          = $parser;
+		$this->view            = $view;
+		$this->csv             = $csv ?? new CsvUrlExtractor();
+		$this->google_settings = $google_settings ?? new GoogleSettingsStore();
+		$this->google_tokens   = $google_tokens ?? new GoogleTokenStore();
+		$this->search_cache    = $search_cache ?? new SearchConsoleCacheStore();
+		$this->ga4_cache       = $ga4_cache ?? new Ga4CacheStore();
+		$this->json_upload     = new GoogleClientJsonUploadReader( $google_client_importer );
+		$this->url_resolver    = $url_resolver ?? new ArchiveUrlResolver();
+		$this->property_store  = $property_store ?? new SearchConsolePropertyStore();
+		$this->wizard          = $wizard ?? new GoogleWizardPage(
+			$this->google_settings,
+			$this->google_tokens,
+			$this->property_store,
+			$this->search_cache,
+			$this->ga4_cache,
+			$this->json_upload,
+			null,
+			$ga4_property_store
+		);
 	}
 
 	/**
@@ -209,6 +220,11 @@ final class SettingsPage {
 			wp_die( esc_html__( 'You do not have permission to manage these settings.', 'cannyforge-archive' ) );
 		}
 
+		if ( GoogleWizardPage::is_requested() ) {
+			$this->wizard->render_page( $this->google_notice(), $this->google_notice_type() );
+			return;
+		}
+
 		$saved = $this->maybe_save();
 		if ( $saved ) {
 			echo '<div class="notice notice-success is-dismissible"><p>';
@@ -216,10 +232,10 @@ final class SettingsPage {
 			echo '</p></div>';
 		}
 
-		if ( '' !== $this->google_import_error ) {
+		if ( '' !== $this->json_upload->error() ) {
 			echo '<div class="notice notice-error is-dismissible"><p>';
 			echo esc_html__( 'Google OAuth client JSON was not imported: ', 'cannyforge-archive' );
-			echo esc_html( $this->google_import_error );
+			echo esc_html( $this->json_upload->error() );
 			echo '</p></div>';
 		}
 
@@ -236,26 +252,8 @@ final class SettingsPage {
 			$this->preview_url(),
 			$this->google_settings->get(),
 			$this->google_connection_status(),
-			$this->google_settings->has_client_secret(),
-			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_CONNECT ) ),
-			esc_url_raw( admin_url( 'admin-post.php?action=' . GoogleConnectionController::ACTION_DISCONNECT ) ),
 			$this->google_notice(),
-			$this->google_notice_type(),
-			$this->property_store->get(),
-			$this->property_refresh_url()
-		);
-	}
-
-	/**
-	 * Build the nonce-protected property-list refresh URL.
-	 *
-	 * @return string
-	 */
-	private function property_refresh_url(): string {
-		return wp_nonce_url(
-			admin_url( 'admin-post.php?action=' . SearchConsolePropertyController::ACTION_REFRESH ),
-			SearchConsolePropertyController::NONCE_ACTION,
-			SearchConsolePropertyController::NONCE_FIELD
+			$this->google_notice_type()
 		);
 	}
 
@@ -306,12 +304,12 @@ final class SettingsPage {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified above.
 		$input    = wp_unslash( $_POST );
 		$input    = is_array( $input ) ? $input : array();
-		$input    = array_merge( $input, $this->uploaded_google_client_settings() );
+		$input    = array_merge( $input, $this->json_upload->fields() );
 		$csv_urls = $this->uploaded_csv_urls();
 		$this->repository->save(
 			$this->parser->parse( $input, $csv_urls )
 		);
-		$this->google_settings->save( GoogleSettings::from_array( $input ) );
+		$this->google_settings->save_overlay( $input );
 		$this->search_cache->clear();
 		$this->ga4_cache->clear();
 
@@ -367,55 +365,5 @@ final class SettingsPage {
 		$contents = file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading a small uploaded temp file.
 
 		return false === $contents ? array() : $this->csv->extract( $contents );
-	}
-
-	/**
-	 * Read the uploaded Google OAuth client JSON and extract its credentials.
-	 *
-	 * Returns an empty array when no file was uploaded or the upload is not a
-	 * genuine temp file. When a file was uploaded but rejected (malformed,
-	 * oversized, or not a Web client export), also records an actionable
-	 * error in {@see self::$google_import_error} so the failure is reported
-	 * to the user instead of failing silently.
-	 *
-	 * @return array<string, string>
-	 */
-	private function uploaded_google_client_settings(): array {
-		$contents = $this->uploaded_file_contents( 'google_client_json' );
-		if ( '' === $contents ) {
-			return array();
-		}
-
-		$result = $this->google_client_importer->import( $contents );
-		if ( ! $result->ok() ) {
-			$this->google_import_error = $result->error();
-			return array();
-		}
-
-		return $result->fields();
-	}
-
-	/**
-	 * Read a small uploaded temp file into memory.
-	 *
-	 * @param string $field File input name.
-	 * @return string
-	 */
-	private function uploaded_file_contents( string $field ): string {
-		// Nonce + capability are verified by the caller, maybe_save(), before this runs.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( empty( $_FILES[ $field ]['tmp_name'] ) ) {
-			return '';
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- path validated via is_uploaded_file below.
-		$tmp = (string) $_FILES[ $field ]['tmp_name'];
-		if ( ! is_uploaded_file( $tmp ) ) {
-			return '';
-		}
-
-		$contents = file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading a small uploaded temp file.
-
-		return is_string( $contents ) ? $contents : '';
 	}
 }
