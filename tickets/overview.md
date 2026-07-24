@@ -78,6 +78,8 @@ real sites.
   — pre-Sprint-6 review gate audit (spawned 611–615).
 - [`google-wizard-audit-2026-07-22.md`](google-wizard-audit-2026-07-22.md)
   — full-page Google wizard / GA4 picker audit (spawned 707–713).
+- [`plugin-audit-2026-07-24.md`](plugin-audit-2026-07-24.md)
+  — pre-submission wp.org + functional audit (spawned 726–731).
 
 ## Sprint 3 — Findability
 
@@ -191,6 +193,21 @@ and Playwright candidates also expected to land here.
 
 - [x] [724 — Bound the full-archive continuation query](724-bound-full-archive-continuation-query.md)
 - [x] [725 — Bound whole-database filter-option queries](725-bound-filter-option-queries.md)
+- [x] [729 — Do not treat exhausted full-archive URLs as indexable archive requests](729-no-seo-on-exhausted-full-archive-404s.md)
+- [x] [730 — Make full-archive content-selection matching match page-one semantics](730-align-full-archive-content-selection-matching.md)
+- [x] [731 — Fragment-cache page one when full-archive pagination is enabled](731-cache-page-one-with-full-archive-pagination.md)
+
+Pre-submission audit (2026-07-24) — see
+[plugin-audit-2026-07-24.md](plugin-audit-2026-07-24.md):
+
+### Goal 1 — WordPress.org rejection risk
+
+- [x] [726 — Ship the remote Google Fonts removal and keep the packaging guard](726-ship-remote-font-css-removal.md)
+- [x] [727 — Remove dead Google wizard modal and fixture code from the distributable](727-remove-dead-wizard-modal-and-fixture-code.md)
+- [x] [728 — Drop the residual crawl-budget readme tag](728-drop-crawl-budget-readme-tag.md)
+
+### Goal 2 — Logical / functional defects
+
 - [x] [729 — Do not treat exhausted full-archive URLs as indexable archive requests](729-no-seo-on-exhausted-full-archive-404s.md)
 - [x] [730 — Make full-archive content-selection matching match page-one semantics](730-align-full-archive-content-selection-matching.md)
 - [x] [731 — Fragment-cache page one when full-archive pagination is enabled](731-cache-page-one-with-full-archive-pagination.md)

@@ -115,6 +115,46 @@ class DistributablePackageTest extends TestCase {
 	}
 
 	/**
+	 * Front-end CSS must not make undeclared third-party requests on page load.
+	 *
+	 * @return void
+	 */
+	public function test_frontend_css_has_no_remote_imports(): void {
+		$zip = new ZipArchive();
+		$this->assertTrue( true === $zip->open( $this->built_zip_path() ), 'Could not open the built ZIP.' );
+
+		$css = $zip->getFromName( 'cannyforge-archive/assets/css/archive.css' );
+		$zip->close();
+
+		$this->assertNotFalse( $css, 'Front-end archive stylesheet did not ship in the ZIP.' );
+		if ( false === $css ) {
+			return;
+		}
+
+		$this->assertDoesNotMatchRegularExpression(
+			'/@import\s+(?:url\(\s*)?[\'"]?https?:\/\//i',
+			$css,
+			'Front-end CSS imports a remote resource and causes an undeclared third-party request.'
+		);
+	}
+
+	/**
+	 * Dead wizard modal / fixture classes must not ship (ticket 727).
+	 *
+	 * @return void
+	 */
+	public function test_zip_excludes_removed_dead_admin_and_fixture_classes(): void {
+		$entries  = $this->zip_entries( $this->built_zip_path() );
+		$haystack = implode( "\n", $entries );
+
+		$this->assertDoesNotMatchRegularExpression(
+			'#GoogleWizardModalView\.php|GoogleWizardProgressView\.php|FixtureEntryProvider\.php#',
+			$haystack,
+			'Removed dead classes leaked into the distributable ZIP.'
+		);
+	}
+
+	/**
 	 * The staged ZIP contains none of the known dev-only leak categories.
 	 *
 	 * @return void

@@ -1,6 +1,6 @@
 === CannyForge Archive Generator ===
 Contributors: user256
-Tags: sitemap, archive, pagination, seo, crawl-budget
+Tags: sitemap, archive, pagination, seo, filters
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
