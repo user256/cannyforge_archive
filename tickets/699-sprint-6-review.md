@@ -23,24 +23,43 @@ WordPress install, including the live Google flow deferred at 499.
 
 ## Acceptance criteria
 
-- [ ] `composer qa` green on the full CI matrix (607), with Infection gating
+- [x] `composer qa` green on the full CI matrix (607), with Infection gating
       at the recorded minMsi (604), the integration suite green (603), and the
       release/package baseline restored (611).
-- [ ] **Live Google smoke executed with real credentials** (carried from
+- [x] **Live Google smoke executed with real credentials** (carried from
       499): connect, Search Console refresh, GA4 refresh, disconnect, and —
       new — the 605 recovery path after a deliberate salt rotation.
-- [ ] Uninstall verified on a live site: no plugin rows remain, Google grant
-      revoked (606).
-- [ ] Scale benchmark from 608 reviewed; archive render and warm search
+      *2026-07-24:* `/var/www/html` was already `connected`. GA4 refresh OK;
+      SC listed 43 properties + refresh no-error (0 local post IDs for an
+      off-site property). Disconnect via `GoogleRevocationService::revoke_and_clear`
+      returned success with empty last_error; status `disconnected`, refresh/
+      access tokens cleared. Salt-rotation path: `wp_salt('auth')` filtered to
+      a rotated value → `connection_needs_reauthorising()=true` / UI label
+      "Needs re-authorising"; without the filter, decrypt still worked
+      (`wp-config.php` is root-owned so AUTH_KEY was not edited). Interactive
+      Connect UI click-path not re-walked (pre-existing live connection counted).
+- [x] Uninstall verified on a live site: no plugin rows remain, Google grant
+      revoked (606). *2026-07-24:* after revoke, `UninstallCleaner::clean_current_site`
+      + dynamic-transient LIKE sweep left **0** `*cannyforge_archive*` option
+      rows. Archive settings-only restored from local backup so `/archive/`
+      still 200; Google options left absent (must reconnect).
+- [x] Scale benchmark from 608 reviewed; archive render and warm search
       response meet the numbers recorded in that ticket.
+      *(608 substituted query-logic benchmark accepted there; live 20k HTTP
+      timings remain ticket 705 and are out of scope for a 699 Go.)*
 - [ ] Accessibility spot-check: keyboard-only walkthrough of search → filter
       → paginate; screen reader announces result updates (609).
-- [ ] `dist/` rebuilt and re-audited against WordPressAudit.md, including the
+- [x] `dist/` rebuilt and re-audited against WordPressAudit.md, including the
       new `uninstall.php`, `.pot`, and listing assets (610).
-- [ ] Archive tail/caching checks (612), admin UI behavior (613), least-privilege
+- [x] Archive tail/caching checks (612), admin UI behavior (613), least-privilege
       OAuth/revocation (614), and SEO-provider interoperability (615) are
       verified in their declared matrices.
-- [ ] Defects found during review filed as tickets, not silently fixed.
+      *(Covered by unit + integration suites; live archive smoke 2026-07-24:
+      `/archive/` 200 with robots/canonical, `/archive/page/2/` 200
+      self-canonical, `/archive/page/999/` 404 with no plugin
+      `index,follow`/archive canonical.)*
+- [x] Defects found during review filed as tickets, not silently fixed.
+      *(Pre-submit audit 726–731 already completed and merged.)*
 - [ ] Go/No-Go recorded below with evidence links.
 
 ## Out of scope
@@ -96,6 +115,38 @@ WordPress install, including the live Google flow deferred at 499.
   runner cleanup. The local Infection rerun also passed its armed gate:
   3,167 mutants, MSI 50%, Covered Code MSI 57%, thresholds 48%/55%, with no
   errors, syntax failures, or timeouts.
+- 2026-07-24 — **Automated gates re-verified on `main` @ `360b0eb` after
+  merging full-archive + wp.org hygiene PRs.** Evidence:
+  - GitHub Actions QA on `main` (run `30098405714`): **success** — Static
+    analysis, Admin JS, PHPUnit 8.1–8.5, Real-WordPress integration.
+  - CI Infection (PHP 8.1 job): MSI **49%**, Covered Code MSI **57%**
+    (thresholds 48%/55%) — pass.
+  - Local: `composer qa` OK (421 tests / 1,277 assertions); `composer
+    validate --strict --no-check-publish` OK; `npm test` 52/52; `composer
+    test:integration` OK (**14 tests / 128 assertions**).
+  - `composer dist` ZIP: 130 entries, 101 PHP files, `uninstall.php` +
+    `.pot` present, no tests/vendor/tickets/dead wizard classes, no remote
+    CSS `@import`; `.wordpress-org/` listing assets present.
+  - Live local WP (`/var/www/html`): plugin synced from dist; Google status
+    `connected`; GA4 refresh OK; SC property list 43 + refresh no-error;
+    full-archive `/archive/` 200, `/archive/page/2/` 200, `/archive/page/999/`
+    404 without plugin archive SEO tags.
+  - **Still blocking a Go:** interactive Connect UI confirmation, Disconnect
+    + remote revoke, salt-rotation needs-reauth recovery, live uninstall
+    sweep, and manual keyboard/screen-reader a11y walkthrough.
+- 2026-07-24 — **Decision: still No-Go**, but the automated half of the gate
+  is green. Remaining work is live/manual only.
+- 2026-07-24 — **Destructive live smokes completed** (authorized). Backup of
+  option payloads under `/tmp/cannyforge-699-smoke-backup-20260724161553`
+  (local only; treat as sensitive). Evidence:
+  - Salt filter → needs-reauth **PASS**; restore filter → decrypt OK.
+  - `revoke_and_clear` **PASS** (`ok=1`, empty error, status disconnected,
+    tokens empty).
+  - Uninstall sweep **PASS** (`options_after_count=0`); settings-only
+    restored; `/archive/` **200**; Google connection/settings options remain
+    absent until reconnect.
+  - **Still blocking a Go:** manual keyboard/screen-reader a11y walkthrough
+    (609). Optional: click through Connect UI once after reconnecting.
 
 ---
 

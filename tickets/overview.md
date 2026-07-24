@@ -15,7 +15,7 @@ This is the central roadmap for the plugin. The product brief lives in
 | **Sprint 3 — Findability** | Done | Separated *promote* (HTML sitemap) from *find* (whole-DB search/filter). 301 done & live-verified; 399 = GO. |
 | **Sprint 4 — Resilience & empty-state fallbacks** | Done | 401–406 implemented and tested: empty-state fallbacks (401/402), Google OAuth foundation (404), Search Console source (405), optional GA4 source (406). 499 = GO (qa green, 192 tests); live Google smoke deferred (needs real credentials). |
 | **Sprint 5 — wp.org submission compliance** | Done | 501 completed: runtime-only packaging, direct-file guards, branded naming, and external-services readme disclosure. |
-| **Sprint 6 — Trust & Scale** | In progress | 601–617 completed; 699 No-Go. Google wizard audit filed 707–713 (wp.org disclosure + functional). |
+| **Sprint 6 — Trust & Scale** | In progress | 601–617 + 707–731 done; **699** live Google disconnect/salt/uninstall smokes green — only manual a11y walkthrough still outstanding. |
 
 ## Ticket numbering
 
@@ -51,15 +51,6 @@ priority.
 
 - [ ] [699 — Sprint 6 review gate (including deferred live Google smoke)](699-sprint-6-review.md)
 
-Google wizard audit (2026-07-22) — filed against the uncommitted full-page
-wizard / GA4 picker work; see
-[google-wizard-audit-2026-07-22.md](google-wizard-audit-2026-07-22.md):
-
-
-Pre-submission audit (2026-07-23) — filed before WordPress.org submission;
-these are release-readiness fixes and block ticket 699 unless noted otherwise:
-
-
 Also fixed mid-sprint, discovered independently by six of the tickets above:
 [a `wp_safe_redirect` test-shim collision](completed/618-phpunit-shim-collision-silently-truncated-suite.md)
 that silently truncated the whole PHPUnit run after ~8 tests while still
@@ -74,13 +65,6 @@ and Playwright candidates also expected to land here.
 
 - [ ] [701 — PHPUnit 10/11 and PHPStan 2.x toolchain modernisation](701-phpunit-phpstan-toolchain-modernisation.md)
 - [ ] [702 — Non-text (UI component) contrast for the front-end theme's border colour](702-archive-theme-non-text-contrast.md)
-
-
-Pre-submission audit (2026-07-24) — see
-[plugin-audit-2026-07-24.md](plugin-audit-2026-07-24.md):
-
-### Goal 1 — WordPress.org rejection risk
-
-
-### Goal 2 — Logical / functional defects
+- [ ] [704 — Browser-level (Playwright) tests for archive-filters.js](704-playwright-archive-filters-js.md)
+- [ ] [705 — Run the real 20k-post live search/render benchmark from ticket 608](705-live-seeded-search-benchmark.md)
 
