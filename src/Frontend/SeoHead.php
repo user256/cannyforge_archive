@@ -326,7 +326,7 @@ final class SeoHead {
 			return false;
 		}
 
-		if ( is_object( $wp_query ) && ! empty( $wp_query->is_404 ) ) {
+		if ( ! empty( $wp_query->is_404 ) ) {
 			return false;
 		}
 

@@ -304,14 +304,14 @@ class ArchivePageTest extends TestCase {
 	 * @return void
 	 */
 	public function test_full_archive_page_one_uses_fragment_cache(): void {
-		$cache         = new ArchiveCache();
-		$continuation  = new class() extends \CannyForge\Archive\Core\Archive\FullArchiveContinuationProvider {
+		$cache        = new ArchiveCache();
+		$continuation = new class() extends \CannyForge\Archive\Core\Archive\FullArchiveContinuationProvider {
 			public function has_continuation( Settings $settings, array $excluded_ids ): bool {
 				unset( $settings, $excluded_ids );
 				return true;
 			}
 		};
-		$page          = new ArchivePage(
+		$page         = new ArchivePage(
 			new OptionsSettingsRepository(),
 			new FixtureEntryProvider(),
 			new ArchiveRenderer(),
@@ -321,8 +321,8 @@ class ArchivePageTest extends TestCase {
 			null,
 			$continuation
 		);
-		$settings      = new Settings( mode: Mode::Blog, full_archive_pagination: true );
-		$ref           = new \ReflectionMethod( $page, 'build_html' );
+		$settings     = new Settings( mode: Mode::Blog, full_archive_pagination: true );
+		$ref          = new \ReflectionMethod( $page, 'build_html' );
 		$ref->setAccessible( true );
 
 		$html = $ref->invoke( $page, $settings );
