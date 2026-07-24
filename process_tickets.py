@@ -45,8 +45,8 @@ TICKET_LINE_RE = re.compile(
     r'^(?P<indent>\s*)-\s*\[(?P<box>[ xX])\]\s*'
     r'\[(?P<label>[^\]]+)\]\((?P<href>[^)]+)\)\s*(?P<trailing>.*?)\s*$'
 )
-DEFAULT_SPRINT_PATTERN = r'^#\s+Sprint\s+\d+\b'
-TOP_HEADING_RE = re.compile(r'^#\s+')
+DEFAULT_SPRINT_PATTERN = r'^##\s+Sprint\s+\d+\b'
+TOP_HEADING_RE = re.compile(r'^##\s+')
 
 PROTECTED_BRANCHES = {"main", "master", "trunk", "production", "prod"}
 
