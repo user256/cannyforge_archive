@@ -345,7 +345,7 @@ def build_plan(sprint_re: re.Pattern[str]) -> Plan:
     plan.new_overview_text = render_sections(new_sections)
     plan.new_completed_text = render_sections(completed_sections)
 
-    completed_ids = [tid for tid, _ in plan.completed_pairs]
+    completed_ids = list(dict.fromkeys(tid for tid, _ in plan.completed_pairs))
     plan.files_to_move, plan.missing_ticket_files = find_ticket_files(completed_ids)
 
     return plan
