@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-23T18:06:21+00:00\n"
+"POT-Creation-Date: 2026-07-24T12:37:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: cannyforge-archive\n"
@@ -144,7 +144,6 @@ msgid "GA4 cache refreshed: %d post IDs."
 msgstr ""
 
 #: src/Admin/GoogleAnalyticsPropertySelectorView.php:30
-#: src/Admin/GoogleWizardModalView.php:191
 msgid "GA4 Property ID"
 msgstr ""
 
@@ -244,7 +243,6 @@ msgid "Connect the Google account that has access to your Search Console propert
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:57
-#: src/Admin/GoogleWizardModalView.php:295
 msgid "Connection needs re-authorising — the site's security keys may have changed, so the stored connection can no longer be read. Click Connect Google again to restore it; nothing else needs to change."
 msgstr ""
 
@@ -253,12 +251,10 @@ msgid "Reconnect Google"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:71
-#: src/Admin/GoogleWizardModalView.php:332
 msgid "Connect Google"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:77
-#: src/Admin/GoogleWizardModalView.php:337
 msgid "Disconnect"
 msgstr ""
 
@@ -269,18 +265,15 @@ msgid "Continue"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:108
-#: src/Admin/GoogleWizardModalView.php:229
 msgid "Search Console (read-only)"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:109
-#: src/Admin/GoogleWizardModalView.php:230
 msgid "Google Analytics 4 (read-only)"
 msgstr ""
 
 #. translators: %s: comma-separated list of read-only Google scopes, e.g. "Search Console (read-only), Google Analytics 4 (read-only)".
 #: src/Admin/GoogleWizardAccountStepsView.php:119
-#: src/Admin/GoogleWizardModalView.php:240
 #, php-format
 msgid "Connecting will ask Google to grant read-only access to: %s."
 msgstr ""
@@ -310,7 +303,6 @@ msgid "The properties available to the connected account load automatically afte
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:179
-#: src/Admin/GoogleWizardModalView.php:282
 msgid "Report window (days)"
 msgstr ""
 
@@ -372,249 +364,20 @@ msgid "Populate the archive now instead of waiting for the next scheduled refres
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:333
-#: src/Admin/GoogleWizardModalView.php:342
 msgid "Refresh Search Console"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:340
-#: src/Admin/GoogleWizardModalView.php:354
 msgid "Refresh GA4"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:374
-#: src/Admin/GoogleWizardModalView.php:287
 msgid "Connection status:"
 msgstr ""
 
 #: src/Admin/GoogleWizardAccountStepsView.php:416
 #: src/Admin/GoogleWizardSetupStepsView.php:279
 msgid "Back"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:54
-msgid "Close wizard"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:55
-msgid "Google top-content setup wizard"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:57
-msgid "This wizard walks through the whole setup in order: choose your signal, create the Google app, save credentials, connect the account, and refresh the cache."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:72
-msgid "Save Google details"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:84
-msgid "Choose your signal path"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:85
-msgid "Search Console is the main source and is enough for most sites. Turn on GA4 only if you also want an analytics fallback when Search Console returns nothing."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:89
-msgid "Also use GA4 as a fallback signal"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:101
-msgid "Set up Google Auth Platform"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:102
-msgid "In Google Cloud, create or select a project, then open Google Auth Platform. If this is a new project and Google shows a Get started prompt, complete that setup first. After that, the main screen you usually need here is Branding."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:104
-msgid "Open Branding"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:105
-msgid "Open Google setup guide"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:107
-msgid "If the app is not yet published and Google treats it as External, add yourself as a test user during the setup flow before trying to connect."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:118
-msgid "Create the OAuth web client"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:119
-msgid "Open Google Auth Platform > Clients, click Create client, and choose Web application. Give it a clear name such as CannyForge Archive Generator. During client creation, add the Redirect URI from the next step into Authorized redirect URIs. Authorized JavaScript origins are not required for this plugin."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:121
-#: src/Admin/GoogleWizardSetupStepsView.php:169
-msgid "Open Clients"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:122
-#: src/Admin/GoogleWizardSetupStepsView.php:186
-msgid "Enable Search Console API"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:123
-#: src/Admin/GoogleWizardSetupStepsView.php:189
-msgid "Enable Analytics Data API"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:125
-msgid "Search Console API is required. Enable Analytics Data API only if you plan to use the GA4 fallback. In the client form, scroll to Authorized redirect URIs, click + Add URI, paste the exact callback URL shown below, then click Create."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:136
-msgid "Copy and add this Redirect URI"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:137
-msgid "In the OAuth web client form, find Authorized redirect URIs, click + Add URI, and paste this exact URL before saving the client. It must match exactly, including `https`, trailing slash, and the full `admin-post.php?action=...` path."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:139
-msgid "Copy Redirect URI"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:150
-msgid "Make sure the property is available"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:151
-msgid "The Google account you connect must already have access to the Search Console property. If this site is not listed in Search Console, add it there first; the plugin will load the available properties for you after connection."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:153
-msgid "Open Search Console"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:154
-msgid "Open GA4 Admin"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:156
-msgid "You will select the property from the connected account below; there is no property identifier to copy manually."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:172
-msgid "Add your Google credentials"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:173
-msgid "Either paste the Client ID and Client Secret from the Clients page, or download the OAuth client JSON from Google and import it here. After connecting, choose the Search Console property from the account list."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:187
-msgid "Optional: add the GA4 fallback property"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:188
-msgid "Leave this blank if Search Console is enough. If you enable GA4, enter the numeric GA4 Property ID, not the Measurement ID that starts with `G-`."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:193
-msgid "numeric ID, e.g. 123456789"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:196
-msgid "Open GA4, go to Admin, select the property, then open Property Settings and copy the numeric Property ID. Do not use the Measurement ID and do not include the `properties/` prefix."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:211
-msgid "Connect Google and refresh the cache"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:212
-msgid "After saving the details, connect the Google account that has Search Console access and GA4 access if you enabled the fallback. The available Search Console properties will load automatically; choose one from the dropdown, or use Load Search Console properties to refresh the list."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:258
-#: src/Admin/GoogleWizardSetupStepsView.php:238
-msgid "Saved. Leave blank to keep it."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:259
-msgid "Paste the client secret, then save settings."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:260
-msgid "Import OAuth client JSON (optional)"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:263
-msgid "In Google Auth Platform > Clients, open your Web application client and use Download JSON. Upload that file and save these details; the Client ID and Secret will be imported securely on the server."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:266
-msgid "Save credentials and continue"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:271
-#: src/Admin/GoogleWizardSetupStepsView.php:245
-msgid "Google Client ID"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:276
-#: src/Admin/GoogleWizardSetupStepsView.php:250
-msgid "Google Client Secret"
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:300
-msgid "The client secret is never rendered back into the form. Leave it blank on save to keep the stored secret unchanged."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:303
-msgid "Save Settings after editing the Google fields. Use Connect only after the client details are saved."
-msgstr ""
-
-#: src/Admin/GoogleWizardModalView.php:348
-msgid "Load Search Console properties"
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:38
-msgid "Next: add your Google credentials"
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:39
-msgid "Upload the OAuth JSON file, then click Save credentials and continue below."
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:41
-msgid "Next: connect your Google account"
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:42
-msgid "Click Connect Google below and approve read-only access in Google."
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:44
-msgid "Next: load your Search Console properties"
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:45
-msgid "Click Load properties below, then choose the site you want the archive to use."
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:47
-msgid "Next: choose a Search Console property"
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:48
-msgid "Choose a property from the dropdown, then click Save property and continue."
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:50
-msgid "Next: refresh Search Console data"
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:51
-msgid "Your connection and property are ready. Refresh Search Console below to populate the archive."
-msgstr ""
-
-#: src/Admin/GoogleWizardProgressView.php:55
-msgid "Setup progress"
 msgstr ""
 
 #: src/Admin/GoogleWizardSetupStepsView.php:34
@@ -689,6 +452,10 @@ msgstr ""
 msgid "Open Clients, click Create client, choose Web application, and name it (for example CannyForge Archive). Under Authorized redirect URIs click + Add URI, paste the Redirect URI above, then Create. JavaScript origins are not required."
 msgstr ""
 
+#: src/Admin/GoogleWizardSetupStepsView.php:169
+msgid "Open Clients"
+msgstr ""
+
 #: src/Admin/GoogleWizardSetupStepsView.php:173
 msgid "3. Enable the APIs"
 msgstr ""
@@ -703,6 +470,14 @@ msgstr ""
 
 #: src/Admin/GoogleWizardSetupStepsView.php:182
 msgid "This path uses Search Console, so enable the Search Console API."
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:186
+msgid "Enable Search Console API"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:189
+msgid "Enable Analytics Data API"
 msgstr ""
 
 #: src/Admin/GoogleWizardSetupStepsView.php:190
@@ -725,12 +500,24 @@ msgstr ""
 msgid "Save and continue"
 msgstr ""
 
+#: src/Admin/GoogleWizardSetupStepsView.php:238
+msgid "Saved. Leave blank to keep it."
+msgstr ""
+
 #: src/Admin/GoogleWizardSetupStepsView.php:239
 msgid "Paste the client secret."
 msgstr ""
 
 #: src/Admin/GoogleWizardSetupStepsView.php:242
 msgid "Or paste the values manually"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:245
+msgid "Google Client ID"
+msgstr ""
+
+#: src/Admin/GoogleWizardSetupStepsView.php:250
+msgid "Google Client Secret"
 msgstr ""
 
 #: src/Admin/GoogleWizardSetupStepsView.php:253
@@ -1338,7 +1125,7 @@ msgid "Archive page %d"
 msgstr ""
 
 #: src/Core/Archive/ArchiveRenderer.php:134
-#: src/Frontend/ArchivePage.php:286
+#: src/Frontend/ArchivePage.php:283
 msgid "Archive pages"
 msgstr ""
 
@@ -1418,7 +1205,7 @@ msgid_plural "Found %s results across the whole archive"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Frontend/ArchivePage.php:288
+#: src/Frontend/ArchivePage.php:285
 msgid "Browse the full archive"
 msgstr ""
 
