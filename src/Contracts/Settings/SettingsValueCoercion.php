@@ -59,20 +59,33 @@ final class SettingsValueCoercion {
 	 * Coerce a raw value into a clean list of non-empty strings.
 	 *
 	 * @param mixed $value Raw value (expected to be an array of strings).
+	 * @param int   $limit Maximum number of unique strings to retain.
 	 * @return string[]
 	 */
-	public static function string_list( mixed $value ): array {
-		if ( ! is_array( $value ) ) {
+	public static function string_list( mixed $value, int $limit = PHP_INT_MAX ): array {
+		if ( ! is_array( $value ) || $limit < 1 ) {
 			return array();
 		}
 
 		$strings = array();
+		$seen    = array();
 		foreach ( $value as $item ) {
-			if ( is_string( $item ) && '' !== trim( $item ) ) {
-				$strings[] = trim( $item );
+			if ( ! is_string( $item ) ) {
+				continue;
+			}
+
+			$clean = trim( $item );
+			if ( '' === $clean || isset( $seen[ $clean ] ) ) {
+				continue;
+			}
+
+			$seen[ $clean ] = true;
+			$strings[]      = $clean;
+			if ( count( $strings ) >= $limit ) {
+				break;
 			}
 		}
 
-		return array_values( array_unique( $strings ) );
+		return $strings;
 	}
 }

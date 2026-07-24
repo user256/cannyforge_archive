@@ -311,14 +311,26 @@ final class SeoHead {
 	}
 
 	/**
-	 * Whether the current request is the archive endpoint.
+	 * Whether the current request is a successfully rendered archive endpoint.
+	 *
+	 * Exhausted `/archive/page/N/` URLs set `is_404` in
+	 * {@see ArchivePage::maybe_render_continuation()} before the theme runs
+	 * `wp_head`. Those must not receive archive SEO (ticket 729).
 	 *
 	 * @return bool
 	 */
 	private function is_archive_request(): bool {
 		global $wp_query;
 
-		return isset( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] );
+		if ( ! isset( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ) ) {
+			return false;
+		}
+
+		if ( is_object( $wp_query ) && ! empty( $wp_query->is_404 ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -343,10 +355,9 @@ final class SeoHead {
 	 * @return string
 	 */
 	private function endpoint_url(): string {
-		global $wp_query;
-		$tail = $wp_query instanceof \WP_Query ? (string) ( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ?? '' ) : '';
+		$tail = $this->archive_tail();
 		if ( $this->repository->get()->full_archive_pagination() && preg_match( '#^page/([2-9]|[1-9][0-9]+)/?$#', $tail, $matches ) ) {
-			return home_url( '/' . ArchivePage::DEFAULT_SLUG . '/page/' . $matches[1] . '/' );
+			return home_url( '/' . $this->url_resolver->slug() . '/page/' . $matches[1] . '/' );
 		}
 
 		return $this->url_resolver->endpoint_url();
@@ -354,8 +365,27 @@ final class SeoHead {
 
 	/** Whether the request is a later full-archive continuation page. */
 	private function is_continuation_request(): bool {
+		$tail = $this->archive_tail();
+
+		return $this->repository->get()->full_archive_pagination()
+			&& 1 === preg_match( '#^page/(?:[2-9]|[1-9][0-9]+)/?$#', $tail );
+	}
+
+	/**
+	 * The endpoint path after `/archive/`, or empty on page one.
+	 *
+	 * Reads the query var from whatever object WordPress (or the unit-test
+	 * harness) stored in `$wp_query` — not only a real {@see \WP_Query}.
+	 *
+	 * @return string
+	 */
+	private function archive_tail(): string {
 		global $wp_query;
-		$tail = $wp_query instanceof \WP_Query ? (string) ( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ?? '' ) : '';
-		return $this->repository->get()->full_archive_pagination() && 1 === preg_match( '#^page/(?:[2-9]|[1-9][0-9]+)/?$#', $tail );
+
+		if ( ! is_object( $wp_query ) || ! isset( $wp_query->query_vars ) || ! is_array( $wp_query->query_vars ) ) {
+			return '';
+		}
+
+		return (string) ( $wp_query->query_vars[ ArchivePage::QUERY_VAR ] ?? '' );
 	}
 }

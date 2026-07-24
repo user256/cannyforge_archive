@@ -39,6 +39,11 @@ final class Settings {
 	private const MIN_BLOG_MAX_URLS = 1;
 
 	/**
+	 * Largest promoted Blog list, matching the bounded News source.
+	 */
+	private const MAX_BLOG_MAX_URLS = 500;
+
+	/**
 	 * Smallest permitted News empty-window fallback count.
 	 */
 	private const MIN_NEWS_FALLBACK_COUNT = 1;
@@ -108,7 +113,7 @@ final class Settings {
 	private int $news_window_hours;
 
 	/**
-	 * Blog mode: maximum number of top URLs to include (brief default 100).
+	 * Blog mode: maximum number of top URLs to include (default 100, max 500).
 	 *
 	 * @var int
 	 */
@@ -198,8 +203,8 @@ final class Settings {
 		$this->link_types              = $link_types ?? new LinkTypes();
 		$this->filters                 = $filters ?? new Filters();
 		$this->news_window_hours       = max( self::MIN_NEWS_WINDOW_HOURS, $news_window_hours );
-		$this->blog_max_urls           = max( self::MIN_BLOG_MAX_URLS, $blog_max_urls );
-		$this->blog_urls               = array_values( $blog_urls );
+		$this->blog_max_urls           = min( self::MAX_BLOG_MAX_URLS, max( self::MIN_BLOG_MAX_URLS, $blog_max_urls ) );
+		$this->blog_urls               = array_slice( array_values( $blog_urls ), 0, $this->blog_max_urls );
 		$this->news_fallback_count     = min(
 			self::MAX_NEWS_FALLBACK_COUNT,
 			max( self::MIN_NEWS_FALLBACK_COUNT, $news_fallback_count )
@@ -352,14 +357,19 @@ final class Settings {
 	 * @return self
 	 */
 	public static function from_array( array $data ): self {
+		$blog_max_urls = min(
+			self::MAX_BLOG_MAX_URLS,
+			max( self::MIN_BLOG_MAX_URLS, SettingsValueCoercion::to_int( $data['blog_max_urls'] ?? null, 100 ) )
+		);
+
 		return new self(
 			Mode::from_value( $data['mode'] ?? null ),
 			SettingsValueCoercion::to_int( $data['pagination_limit'] ?? null, 1 ),
 			LinkTypes::from_array( SettingsValueCoercion::sub_array( $data, 'link_types' ) ),
 			Filters::from_array( SettingsValueCoercion::sub_array( $data, 'filters' ) ),
 			SettingsValueCoercion::to_int( $data['news_window_hours'] ?? null, 72 ),
-			SettingsValueCoercion::to_int( $data['blog_max_urls'] ?? null, 100 ),
-			SettingsValueCoercion::string_list( $data['blog_urls'] ?? array() ),
+			$blog_max_urls,
+			SettingsValueCoercion::string_list( $data['blog_urls'] ?? array(), $blog_max_urls ),
 			Targeting::from_array( SettingsValueCoercion::sub_array( $data, 'targeting' ) ),
 			SettingsValueCoercion::to_string( $data['archive_url'] ?? null ),
 			Seo::from_array( SettingsValueCoercion::sub_array( $data, 'seo' ) ),

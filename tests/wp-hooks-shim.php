@@ -458,7 +458,7 @@ if ( ! function_exists( 'get_terms' ) ) {
 	 * @return array<int, mixed>
 	 */
 	function get_terms( array $args = array() ): array {
-		unset( $args );
+		$GLOBALS['cannyforge_test_get_terms_args'][] = $args;
 		return array();
 	}
 }
@@ -471,7 +471,7 @@ if ( ! function_exists( 'get_users' ) ) {
 	 * @return array<int, mixed>
 	 */
 	function get_users( array $args = array() ): array {
-		unset( $args );
+		$GLOBALS['cannyforge_test_get_users_args'][] = $args;
 		return array();
 	}
 }
@@ -484,8 +484,48 @@ if ( ! function_exists( 'get_posts' ) ) {
 	 * @return array<int, mixed>
 	 */
 	function get_posts( array $args = array() ): array {
-		unset( $args );
+		$GLOBALS['cannyforge_test_get_posts_args'][] = $args;
 		return array();
+	}
+}
+
+if ( ! function_exists( 'wp_cache_get_last_changed' ) ) {
+	/**
+	 * Return a stable test cache-generation token for a core cache group.
+	 *
+	 * @param string $group Core cache group.
+	 * @return string
+	 */
+	function wp_cache_get_last_changed( string $group ): string {
+		return (string) ( $GLOBALS['cannyforge_test_cache_last_changed'][ $group ] ?? '1' );
+	}
+}
+
+if ( ! function_exists( 'wp_cache_get' ) ) {
+	/**
+	 * Read an item from the in-memory test object cache.
+	 *
+	 * @param string $key   Cache key.
+	 * @param string $group Cache group.
+	 * @return mixed
+	 */
+	function wp_cache_get( string $key, string $group = '' ) {
+		return $GLOBALS['cannyforge_test_object_cache'][ $group ][ $key ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'wp_cache_set' ) ) {
+	/**
+	 * Store an item in the in-memory test object cache.
+	 *
+	 * @param string $key   Cache key.
+	 * @param mixed  $data  Cached value.
+	 * @param string $group Cache group.
+	 * @return bool
+	 */
+	function wp_cache_set( string $key, $data, string $group = '' ): bool {
+		$GLOBALS['cannyforge_test_object_cache'][ $group ][ $key ] = $data;
+		return true;
 	}
 }
 

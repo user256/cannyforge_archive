@@ -43,6 +43,21 @@ class ArchiveCacheTest extends TestCase {
 		$this->assertSame( $html, $cache->get( $settings ) );
 	}
 
+	/**
+	 * Page-one local membership is cached independently of its rendered HTML.
+	 *
+	 * @return void
+	 */
+	public function test_page_one_post_ids_round_trip_as_clean_stable_ids(): void {
+		$cache    = new ArchiveCache();
+		$settings = new Settings( mode: Mode::Blog );
+
+		$this->assertFalse( $cache->get_page_one_post_ids( $settings ) );
+		$cache->set_page_one_post_ids( $settings, array( 0, 17, 17, -5, 23 ) );
+
+		$this->assertSame( array( 17, 5, 23 ), $cache->get_page_one_post_ids( $settings ) );
+	}
+
 	public function test_blog_and_news_caches_are_independent(): void {
 		$cache         = new ArchiveCache();
 		$blog_settings = new Settings( mode: Mode::Blog );
@@ -101,10 +116,35 @@ class ArchiveCacheTest extends TestCase {
 		$hybrid_settings = new Settings( mode: Mode::Hybrid );
 
 		$cache->set( $hybrid_settings, '<nav>hybrid</nav>' );
+		$cache->set_page_one_post_ids( $hybrid_settings, array( 17 ) );
 		$this->assertSame( '<nav>hybrid</nav>', $cache->get( $hybrid_settings ) );
 
 		$cache->clear();
 
 		$this->assertFalse( $cache->get( $hybrid_settings ) );
+		$this->assertFalse( $cache->get_page_one_post_ids( $hybrid_settings ) );
+	}
+
+	/**
+	 * Full-archive page-one HTML does not share a key with the compact page
+	 * (ticket 731).
+	 *
+	 * @return void
+	 */
+	public function test_full_archive_html_cache_is_independent_of_compact_cache(): void {
+		$cache   = new ArchiveCache();
+		$compact = new Settings( mode: Mode::Blog, full_archive_pagination: false );
+		$full    = new Settings( mode: Mode::Blog, full_archive_pagination: true );
+
+		$cache->set( $compact, '<nav>compact</nav>' );
+		$cache->set( $full, '<nav>full</nav>' );
+
+		$this->assertSame( '<nav>compact</nav>', $cache->get( $compact ) );
+		$this->assertSame( '<nav>full</nav>', $cache->get( $full ) );
+
+		$cache->clear();
+
+		$this->assertFalse( $cache->get( $compact ) );
+		$this->assertFalse( $cache->get( $full ) );
 	}
 }

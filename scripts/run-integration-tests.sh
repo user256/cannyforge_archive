@@ -23,7 +23,7 @@ export WP_ENV_CWD="${ROOT_DIR}"
 export PATH="${ROOT_DIR}/scripts/wp-env-cli-shim:${PATH}"
 export WP_ENV_BASE_URL="${WP_ENV_BASE_URL:-http://localhost:8891}"
 
-SEED_COUNT="${SEED_COUNT:-48}"
+SEED_COUNT="${SEED_COUNT:-52}"
 
 cleanup() {
 	echo "==> Stopping wp-env"

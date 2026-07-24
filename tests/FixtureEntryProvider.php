@@ -1,17 +1,13 @@
 <?php
 /**
- * A fixed, in-memory archive entry provider.
+ * A fixed, in-memory archive entry provider for tests.
  *
  * @package CannyForge\Archive
  */
 
 declare(strict_types=1);
 
-namespace CannyForge\Archive\Core\Archive;
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+namespace CannyForge\Archive\Tests;
 
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Archive\ArchiveEntryProviderInterface;
@@ -20,8 +16,8 @@ use CannyForge\Archive\Contracts\Settings\Settings;
 /**
  * Returns a caller-supplied list of entries verbatim.
  *
- * The placeholder source for ticket 103 until the News (ticket 104) and Blog
- * (ticket 105) providers land, and a convenient seam for rendering tests.
+ * Test double for rendering and page-wiring tests; not part of the shipping
+ * plugin (ticket 727).
  */
 final class FixtureEntryProvider implements ArchiveEntryProviderInterface {
 	/**

@@ -188,3 +188,9 @@ and Playwright candidates also expected to land here.
 - [x] [703 — Capture wp.org listing screenshots](completed/703-wporg-screenshot-capture.md)
 - [x] [706 — Make the disposable integration rig rebuild-safe](completed/706-integration-rig-build-order.md)
 - [x] [723 — Add opt-in full-site pagination after the optimised archive page](723-opt-in-full-archive-pagination.md)
+
+- [x] [724 — Bound the full-archive continuation query](724-bound-full-archive-continuation-query.md)
+- [x] [725 — Bound whole-database filter-option queries](725-bound-filter-option-queries.md)
+- [x] [729 — Do not treat exhausted full-archive URLs as indexable archive requests](729-no-seo-on-exhausted-full-archive-404s.md)
+- [x] [730 — Make full-archive content-selection matching match page-one semantics](730-align-full-archive-content-selection-matching.md)
+- [x] [731 — Fragment-cache page one when full-archive pagination is enabled](731-cache-page-one-with-full-archive-pagination.md)

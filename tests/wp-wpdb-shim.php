@@ -27,6 +27,13 @@ if ( ! class_exists( 'wpdb' ) ) {
 		public string $options = 'wp_options';
 
 		/**
+		 * Posts table name.
+		 *
+		 * @var string
+		 */
+		public string $posts = 'wp_posts';
+
+		/**
 		 * Every query passed to {@see self::query()}, in order.
 		 *
 		 * @var list<string>
@@ -80,6 +87,19 @@ if ( ! class_exists( 'wpdb' ) ) {
 			}
 
 			return true;
+		}
+
+		/**
+		 * Return the configured first-column fixture for a SELECT query.
+		 *
+		 * @param string $query Prepared SQL query.
+		 * @return array<int, mixed>
+		 */
+		public function get_col( string $query ): array {
+			$this->queries[] = $query;
+
+			$fixture = $GLOBALS['cannyforge_test_wpdb_get_col_result'] ?? array();
+			return is_array( $fixture ) ? array_values( $fixture ) : array();
 		}
 
 		/**

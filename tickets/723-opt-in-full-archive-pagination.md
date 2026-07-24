@@ -102,6 +102,11 @@ the disabled default preserves current behaviour.
   normal entry filter; later pages query bounded batches in WordPress's
   descending date/ID order and apply the existing inclusion/exclusion/noindex
   rules without applying the page-one pin preference.
+- 2026-07-23 — **Post-audit correction:** "bounded batches" did not bound the
+  total work: every continuation request still walked every batch, hydrated
+  every eligible post, and only then sliced one page in PHP. Ticket 724
+  replaces that implementation with database-level selection, a one-row count,
+  and one bounded page query.
 
 ---
 

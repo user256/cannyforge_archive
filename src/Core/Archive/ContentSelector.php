@@ -70,39 +70,33 @@ final class ContentSelector {
 			return false;
 		}
 
-		$terms = array_merge( $entry->categories(), $entry->tags() );
-
-		if ( $this->intersects( $terms, array_merge( $rules->exclude_categories(), $rules->exclude_tags() ) ) ) {
+		if (
+			$this->intersects( $entry->categories(), $rules->exclude_categories() )
+			|| $this->intersects( $entry->tags(), $rules->exclude_tags() )
+		) {
 			return false;
 		}
 
-		$includes = array_merge( $rules->include_categories(), $rules->include_tags() );
-
-		return array() === $includes || $this->intersects( $terms, $includes );
+		return (
+			array() === $rules->include_categories()
+			&& array() === $rules->include_tags()
+		)
+			|| $this->intersects( $entry->categories(), $rules->include_categories() )
+			|| $this->intersects( $entry->tags(), $rules->include_tags() );
 	}
 
 	/**
-	 * Whether two label lists share at least one value, ignoring case and punctuation.
+	 * Whether two label lists share at least one value.
+	 *
+	 * Delegates to {@see TermLabelMatcher} so page-one selection and
+	 * full-archive continuation agree (ticket 730).
 	 *
 	 * @param string[] $a First list.
 	 * @param string[] $b Second list.
 	 * @return bool
 	 */
 	private function intersects( array $a, array $b ): bool {
-		$norm_a = array_map( array( $this, 'normalize' ), $a );
-		$norm_b = array_map( array( $this, 'normalize' ), $b );
-
-		return array() !== array_intersect( $norm_a, $norm_b );
-	}
-
-	/**
-	 * Normalize a term for comparison by stripping punctuation/spacing and lowercasing.
-	 *
-	 * @param string $term The raw term or slug.
-	 * @return string
-	 */
-	private function normalize( string $term ): string {
-		return strtolower( preg_replace( '/[^a-z0-9]/i', '', $term ) ?? '' );
+		return TermLabelMatcher::intersects( $a, $b );
 	}
 
 	/**

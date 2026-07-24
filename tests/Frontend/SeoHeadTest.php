@@ -189,4 +189,51 @@ class SeoHeadTest extends TestCase {
 
 		$this->assertSame( 'Theme Default', $this->head()->filter_title( 'Theme Default' ) );
 	}
+
+	/**
+	 * Exhausted full-archive URLs set is_404 before wp_head; they must not
+	 * receive archive robots/canonical (ticket 729).
+	 *
+	 * @return void
+	 */
+	public function test_silent_on_exhausted_continuation_404(): void {
+		OptionStore::set(
+			OptionsSettingsRepository::OPTION_KEY,
+			array( 'full_archive_pagination' => true )
+		);
+		$GLOBALS['wp_query'] = (object) array( // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			'query_vars' => array( ArchivePage::QUERY_VAR => 'page/999' ),
+			'is_404'     => true,
+		);
+
+		ob_start();
+		$this->head()->maybe_render();
+		$out = (string) ob_get_clean();
+
+		$this->assertSame( '', $out );
+		$this->assertSame( 'Theme Default', $this->head()->filter_title( 'Theme Default' ) );
+	}
+
+	/**
+	 * In-range continuation pages still emit default archive SEO.
+	 *
+	 * @return void
+	 */
+	public function test_emits_on_in_range_continuation_request(): void {
+		OptionStore::set(
+			OptionsSettingsRepository::OPTION_KEY,
+			array( 'full_archive_pagination' => true )
+		);
+		$GLOBALS['wp_query'] = (object) array( // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			'query_vars' => array( ArchivePage::QUERY_VAR => 'page/2' ),
+			'is_404'     => false,
+		);
+
+		ob_start();
+		$this->head()->maybe_render();
+		$out = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '<meta name="robots" content="index,follow">', $out );
+		$this->assertStringContainsString( 'href="http://example.test/archive/page/2/"', $out );
+	}
 }

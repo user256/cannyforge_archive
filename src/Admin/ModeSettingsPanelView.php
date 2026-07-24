@@ -166,7 +166,7 @@ final class ModeSettingsPanelView {
 		echo '</p>';
 		echo '<p><label>' . esc_html__( 'Maximum curated URLs', 'cannyforge-archive' ) . ' ';
 		printf(
-			'<input type="number" min="1" name="blog_max_urls" value="%d"></label></p>',
+			'<input type="number" min="1" max="500" name="blog_max_urls" value="%d"></label></p>',
 			absint( $settings->blog_max_urls() )
 		);
 		echo '<p><textarea id="cf-blog-urls" name="blog_urls" rows="8" cols="50">';

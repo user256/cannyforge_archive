@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Hooks into WordPress post lifecycle, taxonomy term lifecycle, user profile
- * changes, and plugin settings save events to clear the rendered archive HTML
- * transient plus the whole-database search response cache (ticket 608).
+ * Hooks into WordPress post/meta/term lifecycle, user profile changes, and
+ * plugin settings save events to clear the rendered archive HTML, page-one
+ * membership, and whole-database search response caches (ticket 608).
  *
  * Term and user hooks matter because both caches embed whole-database data
  * beyond just the promoted/matched entries — the HTML cache embeds the
@@ -59,6 +59,10 @@ final class CacheInvalidator {
 	public function register(): void {
 		add_action( 'save_post', array( $this, 'invalidate' ) );
 		add_action( 'deleted_post', array( $this, 'invalidate' ) );
+		add_action( 'added_post_meta', array( $this, 'invalidate' ) );
+		add_action( 'updated_post_meta', array( $this, 'invalidate' ) );
+		add_action( 'deleted_post_meta', array( $this, 'invalidate' ) );
+		add_action( 'set_object_terms', array( $this, 'invalidate' ) );
 		add_action( 'cannyforge_archive_settings_saved', array( $this, 'invalidate' ) );
 
 		// Taxonomy terms: generic (taxonomy-agnostic) hooks fire for every

@@ -39,6 +39,10 @@ class CacheInvalidatorTest extends TestCase {
 
 		$this->assertTrue( HookSpy::has( 'save_post' ) );
 		$this->assertTrue( HookSpy::has( 'deleted_post' ) );
+		$this->assertTrue( HookSpy::has( 'added_post_meta' ) );
+		$this->assertTrue( HookSpy::has( 'updated_post_meta' ) );
+		$this->assertTrue( HookSpy::has( 'deleted_post_meta' ) );
+		$this->assertTrue( HookSpy::has( 'set_object_terms' ) );
 		$this->assertTrue( HookSpy::has( 'cannyforge_archive_settings_saved' ) );
 		$this->assertTrue( HookSpy::has( 'created_term' ) );
 		$this->assertTrue( HookSpy::has( 'edited_term' ) );
@@ -53,11 +57,13 @@ class CacheInvalidatorTest extends TestCase {
 
 		$settings = new Settings( mode: Mode::Blog );
 		$cache->set( $settings, '<nav>cached</nav>' );
+		$cache->set_page_one_post_ids( $settings, array( 17 ) );
 		$this->assertSame( '<nav>cached</nav>', $cache->get( $settings ) );
 
 		$invalidator->invalidate();
 
 		$this->assertFalse( $cache->get( $settings ) );
+		$this->assertFalse( $cache->get_page_one_post_ids( $settings ) );
 	}
 
 	/**
@@ -117,6 +123,30 @@ class CacheInvalidatorTest extends TestCase {
 		$callback();
 
 		$this->assertFalse( $cache->get( $settings ) );
+	}
+
+	/**
+	 * Meta and term-assignment mutations can change noindex and selection
+	 * membership without saving the post object, so both clear page-one IDs.
+	 *
+	 * @return void
+	 */
+	public function test_meta_and_term_assignment_hooks_clear_page_one_membership(): void {
+		foreach ( array( 'updated_post_meta', 'set_object_terms' ) as $hook ) {
+			$cache       = new ArchiveCache();
+			$invalidator = new CacheInvalidator( $cache );
+			HookSpy::reset();
+			$invalidator->register();
+
+			$settings = new Settings( mode: Mode::Blog );
+			$cache->set_page_one_post_ids( $settings, array( 17 ) );
+
+			$callback = HookSpy::first( $hook );
+			$this->assertNotNull( $callback, "Expected a callback registered for {$hook}" );
+			$callback();
+
+			$this->assertFalse( $cache->get_page_one_post_ids( $settings ), "Expected {$hook} to clear page-one membership." );
+		}
 	}
 
 	public function test_deleted_post_hook_callback_clears_cache(): void {

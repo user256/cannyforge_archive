@@ -51,6 +51,36 @@ class SettingsTest extends TestCase {
 	}
 
 	/**
+	 * The promoted Blog list stays bounded even when a stored option is hostile.
+	 *
+	 * @return void
+	 */
+	public function test_blog_max_urls_is_capped_to_the_promoted_entry_limit(): void {
+		$settings = new Settings( blog_max_urls: 50000 );
+
+		$this->assertSame( 500, $settings->blog_max_urls() );
+	}
+
+	/**
+	 * Huge persisted curation lists are truncated during settings hydration,
+	 * before a continuation request can map them into page-one entries.
+	 *
+	 * @return void
+	 */
+	public function test_huge_persisted_blog_list_is_truncated_during_hydration(): void {
+		$settings = Settings::from_array(
+			array(
+				'blog_max_urls' => 50000,
+				'blog_urls'     => array_map( static fn ( int $id ): string => 'https://example.test/' . $id, range( 1, 1000 ) ),
+			)
+		);
+
+		$this->assertSame( 500, $settings->blog_max_urls() );
+		$this->assertCount( 500, $settings->blog_urls() );
+		$this->assertSame( 'https://example.test/500', $settings->blog_urls()[499] );
+	}
+
+	/**
 	 * Export then import via the array form is lossless.
 	 *
 	 * @return void

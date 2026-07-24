@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Archive\ContentPage;
+use CannyForge\Archive\Contracts\Settings\ContentSelection;
 use CannyForge\Archive\Contracts\Settings\Settings;
 
 /**
@@ -23,92 +24,101 @@ use CannyForge\Archive\Contracts\Settings\Settings;
  * The promoted first page is deliberately supplied by the caller after its
  * normal filters have run. This means only local post IDs actually rendered on
  * page one are excluded; curated external URLs never suppress a local post.
+ *
+ * Not `final`: unit tests stub {@see self::has_continuation()} when exercising
+ * page-one HTML caching without a WordPress query runtime (ticket 731).
  */
-final class FullArchiveContinuationProvider extends ContentIndexProvider {
+class FullArchiveContinuationProvider extends ContentIndexProvider {
 	/** Entries per server-rendered continuation page. */
-	public const PER_PAGE = 50;
-
-	/** Bounded database batch size while applying PHP-level selection rules. */
-	private const BATCH_SIZE = 200;
+	public const PER_PAGE = FullArchiveQueryArgsBuilder::PER_PAGE;
 
 	/**
-	 * Existing selection-rule implementation.
+	 * Bounded continuation-query builder.
 	 *
-	 * @var ContentSelector
+	 * @var FullArchiveQueryArgsBuilder
 	 */
-	private ContentSelector $selector;
+	private FullArchiveQueryArgsBuilder $queries;
 
 	/**
 	 * Construct the continuation provider.
 	 *
-	 * @param ContentSelector|null $selector Existing selection-rule implementation.
+	 * @param FullArchiveQueryArgsBuilder|null $queries Bounded query-argument builder.
 	 */
-	public function __construct( ?ContentSelector $selector = null ) {
-		$this->selector = $selector ?? new ContentSelector();
+	public function __construct( ?FullArchiveQueryArgsBuilder $queries = null ) {
+		$this->queries = $queries ?? new FullArchiveQueryArgsBuilder();
 	}
 
 	/**
 	 * Return one later archive page. Page one here means `/archive/page/2/`.
 	 *
-	 * @param Settings       $settings       Current settings.
-	 * @param ArchiveEntry[] $page_one       Entries actually rendered on `/archive/`.
-	 * @param int            $page           Continuation page number, one-based.
+	 * @param Settings $settings     Current settings.
+	 * @param int[]    $excluded_ids Stable local IDs actually rendered on `/archive/`.
+	 * @param int      $page         Continuation page number, one-based.
 	 * @return ContentPage
 	 */
-	public function provide_continuation( Settings $settings, array $page_one, int $page ): ContentPage {
-		return $this->page_entries( $this->eligible_entries( $settings, $this->page_one_post_ids( $page_one ) ), $page_one, $page );
+	public function provide_continuation( Settings $settings, array $excluded_ids, int $page ): ContentPage {
+		$excluded_ids = $this->normalise_post_ids( $excluded_ids );
+		$selection    = $settings->content_selection();
+		$page         = max( 1, $page );
+		$total        = $this->count_eligible( $selection, $excluded_ids );
+
+		if ( 0 === $total || ( $page - 1 ) * self::PER_PAGE >= $total ) {
+			return new ContentPage( array(), $total, $page, self::PER_PAGE );
+		}
+
+		$query   = new \WP_Query( $this->build_continuation_query_args( $selection, $excluded_ids, $page ) );
+		$entries = array();
+		foreach ( $query->posts as $post ) {
+			if ( $post instanceof \WP_Post ) {
+				$entries[] = $this->map_post( $post );
+			}
+		}
+
+		return new ContentPage( $entries, $total, $page, self::PER_PAGE );
 	}
 
 	/**
-	 * Make a continuation page from an already ordered eligible list.
+	 * Whether any eligible post remains after excluding page-one membership.
 	 *
-	 * This small pure seam keeps the stable-ID exclusion and page-boundary
-	 * behaviour unit-testable; the runtime query has the same IDs in
-	 * `post__not_in` as a database-level safeguard.
+	 * Page one only needs a yes/no answer before rendering its continuation
+	 * link, so this deliberately fetches at most one ID and skips found rows.
 	 *
-	 * @param ArchiveEntry[] $eligible_entries Newest-to-oldest eligible local entries.
-	 * @param ArchiveEntry[] $page_one         Entries actually rendered on page one.
-	 * @param int            $page             Continuation page number, one-based.
-	 * @return ContentPage
+	 * @param Settings $settings     Current settings.
+	 * @param int[]    $excluded_ids Stable local IDs actually rendered on page one.
+	 * @return bool
 	 */
-	public function page_entries( array $eligible_entries, array $page_one, int $page ): ContentPage {
-		$excluded_ids = $this->page_one_post_ids( $page_one );
-		$entries      = array_values(
-			array_filter(
-				$eligible_entries,
-				static fn ( ArchiveEntry $entry ): bool => ! in_array( $entry->local_post_id(), $excluded_ids, true )
+	public function has_continuation( Settings $settings, array $excluded_ids ): bool {
+		$query = new \WP_Query(
+			$this->queries->existence(
+				$settings->content_selection(),
+				$this->normalise_post_ids( $excluded_ids )
 			)
 		);
 
-		return new ContentPage(
-			array_slice( $entries, max( 0, $page - 1 ) * self::PER_PAGE, self::PER_PAGE ),
-			count( $entries ),
-			$page,
-			self::PER_PAGE
-		);
+		return array() !== $query->posts;
 	}
 
 	/**
-	 * Build the bounded query used for each candidate batch.
+	 * Build the bounded query used for one requested continuation page.
 	 *
-	 * @param int[] $excluded_ids Page-one local post IDs.
-	 * @param int   $page         Candidate batch number.
+	 * @param ContentSelection $selection    Existing content-selection rules.
+	 * @param int[]            $excluded_ids Page-one local post IDs.
+	 * @param int              $page         Continuation page number.
 	 * @return array<string, mixed>
 	 */
-	public function build_continuation_query_args( array $excluded_ids, int $page ): array {
-		return array(
-			'post_status'         => 'publish',
-			'post_type'           => 'post',
-			'orderby'             => array(
-				'date' => 'DESC',
-				'ID'   => 'DESC',
-			),
-			'posts_per_page'      => self::BATCH_SIZE,
-			'paged'               => max( 1, $page ),
-			'post__not_in'        => $excluded_ids,
-			'no_found_rows'       => true,
-			'ignore_sticky_posts' => true,
-		);
+	public function build_continuation_query_args( ContentSelection $selection, array $excluded_ids, int $page ): array {
+		return $this->queries->page( $selection, $excluded_ids, $page );
+	}
+
+	/**
+	 * Build the one-row query used to obtain the exact continuation total.
+	 *
+	 * @param ContentSelection $selection    Existing content-selection rules.
+	 * @param int[]            $excluded_ids Page-one local post IDs.
+	 * @return array<string, mixed>
+	 */
+	public function build_continuation_count_args( ContentSelection $selection, array $excluded_ids ): array {
+		return $this->queries->count( $selection, $excluded_ids );
 	}
 
 	/**
@@ -117,7 +127,7 @@ final class FullArchiveContinuationProvider extends ContentIndexProvider {
 	 * @param ArchiveEntry[] $entries Page-one entries.
 	 * @return int[]
 	 */
-	private function page_one_post_ids( array $entries ): array {
+	public function page_one_post_ids( array $entries ): array {
 		$ids = array();
 		foreach ( $entries as $entry ) {
 			if ( $entry instanceof ArchiveEntry && $entry->local_post_id() > 0 ) {
@@ -129,32 +139,25 @@ final class FullArchiveContinuationProvider extends ContentIndexProvider {
 	}
 
 	/**
-	 * Query every eligible local post in bounded chronological batches.
+	 * Clean cached page-one membership before it reaches a query argument.
 	 *
-	 * @param Settings $settings     Current settings.
-	 * @param int[]    $excluded_ids Page-one local post IDs.
-	 * @return ArchiveEntry[]
+	 * @param int[] $post_ids Raw stable local post IDs.
+	 * @return int[]
 	 */
-	private function eligible_entries( Settings $settings, array $excluded_ids ): array {
-		$entries = array();
-		$page    = 1;
+	private function normalise_post_ids( array $post_ids ): array {
+		return array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) );
+	}
 
-		do {
-			$query = new \WP_Query( $this->build_continuation_query_args( $excluded_ids, $page ) );
-			$batch = array();
-			foreach ( $query->posts as $post ) {
-				if ( $post instanceof \WP_Post ) {
-					$batch[] = $this->map_post( $post );
-				}
-			}
-			$batch_count = count( $batch );
+	/**
+	 * Count eligible local posts without materialising them in PHP.
+	 *
+	 * @param ContentSelection $selection    Existing content-selection rules.
+	 * @param int[]            $excluded_ids Page-one local post IDs.
+	 * @return int
+	 */
+	private function count_eligible( ContentSelection $selection, array $excluded_ids ): int {
+		$query = new \WP_Query( $this->build_continuation_count_args( $selection, $excluded_ids ) );
 
-			// Keep the database's date/ID order. Pins belong to the curated first
-			// page and must not reorder the chronological continuation.
-			$entries = array_merge( $entries, $this->selector->filter_entries( $batch, $settings->content_selection() ) );
-			++$page;
-		} while ( self::BATCH_SIZE === $batch_count );
-
-		return $entries;
+		return (int) $query->found_posts;
 	}
 }

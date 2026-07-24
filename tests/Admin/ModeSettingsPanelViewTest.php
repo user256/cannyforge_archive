@@ -62,6 +62,7 @@ class ModeSettingsPanelViewTest extends TestCase {
 		);
 
 		$this->assertStringContainsString( 'name="blog_max_urls" value="42"', $html );
+		$this->assertStringContainsString( 'min="1" max="500" name="blog_max_urls"', $html );
 		$this->assertStringContainsString( 'https://example.test/a/', $html );
 		$this->assertStringContainsString( 'https://example.test/b/', $html );
 	}

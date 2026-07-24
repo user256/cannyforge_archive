@@ -10,13 +10,14 @@ declare(strict_types=1);
 namespace CannyForge\Archive\Tests\Frontend;
 
 use CannyForge\Archive\Contracts\Settings\Mode;
+use CannyForge\Archive\Contracts\Settings\Filters;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Core\Archive\ArchiveRenderer;
 use CannyForge\Archive\Core\Archive\ArchiveUrlResolver;
-use CannyForge\Archive\Core\Archive\FixtureEntryProvider;
 use CannyForge\Archive\Core\Cache\ArchiveCache;
 use CannyForge\Archive\Core\Settings\OptionsSettingsRepository;
 use CannyForge\Archive\Frontend\ArchivePage;
+use CannyForge\Archive\Tests\FixtureEntryProvider;
 use CannyForge\Archive\Tests\HookSpy;
 use CannyForge\Archive\Tests\OptionStore;
 use CannyForge\Archive\Tests\TransientStore;
@@ -38,6 +39,13 @@ class ArchivePageTest extends TestCase {
 		TransientStore::reset();
 		unset( $GLOBALS['wp_query'] );
 		unset( $GLOBALS['cannyforge_test_safe_redirect_result'] );
+		$GLOBALS['cannyforge_test_get_terms_args']      = array();
+		$GLOBALS['cannyforge_test_get_users_args']      = array();
+		$GLOBALS['cannyforge_test_get_posts_args']      = array();
+		$GLOBALS['cannyforge_test_wpdb_get_col_result'] = array();
+		$GLOBALS['cannyforge_test_object_cache']        = array();
+		$GLOBALS['cannyforge_test_cache_last_changed']  = array( 'posts' => '1' );
+		$GLOBALS['wpdb']->queries                       = array();
 	}
 
 	/**
@@ -124,6 +132,43 @@ class ArchivePageTest extends TestCase {
 		$ref->invoke( $page, new Settings( mode: Mode::Blog ) );
 
 		$this->assertTrue( HookSpy::has( 'apply_filters:cannyforge_archive_entries' ) );
+	}
+
+	/**
+	 * Disabled dimensions do not issue whole-database option queries.
+	 *
+	 * @return void
+	 */
+	public function test_disabled_filter_dimensions_are_not_queried(): void {
+		$page = $this->page();
+		$ref  = new \ReflectionMethod( $page, 'filter_options' );
+		$ref->setAccessible( true );
+
+		$options = $ref->invoke(
+			$page,
+			new Settings( filters: new Filters( true, false, false, false, false ) )
+		);
+
+		$this->assertSame( array(), $options );
+		$this->assertSame( array(), $GLOBALS['cannyforge_test_get_terms_args'] );
+		$this->assertSame( array(), $GLOBALS['cannyforge_test_get_users_args'] );
+		$this->assertSame( array(), $GLOBALS['wpdb']->queries );
+	}
+
+	/**
+	 * Default options query categories, tags and months, but not authors.
+	 *
+	 * @return void
+	 */
+	public function test_default_filter_options_skip_disabled_author_dimension(): void {
+		$page = $this->page();
+		$ref  = new \ReflectionMethod( $page, 'filter_options' );
+		$ref->setAccessible( true );
+		$ref->invoke( $page, new Settings() );
+
+		$this->assertCount( 2, $GLOBALS['cannyforge_test_get_terms_args'] );
+		$this->assertSame( array(), $GLOBALS['cannyforge_test_get_users_args'] );
+		$this->assertCount( 1, $GLOBALS['wpdb']->queries );
 	}
 
 	/**
@@ -250,5 +295,45 @@ class ArchivePageTest extends TestCase {
 			$redirects
 		);
 		$this->assertTrue( HookSpy::has( 'status_header:404' ) );
+	}
+
+	/**
+	 * With full-archive pagination on, page-one HTML is fragment-cached
+	 * (ticket 731).
+	 *
+	 * @return void
+	 */
+	public function test_full_archive_page_one_uses_fragment_cache(): void {
+		$cache         = new ArchiveCache();
+		$continuation  = new class() extends \CannyForge\Archive\Core\Archive\FullArchiveContinuationProvider {
+			public function has_continuation( Settings $settings, array $excluded_ids ): bool {
+				unset( $settings, $excluded_ids );
+				return true;
+			}
+		};
+		$page          = new ArchivePage(
+			new OptionsSettingsRepository(),
+			new FixtureEntryProvider(),
+			new ArchiveRenderer(),
+			ArchivePage::DEFAULT_SLUG,
+			$cache,
+			null,
+			null,
+			$continuation
+		);
+		$settings      = new Settings( mode: Mode::Blog, full_archive_pagination: true );
+		$ref           = new \ReflectionMethod( $page, 'build_html' );
+		$ref->setAccessible( true );
+
+		$html = $ref->invoke( $page, $settings );
+		$this->assertStringContainsString( 'Browse the full archive', $html );
+		$this->assertSame( $html, $cache->get( $settings ) );
+
+		// A second build must be a cache hit: the stub would still return the
+		// same CTA, but provider/render hooks must not fire again.
+		HookSpy::reset();
+		$again = $ref->invoke( $page, $settings );
+		$this->assertSame( $html, $again );
+		$this->assertFalse( HookSpy::has( 'do_action:cannyforge_archive_before_render' ) );
 	}
 }

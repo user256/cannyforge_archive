@@ -103,6 +103,12 @@ class UninstallCleanerTest extends TestCase {
 				'cannyforge_archive_html_blog',
 				'cannyforge_archive_html_news',
 				'cannyforge_archive_html_hybrid',
+				'cannyforge_archive_html_blog_full',
+				'cannyforge_archive_html_news_full',
+				'cannyforge_archive_html_hybrid_full',
+				'cannyforge_archive_page_one_ids_blog',
+				'cannyforge_archive_page_one_ids_news',
+				'cannyforge_archive_page_one_ids_hybrid',
 			),
 			UninstallCleaner::transient_keys()
 		);

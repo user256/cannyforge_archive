@@ -26,6 +26,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * filter; `label` is what the user sees.
  */
 final class FilterOptionsProvider {
+	/** Object-cache group for whole-database option lists. */
+	private const CACHE_GROUP = 'cannyforge_archive';
+
 	/**
 	 * Distinct categories across the site as slug→name pairs.
 	 *
@@ -75,34 +78,45 @@ final class FilterOptionsProvider {
 	 * @return array<int, array{value: string, label: string}>
 	 */
 	public function months(): array {
-		$found = get_posts(
-			array(
-				'post_type'      => 'post',
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-				'no_found_rows'  => true,
-			)
+		$cache_key = 'filter_months_' . wp_cache_get_last_changed( 'posts' );
+		$cached    = wp_cache_get( $cache_key, self::CACHE_GROUP );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+
+		global $wpdb;
+		if ( ! $wpdb instanceof \wpdb ) {
+			return array();
+		}
+
+		$query = $wpdb->prepare(
+			'SELECT DISTINCT DATE_FORMAT(post_date, %s) AS archive_month
+			FROM %i
+			WHERE post_type = %s AND post_status = %s
+			ORDER BY archive_month DESC',
+			'%Y-%m',
+			$wpdb->posts,
+			'post',
+			'publish'
 		);
 
+		$found  = $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- DISTINCT is not expressible through WP_Query; $query is prepared above and keyed to the core posts last-changed cache token.
 		$months = array();
-		foreach ( $found as $post_id ) {
-			$ymd = get_the_date( 'Y-m', (int) $post_id );
-			if ( is_string( $ymd ) && '' !== $ymd ) {
-				$months[ $ymd ] = true;
+		foreach ( $found as $year_month ) {
+			if ( is_string( $year_month ) && 1 === preg_match( '/^[0-9]{4}-(0[1-9]|1[0-2])$/', $year_month ) ) {
+				$months[] = $year_month;
 			}
 		}
 
-		$keys = array_keys( $months );
-		rsort( $keys );
-
 		$options = array();
-		foreach ( $keys as $ym ) {
+		foreach ( array_values( array_unique( $months ) ) as $ym ) {
 			$options[] = array(
 				'value' => $ym,
 				'label' => $this->human_month( $ym ),
 			);
 		}
+
+		wp_cache_set( $cache_key, $options, self::CACHE_GROUP );
 
 		return $options;
 	}

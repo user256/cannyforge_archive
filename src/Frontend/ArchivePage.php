@@ -248,12 +248,7 @@ final class ArchivePage {
 
 		$entries = $this->page_one_entries( $settings );
 
-		$options = array(
-			'category' => $this->options->categories(),
-			'tag'      => $this->options->tags(),
-			'author'   => $this->options->authors(),
-			'month'    => $this->options->months(),
-		);
+		$options = $this->filter_options( $settings );
 
 		do_action( 'cannyforge_archive_before_render' );
 		$html = $this->renderer->render( $entries, $settings, $options );
@@ -270,17 +265,19 @@ final class ArchivePage {
 	 * @return string
 	 */
 	private function build_page_one_html( Settings $settings ): string {
-		$entries = $this->page_one_entries( $settings );
-		$page    = $this->continuation->provide_continuation( $settings, $entries, 1 );
-		$options = array(
-			'category' => $this->options->categories(),
-			'tag'      => $this->options->tags(),
-			'author'   => $this->options->authors(),
-			'month'    => $this->options->months(),
-		);
+		$cached = $this->cache->get( $settings );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
+		$entries      = $this->page_one_entries( $settings );
+		$excluded_ids = $this->continuation->page_one_post_ids( $entries );
+		$this->cache->set_page_one_post_ids( $settings, $excluded_ids );
+		$has_continuation = $this->continuation->has_continuation( $settings, $excluded_ids );
+		$options          = $this->filter_options( $settings );
 		do_action( 'cannyforge_archive_before_render' );
 		$html = $this->renderer->render( $entries, $settings, $options );
-		if ( $page->total() > 0 ) {
+		if ( $has_continuation ) {
 			$html .= sprintf(
 				'<nav class="cannyforge-archive__pagination" aria-label="%s"><a rel="next" href="%s">%s</a></nav>',
 				esc_attr__( 'Archive pages', 'cannyforge-archive' ),
@@ -289,6 +286,7 @@ final class ArchivePage {
 			);
 		}
 		do_action( 'cannyforge_archive_after_render' );
+		$this->cache->set( $settings, $html );
 
 		return $html;
 	}
@@ -301,6 +299,32 @@ final class ArchivePage {
 	 */
 	private function page_one_entries( Settings $settings ): array {
 		return apply_filters( 'cannyforge_archive_entries', $this->provider->provide( $settings ) );
+	}
+
+	/**
+	 * Fetch option lists only for filter dimensions that will be rendered.
+	 *
+	 * @param Settings $settings Current settings.
+	 * @return array<string, array<int, array{value: string, label: string}>>
+	 */
+	private function filter_options( Settings $settings ): array {
+		$filters = $settings->filters();
+		$options = array();
+
+		if ( $filters->category() ) {
+			$options['category'] = $this->options->categories();
+		}
+		if ( $filters->tag() ) {
+			$options['tag'] = $this->options->tags();
+		}
+		if ( $filters->author() ) {
+			$options['author'] = $this->options->authors();
+		}
+		if ( $filters->month_year() ) {
+			$options['month'] = $this->options->months();
+		}
+
+		return $options;
 	}
 
 	/**
@@ -322,8 +346,14 @@ final class ArchivePage {
 			exit;
 		}
 
-		$entries = $this->page_one_entries( $settings );
-		$page    = $this->continuation->provide_continuation( $settings, $entries, $requested - 1 );
+		$excluded_ids = $this->cache->get_page_one_post_ids( $settings );
+		if ( false === $excluded_ids ) {
+			$entries      = $this->page_one_entries( $settings );
+			$excluded_ids = $this->continuation->page_one_post_ids( $entries );
+			$this->cache->set_page_one_post_ids( $settings, $excluded_ids );
+		}
+
+		$page = $this->continuation->provide_continuation( $settings, $excluded_ids, $requested - 1 );
 		if ( 0 === $page->total() || $requested - 1 > $page->total_pages() ) {
 			global $wp_query;
 			if ( $wp_query instanceof \WP_Query ) {

@@ -78,6 +78,15 @@ class ArchiveUrlResolver {
 	}
 
 	/**
+	 * The rewrite-endpoint slug (never empty).
+	 *
+	 * @return string
+	 */
+	public function slug(): string {
+		return $this->slug;
+	}
+
+	/**
 	 * Where a "View Archive" link — or a non-canonical request to the endpoint
 	 * itself — should send the visitor: the configured `archive_url` override,
 	 * or the endpoint URL.

@@ -73,6 +73,25 @@ class ContentSelectorTest extends TestCase {
 	}
 
 	/**
+	 * Category and tag rules apply only to their own taxonomy, even where a
+	 * category and tag share the same visible name.
+	 *
+	 * @return void
+	 */
+	public function test_taxonomy_specific_rules_do_not_cross_match_same_named_terms(): void {
+		$entries = array(
+			$this->entry( 'category', array( 'News' ) ),
+			$this->entry( 'tag', array(), array( 'News' ) ),
+		);
+
+		$included = ( new ContentSelector() )->select( $entries, new ContentSelection( array( 'News' ) ) );
+		$excluded = ( new ContentSelector() )->select( $entries, new ContentSelection( array(), array(), array( 'News' ) ) );
+
+		$this->assertSame( array( 'category' ), $this->urls( $included ) );
+		$this->assertSame( array( 'tag' ), $this->urls( $excluded ) );
+	}
+
+	/**
 	 * Exclude rules drop entries matching any excluded term.
 	 *
 	 * @return void
@@ -186,5 +205,35 @@ class ContentSelectorTest extends TestCase {
 		$result = ( new ContentSelector() )->select( $entries, $rules );
 
 		$this->assertSame( array( 'a' ), $this->urls( $result ) );
+	}
+
+	/**
+	 * Case differs but the label is otherwise identical: keep the entry
+	 * (aligned with case-insensitive `tax_query` name matching).
+	 *
+	 * @return void
+	 */
+	public function test_include_is_case_insensitive(): void {
+		$entries = array( $this->entry( 'a', array( 'News' ) ) );
+		$rules   = new ContentSelection( array( 'news' ) );
+
+		$result = ( new ContentSelector() )->select( $entries, $rules );
+
+		$this->assertSame( array( 'a' ), $this->urls( $result ) );
+	}
+
+	/**
+	 * Punctuation/spacing differences do not fuzzy-match — same contract as
+	 * full-archive `tax_query` `field => name` (ticket 730).
+	 *
+	 * @return void
+	 */
+	public function test_include_does_not_strip_punctuation_to_match_slugs(): void {
+		$entries = array( $this->entry( 'a', array( 'News & Events' ) ) );
+		$rules   = new ContentSelection( array( 'news-events' ) );
+
+		$result = ( new ContentSelector() )->select( $entries, $rules );
+
+		$this->assertSame( array(), $this->urls( $result ) );
 	}
 }

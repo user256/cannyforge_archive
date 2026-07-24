@@ -13,8 +13,8 @@ use CannyForge\Archive\Contracts\Archive\ArchiveEntry;
 use CannyForge\Archive\Contracts\Settings\ContentSelection;
 use CannyForge\Archive\Contracts\Settings\Settings;
 use CannyForge\Archive\Core\Archive\ContentSelector;
-use CannyForge\Archive\Core\Archive\FixtureEntryProvider;
 use CannyForge\Archive\Core\Archive\SelectingEntryProvider;
+use CannyForge\Archive\Tests\FixtureEntryProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
